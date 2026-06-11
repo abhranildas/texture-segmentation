@@ -1,0 +1,385 @@
+%
+% texture discrimination for given eccentricity
+clearvars;
+close all;
+rng(0);
+% rng('shuffle')
+%
+% indicate whether to use color information (if available)
+usecolor = 0; % 1 = color, 0 = grayscale
+%
+% what type of input images
+% 1 = linear RGB, 2 = RBG, 3 = linear grayscale
+itype = 2;  
+%
+% image and patch sizes
+sz = 640;               % texture image size
+psz = 64;               % patch size
+ppd = 60;
+%
+% indicate whether training or test
+train = 1;              % 1 = train only, 2 = train & save, 0 = test 
+%
+% size of traing or test sets
+nimgk = 60; nimgj = 60; % number of textures (even numbers, nimgk >= nimgj)
+mnk = 1;  mnj = 1;      % first texture numbers
+ntrl = 10;              % number of trials per texture pair
+%
+% optical filter
+filter = 0;             % 1 = apply optical filter, 0 = no filter
+pd = 4;                 % pupil diameter
+w = 550;                % wavelength
+%
+% power spectrum
+b0 = 10;                 % weak Fourier power suppression parameter 
+%
+% gray scale or color histogram
+ntype = 3;    % normalization type (0 = none, 3 = m)
+m0 = 128;     % normalization mean
+c0 = 0.25;    % normalization contrast
+ncolr = 3;    % number color channels for histogram (use 3 even for grayscale)
+abr = 1;      % 1 = abr space, 0 = other
+binflag = 2;
+nb1 = 16;    % number of bins for channel 1
+nb2 = 8;     % number of bins for channel 2
+nb3 = 8;     % number of bins for channel 3
+nbg = 8;    % number of bins for gradient magnitude
+if binflag == 0 % linear bins
+  b1 = zeros(nb1+1,1); % histogram edges
+  bw1 = 256/nb1;
+  for i = 1:nb1+1
+    b1(i) = (i-1)*bw1;
+  end
+  bw2 = 256/nb2;
+  b2 = zeros(nb2+1,1); % histogram edges
+  for i = 1:nb2+1
+    b2(i) = (i-1)*bw2;
+  end
+  bw3 = 256/nb3;
+  b3 = zeros(nb3+1,1); % histogram edges
+  for i = 1:nb3+1
+    b3(i) = (i-1)*bw3;
+  end
+%
+elseif binflag == 1 % sRGB bins
+  a = 1/2.1; % adobe rgb gamma compression
+  b1 = zeros(nb1+1,1); % histogram edges
+  bw1 = 256/nb1;
+  for i = 1:nb1+1
+    b1(i) = (i-1)*bw1;
+  end
+  bw2 = 256/nb2;
+  b2 = zeros(nb2+1,1); % histogram edges
+  for i = 1:nb2+1
+    b2(i) = (i-1)*bw2;
+  end
+  bw3 = 256/nb3;
+  b3 = zeros(nb3+1,1); % histogram edges
+  for i = 1:nb3+1
+    b3(i) = (i-1)*bw3;
+  end
+  b1 = (b1.^(1/a))/(256^((1-a)/a));
+  b2 = (b2.^(1/a))/(256^((1-a)/a));
+  b3 = (b3.^(1/a))/(256^((1-a)/a));
+%
+elseif binflag == 2 % cdf bins
+  load("cdfs-9-10-12_8.mat"); % natural image cdfs
+  b1 = mk_bins(ea,Na,nb1);
+  b2 = mk_bins(eb,Nb,nb2);
+  b3 = mk_bins(er,Nr,nb3);
+  bg = mk_bins(eg,Ng,nbg);
+end
+%
+% edge element histogram
+thresh = 0;            % gradient threshold
+eflag = 2;
+if eflag == 1
+  nd = 16; nth = 16;    % number of distance and orientation bins
+  ndm = nd;             % limit on distance bins
+  dmx = psz + psz/2;
+  stpd = floor(dmx/nd);
+  stpth = floor(360/nth);
+elseif eflag == 2
+  nd = 8; nth = 8;       % number of distance and delta orientation bins
+  ndm = nd-3;             % limit on distance bins
+  dmx = psz;
+  stpd = floor(dmx/nd);
+  stpth = floor(360/nth);
+elseif eflag == 3
+  nd = 8; nth = 12;       % number of distance and orientation bins
+  ndm = nd-3;             % limit on distance bins
+  dmx = psz;
+  stpd = floor(dmx/nd);
+  stpth = floor(180/nth);
+end
+bd = (0:stpd:dmx);
+bdth = (0:stpth:180);     % note there are fewer delta orientation bins
+bth = (-180:stpth:180);
+% bg = mk_bins(eg,Ng,nbg);
+%
+% Retinal resolution and location
+lev = 1;                % level of downsampling (1,2,4,8,or 16)
+rszflag = 0;            % image resize flag, 0 = no resize 1 = resize
+if rszflag == 1
+  sz = 2*sz/lev;        % texture image size
+  psz = 2*psz/lev;      % patch size
+else
+  sz = sz/lev;          % texture image size
+  psz = psz/lev;        % patch size
+end
+%
+% trial storage (separate for same and different trials)
+nall = (nimgk*nimgj/2 - nimgk/2)*ntrl;
+rpd = zeros(nimgk,nimgj,ntrl);  % power spectrum
+rhd = zeros(nimgk,nimgj,ntrl);  % rgb or gray-scale histogram
+red = zeros(nimgk,nimgj,ntrl);  % edges
+rps = zeros(nimgk,nimgj,ntrl);
+rhs = zeros(nimgk,nimgj,ntrl);
+res = zeros(nimgk,nimgj,ntrl);
+vrpd = zeros(nall,1);
+vrhd = zeros(nall,1);
+vred = zeros(nall,1);
+vrps = zeros(nall,1);
+vrhs = zeros(nall,1);
+vres = zeros(nall,1);
+r = zeros(psz,psz);
+g = zeros(psz,psz);
+b = zeros(psz,psz);
+%
+% different trials
+n = 1; i0 = 0;
+for k = 1:nimgk
+  num = num2str(k-1+mnk);
+  name = append('FC',num,'.png');
+  % name = append('B',num,'.gif');
+  imgk = imread(name);
+  if rszflag == 1
+    imgk = double(imresize(imgk,2,'nearest'));
+  else
+    imgk = double(imgk);
+  end
+  %
+  % adjust for image type
+  if itype == 1
+    imk = imgk;
+  elseif itype == 2
+    imk = rgb2lin(imgk);
+  elseif itype == 3
+    imk = mk_gRGB(imgk,itype);
+  end    
+  imk = fil_dsmp(imk,ppd,pd,w,lev,filter,ncolr);    % filter and downsample
+  for j = k+1:nimgj
+    num = num2str(j-1+mnk);
+    name = append('FC',num,'.png');
+    % name = append('B',num,'.gif');
+    imgj = imread(name);
+    if rszflag == 1
+      imgj = double(imresize(imgj,2,'nearest'));
+    else
+      imgj = double(imgj);
+    end
+    %
+    % adjust for image type
+    if itype == 1
+      imj = imgj;
+    elseif itype == 2
+      imj = rgb2lin(imgj);
+    elseif itype == 3
+      imj = mk_gRGB(imgj,itype);
+    end    
+    imj = fil_dsmp(imj,ppd,pd,w,lev,filter,ncolr);    % filter and downsample    
+%
+% run trials
+    i = 1;
+    while i <= ntrl
+%
+% texture patch k
+      x = randi(sz-psz);
+      y = randi(sz-psz);
+      ptch1 = imk(x:x+psz-1,y:y+psz-1,:);
+      [ptch1,mnv1] = ptch_norm(ptch1,m0,c0,ntype); % norm patch & means
+%
+% texture patch j
+      x = randi(sz-psz);
+      y = randi(sz-psz);
+      ptch2 = imj(x:x+psz-1,y:y+psz-1,:);
+      [ptch2,mnv2] = ptch_norm(ptch2,m0,c0,ntype); % norm patch & means
+%
+% remove color information for edge and power measures
+      itmp = mk_gRGB(ptch1,1);
+      gptch1 = itmp(:,:,1);
+      itmp = mk_gRGB(ptch2,1);
+      gptch2 = itmp(:,:,1);
+%
+% compute responses
+      rpd(k,j,i) = Rp(gptch1,gptch2,b0,psz);
+      rhd(k,j,i) = Rh(ptch1,ptch2,b1,b2,b3,usecolor,abr);
+      % red(k,j,i) = Re(gptch1,gptch2,psz,thresh,ndm,bd,bth,bdth,bg,eflag);
+      red(k,j,i) = Re_new(gptch1,gptch2,psz,thresh,bth,bg,eflag);      
+      vrpd(n,1) = log(rpd(k,j,i));
+      vrhd(n,1) = log(rhd(k,j,i));
+      vred(n,1) = log(red(k,j,i));
+      % vred(n,1) = red(k,j,i);
+      if (vrhd(n,1) > -10) && (vrpd(n,1) > -10) && (vred(n,1) > -10)          
+        i = i + 1;
+        n = n+1;
+      else
+        i0 = i0+1;  
+      end
+    end
+  end
+end
+%
+% same trials
+n = 1;
+for k = 1:nimgk
+  num = num2str(k-1+mnk);
+  name = append('FC',num,'.png');
+  % name = append('B',num,'.gif');
+  imgk = imread(name);
+  if rszflag == 1
+    imgk = double(imresize(imgk,2,'nearest'));
+  else
+    imgk = double(imgk);
+  end
+  %
+  % adjust for image type
+  if itype == 1
+    imk = imgk;
+  elseif itype == 2
+    imk = rgb2lin(imgk);
+  elseif itype == 3
+    imk = mk_gRGB(imgk,itype);
+  end    
+  imk = fil_dsmp(imk,ppd,pd,w,lev,filter,ncolr);    % filter and downsample    
+%
+% make image j the same as image k
+  imj = imk;
+%
+  for j = 1:nimgj/2
+% run trials
+    i = 1;
+    while i <= ntrl
+%
+% texture patch k
+      x = randi(sz-psz);
+      y = randi(sz-psz);
+      ptch1 = imk(x:x+psz-1,y:y+psz-1,:);
+      [ptch1,mnv1] = ptch_norm(ptch1,m0,c0,ntype); % norm patch & means
+%
+% texture patch j
+      x = randi(sz-psz);
+      y = randi(sz-psz);
+      ptch2 = imk(x:x+psz-1,y:y+psz-1,:);
+      [ptch2,mnv2] = ptch_norm(ptch2,m0,c0,ntype); % norm patch & means
+%
+% remove color information for edge and power measures
+      itmp = mk_gRGB(ptch1,2);
+      gptch1 = itmp(:,:,1);
+      itmp = mk_gRGB(ptch2,2);
+      gptch2 = itmp(:,:,1);
+%
+% compute responses
+      rps(k,j,i) = Rp(gptch1,gptch2,b0,psz);
+      rhs(k,j,i) = Rh(ptch1,ptch2,b1,b2,b3,usecolor,abr);
+      % res(k,j,i) = Re(gptch1,gptch2,psz,thresh,ndm,bd,bth,bdth,bg,eflag);
+      res(k,j,i) = Re_new(gptch1,gptch2,psz,thresh,bth,bg,eflag);
+      vrps(n,1) = log(rps(k,j,i));
+      vrhs(n,1) = log(rhs(k,j,i));
+      vres(n,1) = log(res(k,j,i));
+      % vres(n,1) = res(k,j,i);      
+      if (vrhs(n,1) > -10) && (vrps(n,1) > -10) && (vres(n,1) > -10)
+        i = i + 1;
+        n = n+1;
+      else
+        i0 = i0+1;  
+      end
+    end
+  end
+end
+% %
+% % analysis of Rp 1
+% figure; h1 = histogram(vrps); hold on; h2 = histogram(vrpd);
+% h1.Normalization = 'probability'; h1.BinWidth = 0.25;
+% h2.Normalization = 'probability'; h2.BinWidth = 0.25;
+% xlabel('normalized log power decision variable');
+% ylabel('probability');
+% %
+% % analysis of Rh 2
+% figure; h1 = histogram(vrhs); hold on; h2 = histogram(vrhd);
+% h1.Normalization = 'probability'; h1.BinWidth = 0.25;
+% h2.Normalization = 'probability'; h2.BinWidth = 0.25;
+% xlabel('normalized log histogram decision variable');
+% ylabel('probability');
+% %
+% % analysis of Re 3
+% figure; h1 = histogram(vres); hold on; h2 = histogram(vred);
+% h1.Normalization = 'probability'; h1.BinWidth = 0.25;
+% h2.Normalization = 'probability'; h2.BinWidth = 0.25;
+% xlabel('normalized log histogram decision variable');
+% ylabel('probability');
+%
+% texture discrimination performance
+if train == 1  % train and show all results
+  results_p =  classify_normals(vrps,vrpd,...
+    'input_type','samp'); % 1 power
+  axis([-8 -3 0 inf]);
+  results_h =  classify_normals(vrhs,vrhd,...
+    'input_type','samp'); % 2 color histogram
+  axis([0 10 0 inf]);
+  results_e =  classify_normals(vres,vred,...
+    'input_type','samp'); % 3 edge histogram   
+    axis([0 10 0 inf]);
+  results_pe =  classify_normals([vrps,vres],[vrpd,vred],...
+    'input_type','samp'); % 4 power & edge
+    axis([-8 -3 0 10]);
+  results_he =  classify_normals([vrhs,vres],[vrhd,vred],...
+    'input_type','samp'); % 5 histogram & edge
+    axis([0 10 0 10]);
+  results_ph =  classify_normals([vrps,vrhs],[vrpd,vrhd],...
+    'input_type','samp'); % 6 power & histogram
+    axis([-8 -3 0 10]);
+  results =  classify_normals([vrps,vrhs,vres],[vrpd,vrhd,vred],...
+    'input_type','samp'); % 7 power, histogram & edge
+  axis([-8 -3 0 10 1 6]);
+%
+elseif train == 2 % train on all responses and save bound
+  results_p =  classify_normals(vrps,vrpd,...
+    'input_type','samp'); % 1 power
+  axis([-8 -3 0 inf]);
+  results_h =  classify_normals(vrhs,vrhd,...
+    'input_type','samp'); % 2 color histogram
+  axis([0 10 0 inf]);
+  results_e =  classify_normals(vres,vred,...
+    'input_type','samp'); % 3 edge histogram   
+    axis([0 10 0 inf]);
+  results_pe =  classify_normals([vrps,vres],[vrpd,vred],...
+    'input_type','samp'); % 4 power & edge
+    axis([-8 -3 0 10]);
+  results_he =  classify_normals([vrhs,vres],[vrhd,vred],...
+    'input_type','samp'); % 5 histogram & edge
+    axis([0 10 0 10]);
+  results_ph =  classify_normals([vrps,vrhs],[vrpd,vrhd],...
+    'input_type','samp'); % 6 power & histogram
+    axis([-8 -3 0 10]);
+  results =  classify_normals([vrps,vrhs,vres],[vrpd,vrhd,vred],...
+    'input_type','samp'); % 7 power, histogram & edge
+  axis([-8 -3 0 10 1 6]);
+  %
+  % dom = results.norm_bd;     % normal decision bound
+  dom = results.samp_opt_bd; % sample optimized bound
+  % ax=axis; % get axis limits
+  axis([-8 -3 -2 8 1 6]); ax = [-8 -3 -2 8 1 6];
+  save("bound.mat","dom","ax");
+%  
+else  % apply stored bound and axes
+  load("bd_b160_g_l2.mat","dom","ax");
+  results =  classify_normals([vrps,vrhs,vres],[vrpd,vrhd,vred],...
+    'input_type','samp','dom',dom,'samp_opt',false);
+  axis([-8 -3 -2 8 1 6])
+end
+
+
+
+
+
