@@ -64,14 +64,14 @@ utilities → candidates for the shared `+psychexp` framework instead.)
 - `+experiment` duplicates its whole harness across `+discriminate` and `+grouping`. There is a
   latent bug: `+grouping/+run/runTrial.m` and `runLevel.m` call `experiment.run.*` (not
   `experiment.grouping.run.*`), so the duplicated packages may not even resolve as-is.
-- **DONE (additive):** `vision-commons/+psychexp` (shared session→level→trial loop) added, and
-  `+experiment/+grouping/+run/run_shared.m` wires this package's existing interval functions as hooks
-  and delegates the loop/screen setup to it. `run_shared` uses the correct `experiment.grouping.run.*`
-  namespace (fixing the latent `experiment.run.*` bug). Parse-verified only — **needs validation on a
-  Psychtoolbox machine** before retiring the originals.
-- **Pending:** once validated, retire `runExperiment.m`/`runLevel.m`/`runTrial.m` (superseded by
-  `run_shared` + `psychexp`); add the analogous `run_shared` adapter for the `+discriminate` experiment
-  (its `+run` harness is a near-duplicate) and drop the duplication.
+- **DONE:** `vision-commons/+psychexp` (shared session→level→trial loop) added; `runExperiment.m` for
+  BOTH the `+grouping` and `+discriminate` experiments now delegates the loop/screen to it, wiring each
+  task's interval functions as hooks. The superseded `runLevel.m`/`runTrial.m` in both `+run` packages
+  were **deleted** (commit `de7cb3148`), fixing the grouping harness's latent `experiment.run.*` namespace
+  bug. Parse-verified; not headless-testable (Psychtoolbox) — PTB validation waived by the user.
+- The `+discriminate` and `+grouping` **interval functions** are still near-duplicates of each other
+  (fixation/response/feedback/displayLevelStart are effectively identical; only `stimulusInterval` differs
+  trivially). They could be merged into one shared set parameterized by task — optional further dedup.
 
 ## 8. `img_data/` (~95k derived files)
 - `img_data/brodatz/patches/{train,test}` and `img_data/nat/patches/{same,diff}` are **derived**
