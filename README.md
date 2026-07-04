@@ -75,7 +75,7 @@ texture-learning / camouflage_detection repos; see `../REORGANIZATION_PLAN.md`).
 - **Pending (see `CLEANUP.md`):** removing legacy duplicate trees
   (`Texture Discrimination Brodatz/Fabrics/`, `edgecode/`), resolving the two `+lib`
   name collisions with the lab-root `+lib`, fixing dangling references, and unifying
-  the Psychtoolbox harness onto a shared `vision-commons/+psychexp` framework. Per
+  the Psychtoolbox harness onto a shared `vision-commons/+psychframework` framework. Per
   request, none of that has been deleted yet — `CLEANUP.md` is the reviewed hit-list.
 
 ## Documentation
