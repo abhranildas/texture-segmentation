@@ -86,7 +86,7 @@ for i_tex=1:n_tex
         tx_pair_labels(itrial)=true;
 
         % compute decision variables
-        pow_dv_same(isame)=log(lib.power_dv(patch_a,patch_b,b));
+        pow_dv_same(isame)=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
         hist_dv_same(isame)=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins)+epsl);
 
         patches=cat(3,patch_a,patch_b);
@@ -131,7 +131,7 @@ for i_tex=1:n_tex
                 tx_pair_labels(itrial)=false;
 
                 % compute decision variables
-                pow_diff_this=log(lib.power_dv(patch_a,patch_b,b));
+                pow_diff_this=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
                 hist_diff_this=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins));
 
                 patches=cat(3,patch_a,patch_b);
@@ -258,7 +258,7 @@ hist_dv_exp=nan(size(idx,1),1);
 for iTrial=1:size(idx,1)
     patch_a=exp_settings.stimuli(:,:,1,idx(iTrial,iLevel))*255;
     patch_b=exp_settings.stimuli(:,:,2,idx(iTrial,iLevel))*255;
-    pow_dv_exp(iTrial)=log(lib.power_dv(patch_a,patch_b,b));
+    pow_dv_exp(iTrial)=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
     hist_dv_exp(iTrial)=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins));
 end
 
@@ -323,7 +323,7 @@ imshow(patch_b,[])
 title(tex_b)
 
 % compute decision variables
-pow_dv=log(lib.power_dv(patch_a,patch_b,b));
+pow_dv=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
 hist_dv=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins));
 
 patches=cat(3,patch_a,patch_b);

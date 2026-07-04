@@ -32,10 +32,10 @@ for i = 1:miniBatchSize
 
     % if needed, downsample, then upsample to same size
     if down_level>1
-        img_1=lib.downsample(img_1,down_level);
+        img_1=vislib.downsample(img_1,down_level);
         img_1=imresize(img_1,down_level,'nearest');
 
-        img_2=lib.downsample(img_2,down_level);
+        img_2=vislib.downsample(img_2,down_level);
         img_2=imresize(img_2,down_level,'nearest');
     end
     X1(:,:,:,i)=img_1;
