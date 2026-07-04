@@ -43,7 +43,7 @@ Both merge into the `lib.*` namespace when both are on the path. `setup.m` curre
 `compute_pClipped`, `monitorDegreesToPixels`, `gammaCorrect`, `hist_dv`) into a domain package
 (e.g. `+texseg`), update call sites, then drop the root-`+lib` dependency and remove the
 `root_parent` `addpath` from `setup.m`. (`monitorDegreesToPixels`/`gammaCorrect` are display-side
-utilities → candidates for the shared `+psychexp` framework instead.)
+utilities → candidates for the shared `+psychframework` framework instead.)
 
 ## 4. Dangling references (currently BROKEN — fix or remove)
 - `edge_dv.m` calls `lib.edge_contour_props`, which exists nowhere. (Its logic overlaps the
@@ -60,11 +60,11 @@ utilities → candidates for the shared `+psychexp` framework instead.)
   missing `mk_win.m`). `Rs` is now `nat_stat_bayes.dv_spatial`; fold `Rp/Rh/Re` onto
   `nat_stat_bayes.{dv_power,dv_spot_hist,dv_edge_hist}` or delete the tree.
 
-## 7. Experiment harness → `vision-commons/+psychexp` (separate pass, needs PTB testing)
+## 7. Experiment harness → `vision-commons/+psychframework` (separate pass, needs PTB testing)
 - `+experiment` duplicates its whole harness across `+discriminate` and `+grouping`. There is a
   latent bug: `+grouping/+run/runTrial.m` and `runLevel.m` call `experiment.run.*` (not
   `experiment.grouping.run.*`), so the duplicated packages may not even resolve as-is.
-- **DONE:** `vision-commons/+psychexp` (shared session→level→trial loop) added; `runExperiment.m` for
+- **DONE:** `vision-commons/+psychframework` (shared session→level→trial loop) added; `runExperiment.m` for
   BOTH the `+grouping` and `+discriminate` experiments now delegates the loop/screen to it, wiring each
   task's interval functions as hooks. The superseded `runLevel.m`/`runTrial.m` in both `+run` packages
   were **deleted** (commit `de7cb3148`), fixing the grouping harness's latent `experiment.run.*` namespace

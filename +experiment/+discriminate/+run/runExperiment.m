@@ -3,7 +3,7 @@ function SessionData = runExperiment(exp_type, subject_name, condition, sessionN
 %   runExperiment(exp_type, subject_name [, condition, sessionNumber, levelNumber])
 %
 %   Delegates the level/trial loop and screen setup to the shared vision-commons
-%   harness (psychexp.run_experiment), wiring this package's interval functions
+%   harness (psychframework.run_experiment), wiring this package's interval functions
 %   (fixationInterval / stimulusInterval / responseInterval / giveFeedback /
 %   displayLevelStart) as hooks. Runs the single current level and prints per-level
 %   percent-correct. Foveal, so no EyeLink hooks. The old runExperiment + runLevel
@@ -27,7 +27,7 @@ function SessionData = runExperiment(exp_type, subject_name, condition, sessionN
     hooks.save_level   = @(S, resp, l) experiment.discriminate.run.saveCurrentLevel(S, resp, l);
     hooks.level_end    = @level_end;
 
-    SessionData = psychexp.run_experiment(ExpSettings, hooks);
+    SessionData = psychframework.run_experiment(ExpSettings, hooks);
 end
 
 % ------------------------------------------------------------------------------
