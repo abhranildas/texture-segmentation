@@ -1,49 +1,48 @@
-function runExperiment(exp_type, subject_name, condition, sessionNumber, levelNumber)
-%STARTEXPERIMENT Launch the detection experiment.
+function SessionData = runExperiment(exp_type, subject_name, condition, sessionNumber, levelNumber)
+% RUNEXPERIMENT  Launch the discrimination experiment.
+%   runExperiment(exp_type, subject_name [, condition, sessionNumber, levelNumber])
 %
-% Example: 
-%   blockData = STARTEXPERIMENT(ExpSettings, blockNumber);
-%   
-%   See also RUNEXPERIMENTBLOCK
+%   Delegates the level/trial loop and screen setup to the shared vision-commons
+%   harness (psychexp.run_experiment), wiring this package's interval functions
+%   (fixationInterval / stimulusInterval / responseInterval / giveFeedback /
+%   displayLevelStart) as hooks. Runs the single current level and prints per-level
+%   percent-correct. Foveal, so no EyeLink hooks. The old runExperiment + runLevel
+%   + runTrial were retired in favour of this shared harness.
 %
-% v2.0, 1/27/2016, Steve Sebastian, R. C. Walshe <calen.walshe@utexas.edu>
+%   Run `setup` first (adds vision-commons). Requires Psychtoolbox.
 
-%% Load in the settings
-if(nargin < 4)
-    exp_settings = experiment.discriminate.run.loadCurrentSession(subject_name, exp_type);
-else
-    exp_settings = experiment.discriminate.run.loadCurrentSession(subject_name, exp_type, condition, sessionNumber, levelNumber);
+    if nargin < 4
+        ExpSettings = experiment.discriminate.run.loadCurrentSession(subject_name, exp_type);
+    else
+        ExpSettings = experiment.discriminate.run.loadCurrentSession(subject_name, exp_type, condition, sessionNumber, levelNumber);
+    end
+    ExpSettings.screenNumber = 1;    % original forced screen 1
+
+    hooks.load_session = @load_session;
+    hooks.level_start  = @(S, l)       experiment.discriminate.run.displayLevelStart(S);
+    hooks.fixation     = @(S, t, l)    experiment.discriminate.run.fixationInterval(S);
+    hooks.stimulus     = @(S, t, l)    experiment.discriminate.run.stimulusInterval(S, t);
+    hooks.response     = @(S, t, l)    experiment.discriminate.run.responseInterval(S);
+    hooks.feedback     = @(S, r, t, l) experiment.discriminate.run.giveFeedback(S, r, t);
+    hooks.save_level   = @(S, resp, l) experiment.discriminate.run.saveCurrentLevel(S, resp, l);
+    hooks.level_end    = @level_end;
+
+    SessionData = psychexp.run_experiment(ExpSettings, hooks);
 end
 
+% ------------------------------------------------------------------------------
+function S = load_session(ExpSettings)
+% Use the settings' injected stimulus loader, then run just the current level.
+    S = ExpSettings.loadSessionStimuli(ExpSettings);             % = @loadStimuli
+    S.level_list = S.currentLevel;
+end
 
-% Clear the workspace
-close all;
-sca;
-
-% Setup PTB with some default values
-PsychDefaultSetup(2);
-Screen('Preference', 'SkipSyncTests', 1); % skip sync tests
-
-% Seed the random number generator
-rng('shuffle');
-
-% Set the screen number to the external secondary monitor if there is one
-% connected
-screenNumber = 1; %max(Screen('Screens'));
-
-% Open the screen
-[window, windowRect] = Screen('OpenWindow', screenNumber, exp_settings.bgPixValGamma);
-LoadIdentityClut(window);
-
-exp_settings.monitorSizePix = windowRect(3:4);
-
-SessionSettings = exp_settings.loadSessionStimuli(exp_settings);
-SessionSettings.window = window;
-
-% Set the text size
-Screen('TextSize', window, 60);
-
-% Set the blend function for the screen
-Screen('BlendFunction', window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
-
-experiment.discriminate.run.runLevel(SessionSettings);
+function level_end(S, responses, ~)
+% 2AFC percent-correct summary (was the tail of runLevel.m).
+    pCorrect = mean(S.diffpair == responses) * 100;
+    Screen('FillRect', S.window, S.bgPixValGamma);
+    Screen('TextSize', S.window, 25);
+    DrawFormattedText(S.window, sprintf('End of level: %d%% correct.', round(pCorrect)), 'center', 'center');
+    Screen('Flip', S.window);
+    WaitSecs(1);
+end
