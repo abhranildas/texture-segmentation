@@ -1,3 +1,4 @@
+.claude/settings.local.json
 discrim_just_edge.fig
 img_data/brodatz/labelled_tx_pairs.mat
 img_data/brodatz/labelled_txs.mat
