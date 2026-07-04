@@ -73,8 +73,13 @@ utilities → candidates for the shared `+psychexp` framework instead.)
   (fixation/response/feedback/displayLevelStart are effectively identical; only `stimulusInterval` differs
   trivially). They could be merged into one shared set parameterized by task — optional further dedup.
 
-## 8. `img_data/` (~95k derived files)
-- `img_data/brodatz/patches/{train,test}` and `img_data/nat/patches/{same,diff}` are **derived**
-  artifacts (regenerable from `global_data` via `+general/nat_near_far_patches_cnn.m` and the
-  Brodatz patch cutter). Consider moving to `global_data` as a documented derived cache, or
-  gitignoring them and regenerating on demand.
+## 8. Repo size / large files — DECIDED (rewrite planned; see ../USER_TODO.md)
+- `img_data/brodatz/patches/{train,test}` (17,700 tracked PNGs) and `img_data/nat/patches/{same,diff}` are
+  **derived** (regenerable from `global_data` via `+general/nat_near_far_patches_cnn.m` + the Brodatz patch
+  cutter). Plus large `.mat`: `cnn/cnn_on_{brodatz,nat}.mat` (~62 MB each, trained CNN weights — **regenerable**),
+  `exp_files/*/exp_settings.mat` (18–53 MB, pre-generated stimuli — regenerable), `+grouping/test.mat` (17 MB),
+  and multi-MB `.pptx` notes. These triggered GitHub's >50 MB warning.
+- **User confirmed:** no other clones/collaborators (history rewrite + force-push is safe); CNN weights
+  regenerable. Assistant plan (on user's go): gitignore derived data → `git rm --cached` → `git filter-repo`
+  to purge from ALL history → `git push --force`. Keep raw source only in `global_data`; regenerate on demand.
+  Confirm the exact keep/drop list before the rewrite.
