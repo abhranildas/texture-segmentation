@@ -3,8 +3,10 @@
 Code for the Geisler-lab texture discrimination & segmentation project — the
 Hierarchical Bayesian Observer (HBO) model of texture segmentation, the human
 psychophysics experiments that test it, and a twin-CNN comparison. This is the
-foundational model that the sibling [texture-learning](../texture-learning) repo
-(the "proximity" paper) builds on. See `notes/` for the paper and code docs.
+foundational model that the sibling [texture-learning](https://github.com/Bill-Geisler/texture-learning)
+repo (the "proximity" paper) builds on. See the
+[bioRxiv paper](https://www.biorxiv.org/content/10.64898/2026.05.06.723304v1.abstract) and `notes/`
+for details.
 
 ## What's here
 
