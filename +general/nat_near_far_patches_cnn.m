@@ -16,33 +16,6 @@ down_level = 1; % resolution scale-down (power of 2: 1,2,4,8) -- eccentricity mo
 S = load('../vislab_data/cps_rgb2lms.mat','lms');       lms   = S.lms;    % 3x3 RGB->LMS
 S = load('../vislab_data/cps_lms2abr_otf.mat','coeff'); coeff = S.coeff;  % 3x3 LMS->ABR
 
-%% ===== TEMPORARY CHECK: grayscale mean vs A (achromatic) channel =====
-% For one image, build both representations and show a few patches side by side
-% (grayscale | A) so the color-transform difference is visible. Only needs the
-% params + matrices above. Remove when done.
-chk = double(imread([imgdir 'Set9_16_1.png']));
-chk = chk*255/max(chk(:));
-[hh,ww,~] = size(chk);
-chk_gray = mean(chk,3);                                    % old grayscale mean
-chk_A    = reshape(coeff(:,1)' * (lms * reshape(chk,[],3)'), hh, ww); % A channel
-chk_gray = vislab.lib.otf_filter(chk_gray,ppd,pd,w);           % same optics as the pipeline
-chk_A    = vislab.lib.otf_filter(chk_A,ppd,pd,w);
-% normalize both to 0-255 so a shared display scale shows real tonal differences
-chk_gray = chk_gray*255/max(chk_gray(:));
-chk_A    = chk_A*255/max(chk_A(:));
-
-n_chk = 6;
-figure('Name','grayscale vs A channel');
-tiledlayout(1,n_chk,'TileSpacing','compact','Padding','compact');
-sep = 128*ones(psz,2);                                     % divider column
-for j = 1:n_chk
-    x = randi(hh-psz+1); y = randi(ww-psz+1);
-    gp = chk_gray(x:x+psz-1, y:y+psz-1);
-    ap = chk_A(x:x+psz-1, y:y+psz-1);
-    nexttile; imshow([gp sep ap],[0 255]); title('grayscale | A');
-end
-% ===== end temporary check =====
-
 set_nums=[9 10 12];
 n_imgs=[104 90 197];
 

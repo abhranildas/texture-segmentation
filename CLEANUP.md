@@ -62,6 +62,19 @@ in `+general`/`cnn`/`+lib/downsample`), but `ecc` is already used here for a *di
 spatial eccentricity) in `+grouping`. Renaming the downsample factor to `ecc` would collide. Left as-is per
 the owner's call; revisit with a distinct token (e.g. `ecc_ds`) if consistency is wanted later.
 
+## Colour transforms — NOT yet on the shared auto-loading vislab functions (flagged 2026-07-05)
+The lab now centralizes the two colour transforms in `vislab_data` behind auto-loading functions:
+`vislab.lib.rgb2lms(img)` (RGB→LMS, from `cps_rgb2lms.mat`) and
+`vislab.nat_stat_bayes.apply_color_rotation(patch)` (LMS→ABR, from `cps_lms2abr_otf.mat`). texture-learning
+was migrated to call these. texseg was **left as-is** because its two consumers aren't clean drop-ins:
+- `+general/nat_near_far_patches_bayes.m` — legacy script still on the **old unqualified names** (`aply_otf`,
+  `rgb2lms`, `dsmp`) and `ppd=60`; it's effectively broken already. Migrate the whole script (→ `vislab.lib.*`)
+  or retire it.
+- `+general/nat_near_far_patches_cnn.m` — computes RGB→LMS **inline with the opposite matrix orientation**
+  (`lms * rgb_col`, A-channel only, no negative clip) vs. `vislab.lib.rgb2lms` (`rgb_row * M`, clipped). Switching
+  it to the shared function would **change its numbers**. Worth reconciling the orientation with Bill before
+  converting — the two repos may be applying the same stored matrix in transposed conventions.
+
 ## 5. Stale hardcoded absolute paths
 - `+general/nat_near_far_patches_bayes.m:9-12` — two `addpath('C:\Users\Bill Geisler\…')`. Replace
   with `config.paths` (the `CPS natural images` set is now `cfg.paths.natural_images`).
