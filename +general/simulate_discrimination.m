@@ -11,9 +11,9 @@ b=10;                 % weak power suppression parameter
 epsl=1e-10;         % to prevent log(0)
 pad_val=128; % pad patches with this mean greylevel value when taking gradients
 
-load('vislab_data/nat_im_eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
+load('vislab-common/data/nat_im_eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
 
-% load('vislab_data/eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
+% load('vislab-common/data/eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
 % n_bins=64;                 % # of grayscale histogram bins
 % grey_hist_bins=linspace(0,256,n_bins+1); % gray-level bin edges
 
@@ -275,7 +275,7 @@ plot(pow_dv_exp(diffpair(:,iLevel)&~correct(:,iLevel)),hist_dv_exp(diffpair(:,iL
 
 % load the efficient-coding histogram bins of gradient magnitude computed
 % from natural images:
-load('vislab_data/eff_coding_bins.mat')
+load('vislab-common/data/eff_coding_bins.mat')
 
 % load texture-discrimination boundaries:
 load('data/texture discrimination boundaries.mat')

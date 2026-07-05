@@ -5,11 +5,11 @@
 psz = 64;
 n_samp = 100;
 same_max_dist = 1;
-imgdir = '../vislab_data/CPS natural images/'; % 16-bit linear source images
+imgdir = '../vislab-common/data/CPS natural images/'; % 16-bit linear source images
 ppd = 60; pd = 4; w = 550; % optics: pixels/deg, pupil diameter mm, wavelength nm
 down_level = 1; % resolution scale-down (power of 2: 1,2,4,8) -- eccentricity model
 
-% color transforms (shared calibration data in vislab_data): RGB -> LMS cone
+% color transforms (shared calibration data in vislab-common/data): RGB -> LMS cone
 % space (CPS camera calibration) then LMS -> ABR opponent space. We keep the
 % A (achromatic) channel = first ABR channel (per Bill). Both colour transforms
 % (RGB->LMS and LMS->ABR) come from the shared vislab functions, which auto-load the

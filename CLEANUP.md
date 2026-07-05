@@ -15,7 +15,7 @@ Verified equivalences were checked headlessly in MATLAB R2024b against the live 
   of the DV/discrimination code (`Rp`/`Rh`/`Re`/`Rs`/`otf`/`aply_otf`/`ptch_norm`/`mk_bins`/… + `_old*`
   variants + `.asv`), raw Brodatz `B*.gif` / Fabric `F*.png` sheets, old `.mat`, and `Results_*.xlsx`.
   Verified nothing in the modern repo referenced them (no code path; not on the MATLAB path); the texture
-  sheets live in `vislab_data/textures/{brodatz,fabric}`. Recoverable from git history.
+  sheets live in `vislab-common/data/textures/{brodatz,fabric}`. Recoverable from git history.
 - `.asv` MATLAB autosave files (not source): `+experiment/+discriminate/+prep/generate_stimuli.asv`,
   `+experiment/+grouping/+run/runExperiment.asv`, `+grouping/chktlst.asv`, and several inside
   the two legacy trees. → Delete all `.asv`.
@@ -63,7 +63,7 @@ spatial eccentricity) in `+grouping`. Renaming the downsample factor to `ecc` wo
 the owner's call; revisit with a distinct token (e.g. `ecc_ds`) if consistency is wanted later.
 
 ## Colour transforms — NOT yet on the shared auto-loading vislab functions (flagged 2026-07-05)
-The lab now centralizes the two colour transforms in `vislab_data` behind auto-loading functions:
+The lab now centralizes the two colour transforms in `vislab-common/data` behind auto-loading functions:
 `vislab.lib.rgb2lms(img)` (RGB→LMS, from `cps_rgb2lms.mat`) and
 `vislab.nat_stat_bayes.apply_color_rotation(patch)` (LMS→ABR, from `cps_lms2abr_otf.mat`). texture-learning
 was migrated to call these. texseg was **left as-is** because its two consumers aren't clean drop-ins:

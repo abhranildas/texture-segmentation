@@ -31,8 +31,8 @@ sz = sz1/lev;    % image size given level
 psz = psz1/lev;  % patch size given level
 psz2 = 2*psz;
 ppd = 60;        % pixels per degree
-% RGB->LMS matrix from the CPS camera calibration (stored in shared vislab_data)
-S = load(fullfile(fileparts(mfilename('fullpath')),'..','..','vislab_data','cps_rgb2lms.mat'),'lms');
+% RGB->LMS matrix from the CPS camera calibration (stored in shared vislab-common/data)
+S = load(fullfile(fileparts(mfilename('fullpath')),'..','..','vislab-common/data','cps_rgb2lms.mat'),'lms');
 lms = S.lms;
 ncolr = 3;       % number of color channels
 %

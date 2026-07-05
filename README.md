@@ -23,15 +23,15 @@ for details.
 
 ## Dependencies
 
-- **[vislab](https://github.com/abhranildas/vislab)** — the lab's shared MATLAB library (a
-  sibling folder next to this repo; `setup.m` clones it automatically if it's missing). Provides `vislab.lib.*` (optics,
-  filters, normalization, downsampling) and `vislab.nat_stat_bayes.*` (the decision-variable
-  toolkit, incl. `dv_power`, `dv_spot_hist`, `dv_edge_hist`, `dv_spatial`).
+- **[vislab-common](https://github.com/abhranildas/vislab-common)** — the lab's shared MATLAB library
+  (the `+vislab` package inside the sibling `vislab-common` folder; `setup.m` clones it automatically if
+  it's missing). Provides `vislab.lib.*` (optics, filters, normalization, downsampling) and
+  `vislab.nat_stat_bayes.*` (the decision-variable toolkit, incl. `dv_power`, `dv_spot_hist`, `dv_edge_hist`, `dv_spatial`).
 - **[IntClassNorm](https://github.com/abhranildas/IntClassNorm)** and
   **[gx2](https://github.com/abhranildas/gx2)** — installed MATLAB **add-on toolboxes**
   (`classify_normals`, `quad2fun`). `setup.m` verifies/self-heals them; they are *not*
   bundled or fetched as source.
-- **vislab_data** — the shared data store (~23 GB: natural images + texture sheets), a sibling folder like
+- **vislab-common/data** — the shared data store (~23 GB: natural images + texture sheets), a sibling folder like
   vislab but **too large to auto-download** — obtain it separately and place it next to this repo
   (`setup.m` warns if it's missing; edit `cfg.paths.data_root` if it's elsewhere).
 - **Psychtoolbox-3** — required only to *run* the experiments (`+experiment`).
@@ -87,7 +87,7 @@ texture-learning / camouflage_detection repos; see `../REORGANIZATION_PLAN.md`).
 
 - `CLEANUP.md` — the full migration/cleanup checklist and old→new mapping.
 - `../vislab/ARCHITECTURE.md` — how the repos, the shared library, the
-  toolboxes, and `vislab_data` fit together.
+  toolboxes, and `vislab-common/data` fit together.
 
 ## License
 
