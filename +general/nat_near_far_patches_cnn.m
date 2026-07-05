@@ -11,9 +11,9 @@ down_level = 1; % resolution scale-down (power of 2: 1,2,4,8) -- eccentricity mo
 
 % color transforms (shared calibration data in vislab_data): RGB -> LMS cone
 % space (CPS camera calibration) then LMS -> ABR opponent space. We keep the
-% A (achromatic) channel = LMS*coeff(:,1) -- the first ABR channel (per Bill).
-% coeff is the LMS->ABR rotation from PCA on OTF-filtered natural images.
-S = load('../vislab_data/cps_lms2abr_otf.mat','coeff'); coeff = S.coeff;  % 3x3 LMS->ABR (for the A-channel projection)
+% A (achromatic) channel = first ABR channel (per Bill). Both colour transforms
+% (RGB->LMS and LMS->ABR) come from the shared vislab functions, which auto-load the
+% lab-global calibration/rotation -- no matrices are loaded here.
 
 set_nums=[9 10 12];
 n_imgs=[104 90 197];
@@ -44,13 +44,11 @@ parfor k = 1:n_img
     img = double(imread(name));
     img = img*255/max(img(:));
 
-    % achromatic (A) channel, matching the Bayesian model: RGB -> LMS -> A = LMS*coeff(:,1)
-    % (first ABR channel, per Bill). RGB->LMS via vislab.lib.rgb2lms so the matrix
-    % orientation (rgb_row*M) and the negative-clip match Bill's original rgb2lms exactly
-    % (this fixed the previous transposed 'lms*rgb' inline version).
-    [h,wd,~] = size(img);
-    img_lms = vislab.lib.rgb2lms(img);                        % H x W x 3 LMS (correct orientation + clip)
-    A = reshape(reshape(img_lms,[],3) * coeff(:,1), h, wd);   % H x W achromatic image
+    % achromatic (A) channel (first ABR channel, per Bill), via the shared vislab colour
+    % transforms: RGB -> LMS (vislab.lib.rgb2lms: correct rgb_row*M orientation + clip)
+    % -> ABR (vislab.nat_stat_bayes.apply_color_rotation), then keep the A channel.
+    img_abr = vislab.nat_stat_bayes.apply_color_rotation(vislab.lib.rgb2lms(img));  % H x W x 3 ABR
+    A = img_abr(:,:,1);                                       % achromatic channel
     % OTF is linear and commutes with the (linear) color transform, so filtering
     % A once == OTF each channel then converting (the Bayesian order)
     A = vislab.lib.otf_filter(A,ppd,pd,w);  % human optics, applied to the full image
@@ -58,7 +56,7 @@ parfor k = 1:n_img
         A = vislab.lib.downsample(A,down_level);      % blur + shrink the whole image
         A = imresize(A,down_level,'nearest');     % upscale back so patches stay 64x64
     end
-    A = A*255/max(A(:));                % scale to 0-255 for 8-bit (A>=0: coeff(:,1)>0, LMS>0)
+    A = A*255/max(A(:));                % scale to 0-255 for 8-bit (A>=0: LMS clipped >=0, A-axis weights >0)
 
     near_k = zeros(psz,psz,2,n_samp,'uint8');
     far_k  = zeros(psz,psz,2,n_samp,'uint8');
