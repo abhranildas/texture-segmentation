@@ -38,7 +38,7 @@ parfor k = 1:n_img
     img = double(imread(name));
     img = img*255/max(img(:));
     gray = mean(img,3);                   % achromatic mean (color reconciliation pending)
-    gray = lib.otf_filter(gray,ppd,pd,w); % human optics, applied to the full image
+    gray = vislib.otf_filter(gray,ppd,pd,w); % human optics, applied to the full image
     if down_level>1                       % eccentricity model: coarsen resolution
         gray = vislib.downsample(gray,down_level);  % blur + shrink the whole image
         gray = imresize(gray,down_level,'nearest'); % upscale back so patches stay 64x64

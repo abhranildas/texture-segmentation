@@ -31,7 +31,7 @@ for ifile=1:n_tex
     file_name=[dir_name files(ifile).name];
     img=double(imread(file_name));
     img=mean(img,3);
-    img=lib.otf_filter(img,ppd);
+    img=vislib.otf_filter(img,ppd);
     imgs(:,:,ifile)=img;
 end
 
@@ -303,13 +303,13 @@ end
 
 % sample patches
 img_a=double(imread(['img_data/brodatz/B',num2str(tex_a),'.gif']));
-img_a=lib.otf_filter(img_a,ppd);
+img_a=vislib.otf_filter(img_a,ppd);
 % img_a=imresize(img_a, [1024 1024]);
 x=randi(img_sz-patch_sz); y=randi(img_sz-patch_sz);
 patch_a=img_a(x:x+patch_sz-1,y:y+patch_sz-1);
 
 img_b=double(imread(['img_data/brodatz/B',num2str(tex_b),'.gif']));
-img_b=lib.otf_filter(img_b,ppd);
+img_b=vislib.otf_filter(img_b,ppd);
 % img_b=imresize(img_b, [1024 1024]);
 x=randi(img_sz-patch_sz); y=randi(img_sz-patch_sz);
 patch_b=img_b(x:x+patch_sz-1,y:y+patch_sz-1);

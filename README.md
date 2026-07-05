@@ -72,12 +72,16 @@ texture-learning / camouflage_detection repos; see `../REORGANIZATION_PLAN.md`).
 - **Done:** `setup.m` + `config.m` added (previously the repo relied on the ambient
   MATLAB path and hardcoded absolute paths); the verified-identical decision-variable
   and downsampling calls now use `vision-commons` (`dv_power`, `dv_spatial`,
-  `vislib.downsample`).
-- **Pending (see `CLEANUP.md`):** removing legacy duplicate trees
-  (`Texture Discrimination Brodatz/Fabrics/`, `edgecode/`), resolving the two `+lib`
-  name collisions with the lab-root `+lib`, fixing dangling references, and unifying
-  the Psychtoolbox harness onto a shared `vision-commons/+psychframework` framework. Per
-  request, none of that has been deleted yet — `CLEANUP.md` is the reviewed hit-list.
+  `vislib.downsample`); the Psychtoolbox harness unified onto the shared
+  `vision-commons/+psychframework`; the legacy duplicate trees
+  (`Texture Discrimination Brodatz/Fabrics/`) removed; and the repo made **self-contained** —
+  its `+lib` now holds everything it needs (the few remaining lab-root functions were copied
+  in, `otf_filter` repointed to `vislib.otf_filter`), so it no longer depends on the shared
+  lab-root `+lib`.
+- **Pending (see `CLEANUP.md`):** removing `edgecode/` and `.asv` autosaves, fixing the
+  pre-existing dangling references (`edge_contour_props`, bare `Rp`/`Rh`), and the stale
+  hardcoded `addpath` in the legacy `nat_near_far_patches_bayes.m`. Per request, those are
+  flagged in `CLEANUP.md` rather than deleted.
 
 ## Documentation
 

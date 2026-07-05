@@ -5,15 +5,13 @@ function setup()
 %
 %   Adds to the path:
 %     * this repo (its +experiment, +general, +grouping, +lib packages, cnn/, and
-%       root helper functions)
+%       root helper functions). +lib is self-contained: the functions that used to
+%       live only in the lab-root +lib were copied in (edge_props_stim + its
+%       subtree target_mask/steerable_grad/steerable_filter/create_pink_noise_line/
+%       local_sd), and lib.otf_filter was repointed to vislib.otf_filter -- so this
+%       repo no longer depends on the lab-root +lib (mirrors camouflage_detection).
 %     * vision-commons (the shared lab library) -- a git submodule inside this
 %       repo, or a sibling folder next to it (the lab's local dev layout)
-%     * TEMPORARY: the lab-root +lib, for the few functions that still live only
-%       there (lib.otf_filter, lib.edge_props_stim, ...). This repo is added AFTER
-%       it so this repo's own +lib shadows the root for the two behaviour-different
-%       collisions (compute_pClipped, monitorDegreesToPixels). Eliminating the
-%       root-+lib dependency is a tracked cleanup item (see CLEANUP.md); root +lib
-%       is retired once all consumers migrate to vision-commons.
 %
 %   Also VERIFIES/self-heals the required MATLAB add-on toolboxes (installed via
 %   the Add-On Explorer / File Exchange -- NOT bundled or fetched as source):
@@ -40,13 +38,7 @@ function setup()
         addpath(commons);                                    % exposes vislib.*, nat_stat_bayes.*
     end
 
-    % --- lab-root +lib (TEMPORARY legacy dependency; see header + CLEANUP.md) ---
-    root_parent = fullfile(repo_root, '..');
-    if isfolder(fullfile(root_parent, '+lib'))
-        addpath(root_parent);                                % exposes root lib.*
-    end
-
-    % --- this repo (added last => highest priority; local +lib shadows root +lib) ---
+    % --- this repo (its own +lib is self-contained; no lab-root +lib needed) ---
     addpath(repo_root);                                      % experiment/general/grouping/lib packages + root fns
     addpath(fullfile(repo_root, 'cnn'));                     % twin-network code (non-package)
 
