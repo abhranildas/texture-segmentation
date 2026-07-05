@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite both the software and the associated paper below."
+title: texture-segmentation
+type: software
+authors:
+  - family-names: Das
+    given-names: Abhranil
+    affiliation: "Center for Perceptual Systems, The University of Texas at Austin"
+license: MIT
+repository-code: "https://github.com/abhranildas/texture-segmentation"
+preferred-citation:
+  type: article
+  title: "Principles of local and global grouping that underlie segmentation of natural texture images"
+  authors:
+    - family-names: Geisler
+      given-names: Wilson S.
+    - family-names: Das
+      given-names: Abhranil
+  year: 2026
+  journal: bioRxiv
+  doi: "10.64898/2026.05.06.723304"
