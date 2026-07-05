@@ -49,6 +49,18 @@ Verified equivalences were checked headlessly in MATLAB R2024b against the live 
   inline contour tracing in root `Re.m` + `mk_contour.m`.)
 - `texture_grouping.m` and `Rs_new.m` call bare `Rp(...)`/`Rh(...)` — no `Rp.m`/`Rh.m` exists at
   the repo root (only `Rp_win.m`, whose function is named `Rp`, and `lib.power_dv`/`lib.hist_dv`).
+- `+experiment/+grouping/+run/loadStimuli.m:21` reads `exp_settings.ecc(currentLevel)`, but the
+  grouping `exp_settings.mat` has **no `ecc` field** (confirmed by loading the shipped file; grouping's
+  blocks are *contrast* levels, not eccentricities). Looks copy-pasted from `+discriminate`'s loadStimuli;
+  would error if that fixation-eccentricity path were exercised in grouping. Fix or remove.
+
+## Naming note — eccentricity "level" NOT renamed here
+The lab-wide `level`→`ecc` rename (done in texture-learning + vision-commons, 2026-07-05) was **deliberately
+NOT applied to this repo**: texseg's eccentricity concept is the downsample factor (`down_level`/`lev`/`iLevel`
+in `+general`/`cnn`/`+lib/downsample`), but `ecc` is already used here for a *different* thing —
+`exp_settings.ecc` = fixation eccentricity in **degrees** (`[0 1.6 5 11.5]`), plus `mecc`/`decc` (in-image
+spatial eccentricity) in `+grouping`. Renaming the downsample factor to `ecc` would collide. Left as-is per
+the owner's call; revisit with a distinct token (e.g. `ecc_ds`) if consistency is wanted later.
 
 ## 5. Stale hardcoded absolute paths
 - `+general/nat_near_far_patches_bayes.m:9-12` — two `addpath('C:\Users\Bill Geisler\…')`. Replace
