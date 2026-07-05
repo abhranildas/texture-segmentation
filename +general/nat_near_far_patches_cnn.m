@@ -13,8 +13,7 @@ down_level = 1; % resolution scale-down (power of 2: 1,2,4,8) -- eccentricity mo
 % space (CPS camera calibration) then LMS -> ABR opponent space. We keep the
 % A (achromatic) channel = LMS*coeff(:,1) -- the first ABR channel (per Bill).
 % coeff is the LMS->ABR rotation from PCA on OTF-filtered natural images.
-S = load('../vislab_data/cps_rgb2lms.mat','lms');       lms   = S.lms;    % 3x3 RGB->LMS
-S = load('../vislab_data/cps_lms2abr_otf.mat','coeff'); coeff = S.coeff;  % 3x3 LMS->ABR
+S = load('../vislab_data/cps_lms2abr_otf.mat','coeff'); coeff = S.coeff;  % 3x3 LMS->ABR (for the A-channel projection)
 
 set_nums=[9 10 12];
 n_imgs=[104 90 197];
@@ -45,13 +44,13 @@ parfor k = 1:n_img
     img = double(imread(name));
     img = img*255/max(img(:));
 
-    % achromatic (A) channel, matching the Bayesian model: RGB -> LMS cone
-    % space -> A = LMS*coeff(:,1) (first ABR channel, per Bill). LMS = lms*RGB
-    % per pixel (matrix rows are the L,M,S cone responses).
+    % achromatic (A) channel, matching the Bayesian model: RGB -> LMS -> A = LMS*coeff(:,1)
+    % (first ABR channel, per Bill). RGB->LMS via vislab.lib.rgb2lms so the matrix
+    % orientation (rgb_row*M) and the negative-clip match Bill's original rgb2lms exactly
+    % (this fixed the previous transposed 'lms*rgb' inline version).
     [h,wd,~] = size(img);
-    rgb = reshape(img,[],3)';           % 3 x N (pixels as columns)
-    A = coeff(:,1)' * (lms * rgb);      % 1 x N : A = LMS*coeff(:,1), LMS = lms*RGB
-    A = reshape(A,h,wd);                % H x W achromatic image
+    img_lms = vislab.lib.rgb2lms(img);                        % H x W x 3 LMS (correct orientation + clip)
+    A = reshape(reshape(img_lms,[],3) * coeff(:,1), h, wd);   % H x W achromatic image
     % OTF is linear and commutes with the (linear) color transform, so filtering
     % A once == OTF each channel then converting (the Bayesian order)
     A = vislab.lib.otf_filter(A,ppd,pd,w);  % human optics, applied to the full image
