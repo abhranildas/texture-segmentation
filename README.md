@@ -23,16 +23,16 @@ for details.
 
 ## Dependencies
 
-- **[vision-commons](https://github.com/abhranildas/vision-commons)** — the lab's shared MATLAB library (a
-  sibling folder next to this repo; `setup.m` clones it automatically if it's missing). Provides `vislib.*` (optics,
-  filters, normalization, downsampling) and `nat_stat_bayes.*` (the decision-variable
+- **[vislab](https://github.com/abhranildas/vislab)** — the lab's shared MATLAB library (a
+  sibling folder next to this repo; `setup.m` clones it automatically if it's missing). Provides `vislab.lib.*` (optics,
+  filters, normalization, downsampling) and `vislab.nat_stat_bayes.*` (the decision-variable
   toolkit, incl. `dv_power`, `dv_spot_hist`, `dv_edge_hist`, `dv_spatial`).
 - **[IntClassNorm](https://github.com/abhranildas/IntClassNorm)** and
   **[gx2](https://github.com/abhranildas/gx2)** — installed MATLAB **add-on toolboxes**
   (`classify_normals`, `quad2fun`). `setup.m` verifies/self-heals them; they are *not*
   bundled or fetched as source.
-- **global_data** — the shared data store (~23 GB: natural images + texture sheets), a sibling folder like
-  vision-commons but **too large to auto-download** — obtain it separately and place it next to this repo
+- **vislab_data** — the shared data store (~23 GB: natural images + texture sheets), a sibling folder like
+  vislab but **too large to auto-download** — obtain it separately and place it next to this repo
   (`setup.m` warns if it's missing; edit `cfg.paths.data_root` if it's elsewhere).
 - **Psychtoolbox-3** — required only to *run* the experiments (`+experiment`).
 - MATLAB with the Image Processing and Statistics & Machine Learning toolboxes
@@ -41,7 +41,7 @@ for details.
 ## Setup
 
 ```matlab
-setup            % adds this repo + vision-commons to the path; self-heals the toolboxes
+setup            % adds this repo + vislab to the path; self-heals the toolboxes
 cfg = config;    % data paths + shared constants; edit cfg.paths.data_root if needed
 ```
 
@@ -61,22 +61,22 @@ texture-segmentation/
 └── notes/                paper + code documentation
 ```
 
-Shared low-level code lives in `vision-commons` (not here), so it isn't duplicated
+Shared low-level code lives in `vislab` (not here), so it isn't duplicated
 across the lab's repos.
 
 ## Status & caveats — reorganization in progress
 
-This repo is mid-migration onto `vision-commons` (aligning it with the
+This repo is mid-migration onto `vislab` (aligning it with the
 texture-learning / camouflage_detection repos; see `../REORGANIZATION_PLAN.md`).
 
 - **Done:** `setup.m` + `config.m` added (previously the repo relied on the ambient
   MATLAB path and hardcoded absolute paths); the verified-identical decision-variable
-  and downsampling calls now use `vision-commons` (`dv_power`, `dv_spatial`,
-  `vislib.downsample`); the Psychtoolbox harness unified onto the shared
-  `vision-commons/+psychframework`; the legacy duplicate trees
+  and downsampling calls now use `vislab` (`dv_power`, `dv_spatial`,
+  `vislab.lib.downsample`); the Psychtoolbox harness unified onto the shared
+  `vislab/+psychframework`; the legacy duplicate trees
   (`Texture Discrimination Brodatz/Fabrics/`) removed; and the repo made **self-contained** —
   its `+lib` now holds everything it needs (the few remaining lab-root functions were copied
-  in, `otf_filter` repointed to `vislib.otf_filter`), so it no longer depends on the shared
+  in, `otf_filter` repointed to `vislab.lib.otf_filter`), so it no longer depends on the shared
   lab-root `+lib`.
 - **Pending (see `CLEANUP.md`):** removing `edgecode/` and `.asv` autosaves, fixing the
   pre-existing dangling references (`edge_contour_props`, bare `Rp`/`Rh`), and the stale
@@ -86,8 +86,8 @@ texture-learning / camouflage_detection repos; see `../REORGANIZATION_PLAN.md`).
 ## Documentation
 
 - `CLEANUP.md` — the full migration/cleanup checklist and old→new mapping.
-- `../vision-commons/ARCHITECTURE.md` — how the repos, the shared library, the
-  toolboxes, and `global_data` fit together.
+- `../vislab/ARCHITECTURE.md` — how the repos, the shared library, the
+  toolboxes, and `vislab_data` fit together.
 
 ## License
 

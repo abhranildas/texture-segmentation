@@ -33,13 +33,13 @@ for i = 1:ntexr
     num = texs(t,i);
     % num = num2str(k);
     if strcmpi(tex_set,'brodatz')
-        namein = ['global_data\textures\brodatz\B' num2str(num) '.gif'];
+        namein = ['vislab_data\textures\brodatz\B' num2str(num) '.gif'];
         imgin = double(imread(namein));
     elseif strcmpi(tex_set,'fabric')
-        namein = ['global_data\textures\fabric\FC' num2str(num) '.png'];
+        namein = ['vislab_data\textures\fabric\FC' num2str(num) '.png'];
         imgin = double(rgb2gray(imread(namein)));
     elseif strcmpi(tex_set,'pertex')
-        namein = sprintf('global_data\\textures\\pertex\\%03d.png',num);
+        namein = sprintf('vislab_data\\textures\\pertex\\%03d.png',num);
         imgin = double(imread(namein));
     end
 

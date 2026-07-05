@@ -28,7 +28,7 @@ lum=parser.Results.lum;
 cont=parser.Results.cont;
 
 % sample the patch
-img=imread(['global_data/textures/brodatz/B' num2str(tex_num) '.gif']);
+img=imread(['vislab_data/textures/brodatz/B' num2str(tex_num) '.gif']);
 img_sz=size(img,1);
 x=randi(img_sz-patch_sz(1)); y=randi(img_sz-patch_sz(2));
 ptch=double(img(x:x+patch_sz(1)-1,y:y+patch_sz(2)-1));

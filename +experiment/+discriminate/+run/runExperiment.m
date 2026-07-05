@@ -2,14 +2,14 @@ function SessionData = runExperiment(exp_type, subject_name, condition, sessionN
 % RUNEXPERIMENT  Launch the discrimination experiment.
 %   runExperiment(exp_type, subject_name [, condition, sessionNumber, levelNumber])
 %
-%   Delegates the level/trial loop and screen setup to the shared vision-commons
-%   harness (psychframework.run_experiment), wiring this package's interval functions
+%   Delegates the level/trial loop and screen setup to the shared vislab
+%   harness (vislab.psychframework.run_experiment), wiring this package's interval functions
 %   (fixationInterval / stimulusInterval / responseInterval / giveFeedback /
 %   displayLevelStart) as hooks. Runs the single current level and prints per-level
 %   percent-correct. Foveal, so no EyeLink hooks. The old runExperiment + runLevel
 %   + runTrial were retired in favour of this shared harness.
 %
-%   Run `setup` first (adds vision-commons). Requires Psychtoolbox.
+%   Run `setup` first (adds vislab). Requires Psychtoolbox.
 
     if nargin < 4
         ExpSettings = experiment.discriminate.run.loadCurrentSession(subject_name, exp_type);
@@ -27,7 +27,7 @@ function SessionData = runExperiment(exp_type, subject_name, condition, sessionN
     hooks.save_level   = @(S, resp, l) experiment.discriminate.run.saveCurrentLevel(S, resp, l);
     hooks.level_end    = @level_end;
 
-    SessionData = psychframework.run_experiment(ExpSettings, hooks);
+    SessionData = vislab.psychframework.run_experiment(ExpSettings, hooks);
 end
 
 % ------------------------------------------------------------------------------

@@ -1,13 +1,47 @@
 % nat_near_far_patches_cnn.m
-% sample texture image patch pairs from 16-bit linear rgb natural images and
-% save near/far grayscale pairs to a single .mat file (loaded whole at train time)
+% sample texture image patch pairs from 16-bit linear rgb natural images and save
+% near/far A-channel (achromatic) pairs to a single .mat file (loaded whole at train time)
 %
 psz = 64;
 n_samp = 100;
 same_max_dist = 1;
-imgdir = '../global_data/CPS natural images/'; % 16-bit linear source images
+imgdir = '../vislab_data/CPS natural images/'; % 16-bit linear source images
 ppd = 60; pd = 4; w = 550; % optics: pixels/deg, pupil diameter mm, wavelength nm
 down_level = 1; % resolution scale-down (power of 2: 1,2,4,8) -- eccentricity model
+
+% color transforms (shared calibration data in vislab_data): RGB -> LMS cone
+% space (CPS camera calibration) then LMS -> ABR opponent space. We keep the
+% A (achromatic) channel = LMS*coeff(:,1) -- the first ABR channel (per Bill).
+% coeff is the LMS->ABR rotation from PCA on OTF-filtered natural images.
+S = load('../vislab_data/cps_rgb2lms.mat','lms');       lms   = S.lms;    % 3x3 RGB->LMS
+S = load('../vislab_data/cps_lms2abr_otf.mat','coeff'); coeff = S.coeff;  % 3x3 LMS->ABR
+
+%% ===== TEMPORARY CHECK: grayscale mean vs A (achromatic) channel =====
+% For one image, build both representations and show a few patches side by side
+% (grayscale | A) so the color-transform difference is visible. Only needs the
+% params + matrices above. Remove when done.
+chk = double(imread([imgdir 'Set9_16_1.png']));
+chk = chk*255/max(chk(:));
+[hh,ww,~] = size(chk);
+chk_gray = mean(chk,3);                                    % old grayscale mean
+chk_A    = reshape(coeff(:,1)' * (lms * reshape(chk,[],3)'), hh, ww); % A channel
+chk_gray = vislab.lib.otf_filter(chk_gray,ppd,pd,w);           % same optics as the pipeline
+chk_A    = vislab.lib.otf_filter(chk_A,ppd,pd,w);
+% normalize both to 0-255 so a shared display scale shows real tonal differences
+chk_gray = chk_gray*255/max(chk_gray(:));
+chk_A    = chk_A*255/max(chk_A(:));
+
+n_chk = 6;
+figure('Name','grayscale vs A channel');
+tiledlayout(1,n_chk,'TileSpacing','compact','Padding','compact');
+sep = 128*ones(psz,2);                                     % divider column
+for j = 1:n_chk
+    x = randi(hh-psz+1); y = randi(ww-psz+1);
+    gp = chk_gray(x:x+psz-1, y:y+psz-1);
+    ap = chk_A(x:x+psz-1, y:y+psz-1);
+    nexttile; imshow([gp sep ap],[0 255]); title('grayscale | A');
+end
+% ===== end temporary check =====
 
 set_nums=[9 10 12];
 n_imgs=[104 90 197];
@@ -21,8 +55,8 @@ n_img = numel(set_list);
 
 % per-image results collected in cells (parfor-sliced), concatenated after.
 % each patch pair is [psz psz 2]: dim 3 holds the two patches (1 = reference,
-% 2 = partner), kept separate rather than stitched. stored 8-bit (grayscale
-% mean of the per-image-normalized source).
+% 2 = partner), kept separate rather than stitched. stored 8-bit (A/achromatic
+% channel of the ABR transform).
 nearC = cell(1,n_img);
 farC  = cell(1,n_img);
 
@@ -37,30 +71,40 @@ parfor k = 1:n_img
     name = [imgdir 'Set' num2str(set_num) '_16_' num2str(i_img) '.png'];
     img = double(imread(name));
     img = img*255/max(img(:));
-    gray = mean(img,3);                   % achromatic mean (color reconciliation pending)
-    gray = vislib.otf_filter(gray,ppd,pd,w); % human optics, applied to the full image
-    if down_level>1                       % eccentricity model: coarsen resolution
-        gray = vislib.downsample(gray,down_level);  % blur + shrink the whole image
-        gray = imresize(gray,down_level,'nearest'); % upscale back so patches stay 64x64
+
+    % achromatic (A) channel, matching the Bayesian model: RGB -> LMS cone
+    % space -> A = LMS*coeff(:,1) (first ABR channel, per Bill). LMS = lms*RGB
+    % per pixel (matrix rows are the L,M,S cone responses).
+    [h,wd,~] = size(img);
+    rgb = reshape(img,[],3)';           % 3 x N (pixels as columns)
+    A = coeff(:,1)' * (lms * rgb);      % 1 x N : A = LMS*coeff(:,1), LMS = lms*RGB
+    A = reshape(A,h,wd);                % H x W achromatic image
+    % OTF is linear and commutes with the (linear) color transform, so filtering
+    % A once == OTF each channel then converting (the Bayesian order)
+    A = vislab.lib.otf_filter(A,ppd,pd,w);  % human optics, applied to the full image
+    if down_level>1                     % eccentricity model: coarsen resolution
+        A = vislab.lib.downsample(A,down_level);      % blur + shrink the whole image
+        A = imresize(A,down_level,'nearest');     % upscale back so patches stay 64x64
     end
+    A = A*255/max(A(:));                % scale to 0-255 for 8-bit (A>=0: coeff(:,1)>0, LMS>0)
 
     near_k = zeros(psz,psz,2,n_samp,'uint8');
     far_k  = zeros(psz,psz,2,n_samp,'uint8');
     for i = 1:n_samp
         % find near and far patch coords (always returns a valid set)
-        coords = lib.find_nat_patch(gray,psz,same_max_dist);
+        coords = lib.find_nat_patch(A,psz,same_max_dist);
 
         % near pair -> separated along dim 3
         x_a = coords(1,1); y_a = coords(1,2);
         x_b = coords(2,1); y_b = coords(2,2);
-        near_k(:,:,1,i)=uint8(gray(x_a:x_a+psz-1,y_a:y_a+psz-1));
-        near_k(:,:,2,i)=uint8(gray(x_b:x_b+psz-1,y_b:y_b+psz-1));
+        near_k(:,:,1,i)=uint8(A(x_a:x_a+psz-1,y_a:y_a+psz-1));
+        near_k(:,:,2,i)=uint8(A(x_b:x_b+psz-1,y_b:y_b+psz-1));
 
         % far pair -> separated along dim 3
         x_a = coords(3,1); y_a = coords(3,2);
         x_b = coords(4,1); y_b = coords(4,2);
-        far_k(:,:,1,i)=uint8(gray(x_a:x_a+psz-1,y_a:y_a+psz-1));
-        far_k(:,:,2,i)=uint8(gray(x_b:x_b+psz-1,y_b:y_b+psz-1));
+        far_k(:,:,1,i)=uint8(A(x_a:x_a+psz-1,y_a:y_a+psz-1));
+        far_k(:,:,2,i)=uint8(A(x_b:x_b+psz-1,y_b:y_b+psz-1));
     end
     nearC{k} = near_k;
     farC{k}  = far_k;

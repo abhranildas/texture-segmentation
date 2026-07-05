@@ -11,9 +11,9 @@ b=10;                 % weak power suppression parameter
 epsl=1e-10;         % to prevent log(0)
 pad_val=128; % pad patches with this mean greylevel value when taking gradients
 
-load('global_data/nat_im_eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
+load('vislab_data/nat_im_eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
 
-% load('global_data/eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
+% load('vislab_data/eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
 % n_bins=64;                 % # of grayscale histogram bins
 % grey_hist_bins=linspace(0,256,n_bins+1); % gray-level bin edges
 
@@ -31,7 +31,7 @@ for ifile=1:n_tex
     file_name=[dir_name files(ifile).name];
     img=double(imread(file_name));
     img=mean(img,3);
-    img=vislib.otf_filter(img,ppd);
+    img=vislab.lib.otf_filter(img,ppd);
     imgs(:,:,ifile)=img;
 end
 
@@ -86,7 +86,7 @@ for i_tex=1:n_tex
         tx_pair_labels(itrial)=true;
 
         % compute decision variables
-        pow_dv_same(isame)=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
+        pow_dv_same(isame)=log(vislab.nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
         hist_dv_same(isame)=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins)+epsl);
 
         patches=cat(3,patch_a,patch_b);
@@ -131,7 +131,7 @@ for i_tex=1:n_tex
                 tx_pair_labels(itrial)=false;
 
                 % compute decision variables
-                pow_diff_this=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
+                pow_diff_this=log(vislab.nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
                 hist_diff_this=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins));
 
                 patches=cat(3,patch_a,patch_b);
@@ -258,7 +258,7 @@ hist_dv_exp=nan(size(idx,1),1);
 for iTrial=1:size(idx,1)
     patch_a=exp_settings.stimuli(:,:,1,idx(iTrial,iLevel))*255;
     patch_b=exp_settings.stimuli(:,:,2,idx(iTrial,iLevel))*255;
-    pow_dv_exp(iTrial)=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
+    pow_dv_exp(iTrial)=log(vislab.nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
     hist_dv_exp(iTrial)=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins));
 end
 
@@ -275,7 +275,7 @@ plot(pow_dv_exp(diffpair(:,iLevel)&~correct(:,iLevel)),hist_dv_exp(diffpair(:,iL
 
 % load the efficient-coding histogram bins of gradient magnitude computed
 % from natural images:
-load('global_data/eff_coding_bins.mat')
+load('vislab_data/eff_coding_bins.mat')
 
 % load texture-discrimination boundaries:
 load('data/texture discrimination boundaries.mat')
@@ -303,13 +303,13 @@ end
 
 % sample patches
 img_a=double(imread(['img_data/brodatz/B',num2str(tex_a),'.gif']));
-img_a=vislib.otf_filter(img_a,ppd);
+img_a=vislab.lib.otf_filter(img_a,ppd);
 % img_a=imresize(img_a, [1024 1024]);
 x=randi(img_sz-patch_sz); y=randi(img_sz-patch_sz);
 patch_a=img_a(x:x+patch_sz-1,y:y+patch_sz-1);
 
 img_b=double(imread(['img_data/brodatz/B',num2str(tex_b),'.gif']));
-img_b=vislib.otf_filter(img_b,ppd);
+img_b=vislab.lib.otf_filter(img_b,ppd);
 % img_b=imresize(img_b, [1024 1024]);
 x=randi(img_sz-patch_sz); y=randi(img_sz-patch_sz);
 patch_b=img_b(x:x+patch_sz-1,y:y+patch_sz-1);
@@ -323,7 +323,7 @@ imshow(patch_b,[])
 title(tex_b)
 
 % compute decision variables
-pow_dv=log(nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
+pow_dv=log(vislab.nat_stat_bayes.dv_power(patch_a,patch_b,b,size(patch_a,1)));
 hist_dv=log(lib.hist_dv(patch_a,patch_b,grey_hist_bins));
 
 patches=cat(3,patch_a,patch_b);
