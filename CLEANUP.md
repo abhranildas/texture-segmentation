@@ -70,10 +70,13 @@ was migrated to call these. texseg was **left as-is** because its two consumers 
 - `+general/nat_near_far_patches_bayes.m` — legacy script still on the **old unqualified names** (`aply_otf`,
   `rgb2lms`, `dsmp`) and `ppd=60`; it's effectively broken already. Migrate the whole script (→ `vislab.lib.*`)
   or retire it.
-- `+general/nat_near_far_patches_cnn.m` — computes RGB→LMS **inline with the opposite matrix orientation**
-  (`lms * rgb_col`, A-channel only, no negative clip) vs. `vislab.lib.rgb2lms` (`rgb_row * M`, clipped). Switching
-  it to the shared function would **change its numbers**. Worth reconciling the orientation with Bill before
-  converting — the two repos may be applying the same stored matrix in transposed conventions.
+- `+general/nat_near_far_patches_cnn.m` — computes RGB→LMS **inline with the WRONG matrix orientation**
+  (`lms * rgb_col`, A-channel only, no negative clip). **RESOLVED (2026-07-05, from `Bill's old code/`):**
+  Bill's original `rgb2lms.m` uses `rgb_row * M` and clips negatives (identical to `vislab.lib.rgb2lms`), and
+  his `mk_rot_mtrx.m:148-149` explicitly comments `coeff*lms'` as "incorrect multiplication" and `lms*coeff`
+  (row × matrix) as "correct". So this cnn script is transposed/wrong; converting it to
+  `vislab.lib.rgb2lms(img)` is a **correctness fix** that will change the CNN-patch numbers to the right ones.
+  (texture-learning already matches Bill exactly, so it needs no change.)
 
 ## 5. Stale hardcoded absolute paths
 - `+general/nat_near_far_patches_bayes.m:9-12` — two `addpath('C:\Users\Bill Geisler\…')`. Replace
