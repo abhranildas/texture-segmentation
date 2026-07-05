@@ -31,8 +31,9 @@ for details.
   **[gx2](https://github.com/abhranildas/gx2)** — installed MATLAB **add-on toolboxes**
   (`classify_normals`, `quad2fun`). `setup.m` verifies/self-heals them; they are *not*
   bundled or fetched as source.
-- **global_data** — the shared data store (natural images, texture sheets). Point
-  `config.m` at it if it isn't a sibling folder.
+- **global_data** — the shared data store (~23 GB: natural images + texture sheets), a sibling folder like
+  vision-commons but **too large to auto-download** — obtain it separately and place it next to this repo
+  (`setup.m` warns if it's missing; edit `cfg.paths.data_root` if it's elsewhere).
 - **Psychtoolbox-3** — required only to *run* the experiments (`+experiment`).
 - MATLAB with the Image Processing and Statistics & Machine Learning toolboxes
   (and Deep Learning Toolbox for `cnn/`).
