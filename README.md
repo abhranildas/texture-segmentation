@@ -23,8 +23,8 @@ for details.
 
 ## Dependencies
 
-- **[vision-commons](../vision-commons)** — the lab's shared MATLAB library (git
-  submodule, or a sibling folder during local dev). Provides `vislib.*` (optics,
+- **[vision-commons](https://github.com/abhranildas/vision-commons)** — the lab's shared MATLAB library (a
+  sibling folder next to this repo; `setup.m` clones it automatically if it's missing). Provides `vislib.*` (optics,
   filters, normalization, downsampling) and `nat_stat_bayes.*` (the decision-variable
   toolkit, incl. `dv_power`, `dv_spot_hist`, `dv_edge_hist`, `dv_spatial`).
 - **[IntClassNorm](https://github.com/abhranildas/IntClassNorm)** and
