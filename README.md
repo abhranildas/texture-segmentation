@@ -31,9 +31,10 @@ for details.
   **[gx2](https://github.com/abhranildas/gx2)** — installed MATLAB **add-on toolboxes**
   (`classify_normals`, `quad2fun`). `setup.m` verifies/self-heals them; they are *not*
   bundled or fetched as source.
-- **vislab-common/data** — the shared data store (~23 GB: natural images + texture sheets), a sibling folder like
-  vislab but **too large to auto-download** — obtain it separately and place it next to this repo
-  (`setup.m` warns if it's missing; edit `cfg.paths.data_root` if it's elsewhere).
+- **vislab-common/data** — the shared data store, a sibling folder alongside this repo. Its texture sheets
+  and colour transforms ship inside the `vislab-common` repo (so the auto-clone brings them along); only the
+  large calibrated **natural-image** set (~19 GB) is **too large for GitHub** and must be obtained separately
+  (`setup.m` warns if the store is missing; edit `cfg.paths.data_root` if it's elsewhere).
 - **Psychtoolbox-3** — required only to *run* the experiments (`+experiment`).
 - MATLAB with the Image Processing and Statistics & Machine Learning toolboxes
   (and Deep Learning Toolbox for `cnn/`).
