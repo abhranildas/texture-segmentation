@@ -239,7 +239,7 @@ tx_discrim_bd.grad_o_bd=grad_o_bd;
 tx_discrim_bd.grad_p_bd=grad_p_bd;
 tx_discrim_bd.all_bd=all_bd;
 
-% save("data/texture discrimination boundaries.mat","tx_discrim_bd")
+% save("data/model/texture discrimination boundaries.mat","tx_discrim_bd")
 
 %% add actual experimental patches to the plot
 load('exp_files/norm/exp_settings.mat')
@@ -278,7 +278,7 @@ plot(pow_dv_exp(diffpair(:,iLevel)&~correct(:,iLevel)),hist_dv_exp(diffpair(:,iL
 load('vislab-common/data/eff_coding_bins.mat')
 
 % load texture-discrimination boundaries:
-load('data/texture discrimination boundaries.mat')
+load('data/model/texture discrimination boundaries.mat')
 
 % parameters
 n_tex=60; % # of textures

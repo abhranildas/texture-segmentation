@@ -3,13 +3,10 @@ function Y = predictTwin(net,fcParams,X1,X2)
 % prediction of the probability of the pair being similar (closer to 1) or
 % dissimilar (closer to 0). Use predictTwin during prediction.
 
-% Pass the first image through the twin subnetwork.
-Y1 = predict(net,X1);
-Y1 = sigmoid(Y1);
-
-% Pass the second image through the twin subnetwork.
-Y2 = predict(net,X2);
-Y2 = sigmoid(Y2);
+% Pass each image through the twin subnetwork, then pool its feature map to
+% mean+std texture statistics (L2-normalized) via poolStats.
+Y1 = poolStats(predict(net,X1));
+Y2 = poolStats(predict(net,X2));
 
 % Subtract the feature vectors.
 Y = abs(Y1 - Y2);

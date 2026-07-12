@@ -2,6 +2,10 @@
 % sample texture image patch pairs from 16-bit linear rgb natural images and save
 % near/far A-channel (achromatic) pairs to a single .mat file (loaded whole at train time)
 %
+% NOT used by cnn/train_cnn.m, which now samples near/far pairs on the fly (see
+% getTwinBatch_nat_live.m + load_nat_A_pool.m) so pairs never repeat. This script is
+% kept as a standalone tool for offline inspection/regeneration of a fixed pair set.
+%
 psz = 64;
 n_samp = 100;
 same_max_dist = 1;
@@ -37,26 +41,11 @@ parfor k = 1:n_img
     set_num = set_list(k); i_img = img_list(k);
     fprintf('Set%d img %d\n',set_num,i_img);
 
-    % load rgb image and normalize so the max over the 3 channels is 255
-    % (per-image, matching the Bayesian ingestion in the code docs). the
-    % 16-bit linear values have no fixed ceiling, so scale by the image max
+    % process this image into its achromatic (A) channel (uint8, 0-255) via the
+    % shared helper -- the same routine the on-the-fly training sampler uses, so
+    % the two paths stay identical (see cnn_architecture_plan.md item 10)
     name = [imgdir 'Set' num2str(set_num) '_16_' num2str(i_img) '.png'];
-    img = double(imread(name));
-    img = img*255/max(img(:));
-
-    % achromatic (A) channel (first ABR channel, per Bill), via the shared vislab colour
-    % transforms: RGB -> LMS (vislab.lib.rgb2lms: correct rgb_row*M orientation + clip)
-    % -> ABR (vislab.nat_stat_bayes.apply_color_rotation), then keep the A channel.
-    img_abr = vislab.nat_stat_bayes.apply_color_rotation(vislab.lib.rgb2lms(img));  % H x W x 3 ABR
-    A = img_abr(:,:,1);                                       % achromatic channel
-    % OTF is linear and commutes with the (linear) color transform, so filtering
-    % A once == OTF each channel then converting (the Bayesian order)
-    A = vislab.lib.otf_filter(A,ppd,pd,w);  % human optics, applied to the full image
-    if down_level>1                     % eccentricity model: coarsen resolution
-        A = vislab.lib.downsample(A,down_level);      % blur + shrink the whole image
-        A = imresize(A,down_level,'nearest');     % upscale back so patches stay 64x64
-    end
-    A = A*255/max(A(:));                % scale to 0-255 for 8-bit (A>=0: LMS clipped >=0, A-axis weights >0)
+    A = general.nat_image_to_A(name,ppd,pd,w,down_level);
 
     near_k = zeros(psz,psz,2,n_samp,'uint8');
     far_k  = zeros(psz,psz,2,n_samp,'uint8');
@@ -85,11 +74,11 @@ far  = cat(4,farC{:});
 
 % save all pairs to a single file. -v7.3 (HDF5) supports large arrays and
 % allows lazy slicing via matfile() later if the set outgrows RAM
-if ~exist('img_data/nat/','dir'); mkdir('img_data/nat/'); end
+if ~exist('data/stimuli/nat/','dir'); mkdir('data/stimuli/nat/'); end
 if down_level>1
-    outfile = ['img_data/nat/patch_pairs_dsmpl_' num2str(down_level) '.mat'];
+    outfile = ['data/stimuli/nat/patch_pairs_dsmpl_' num2str(down_level) '.mat'];
 else
-    outfile = 'img_data/nat/patch_pairs.mat';
+    outfile = 'data/stimuli/nat/patch_pairs.mat';
 end
 save(outfile,'near','far','-v7.3')
 

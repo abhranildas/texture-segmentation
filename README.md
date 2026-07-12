@@ -57,8 +57,8 @@ texture-segmentation/
 ├── +stats/               natural-scene statistics infrastructure
 ├── +lib/                 repo-specific helpers (texture_patch, find_nat_patch, ...)
 ├── cnn/                  twin/Siamese network baseline
-├── data/, exp_files/     analysis artifacts + human-subject experiment output
-├── img_data/             derived patch sets (git-ignored where large)
+├── data/                 stimuli/ (derived patch sets, git-ignored where large) + model/ (analysis artifacts)
+├── exp_files/            human-subject experiment output
 └── notes/                paper + code documentation
 ```
 

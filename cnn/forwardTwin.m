@@ -3,13 +3,10 @@ function Y = forwardTwin(net,fcParams,X1,X2)
 % returns a prediction of the probability of the pair being similar (closer
 % to 1) or dissimilar (closer to 0). Use forwardTwin during training.
 
-% Pass the first image through the twin subnetwork
-Y1 = forward(net,X1);
-Y1 = sigmoid(Y1);
-
-% Pass the second image through the twin subnetwork
-Y2 = forward(net,X2);
-Y2 = sigmoid(Y2);
+% Pass each image through the twin subnetwork, then pool its feature map to
+% mean+std texture statistics (L2-normalized) via poolStats.
+Y1 = poolStats(forward(net,X1));
+Y2 = poolStats(forward(net,X2));
 
 % Subtract the feature vectors
 Y = abs(Y1 - Y2);

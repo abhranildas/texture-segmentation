@@ -18,8 +18,9 @@ function cfg = config()
     cfg.paths.natural_images = fullfile(cfg.paths.data_root, 'CPS natural images');
     cfg.paths.textures       = fullfile(cfg.paths.data_root, 'textures');  % brodatz/, fabric/, ...
     cfg.paths.exp_files      = fullfile(repo_root, 'exp_files');           % per-experiment settings + subject output
-    cfg.paths.data           = fullfile(repo_root, 'data');               % analysis artifacts (boundaries, etc.)
-    cfg.paths.img_data       = fullfile(repo_root, 'img_data');           % derived patch sets (train/test, near/far)
+    cfg.paths.data           = fullfile(repo_root, 'data');               % this repo's data/ (stimuli/, model/)
+    cfg.paths.stimuli        = fullfile(cfg.paths.data, 'stimuli');       % derived patch sets (nat/, brodatz/)
+    cfg.paths.model          = fullfile(cfg.paths.data, 'model');         % model/analysis artifacts (boundaries, etc.)
 
     % --- eye optics (Watson OTF); shared lab constants ---
     cfg.optics.ppd            = 60;      % pixels per degree
