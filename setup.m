@@ -4,7 +4,7 @@ function setup()
 %       >> setup
 %
 %   Adds to the path:
-%     * this repo (its +experiment, +general, +grouping, +lib packages, cnn/, and
+%     * this repo (its +experiment, +general, +grouping, +lib packages and
 %       root helper functions). +lib is self-contained: the functions that used to
 %       live only in the lab-root +lib were copied in (edge_props_stim + its
 %       subtree target_mask/steerable_grad/steerable_filter/create_pink_noise_line/
@@ -40,7 +40,6 @@ function setup()
 
     % --- this repo (its own +lib is self-contained; no lab-root +lib needed) ---
     addpath(repo_root);                                      % experiment/general/grouping/lib packages + root fns
-    addpath(fullfile(repo_root, 'cnn'));                     % twin-network code (non-package)
 
     % --- installed add-on toolboxes (self-heal headless path) ---
     ensure_addon_on_path('gx2cdf', 'Generalized chi-square distribution*', ...

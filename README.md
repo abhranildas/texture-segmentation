@@ -1,8 +1,8 @@
 # texture-segmentation
 
 Code for the Geisler-lab texture discrimination & segmentation project — the
-Hierarchical Bayesian Observer (HBO) model of texture segmentation, the human
-psychophysics experiments that test it, and a twin-CNN comparison. This is the
+Hierarchical Bayesian Observer (HBO) model of texture segmentation and the human
+psychophysics experiments that test it. This is the
 foundational model that the sibling [texture-learning](https://github.com/Bill-Geisler/texture-learning)
 repo (the "proximity" paper) builds on. See the
 [bioRxiv paper](https://www.biorxiv.org/content/10.64898/2026.05.06.723304v1.abstract) and `notes/`
@@ -17,9 +17,10 @@ for details.
   session/level/trial structure and per-subject output (`+experiment`, `exp_files/`).
 - **Grouping / segmentation** — grow texture-region stimuli and segment them
   (`+grouping`).
-- **Twin/Siamese CNN** — a learned baseline trained on Brodatz / natural patches
-  (`cnn/`), with patch-pair generators in `+general`.
 - **Analysis** — psychometric fitting and statistics (`+general`, `+stats`).
+
+The learned twin/Siamese-CNN comparison now lives in the sibling
+[texture-learning](https://github.com/Bill-Geisler/texture-learning) repo (`cnn/`).
 
 ## Dependencies
 
@@ -36,8 +37,7 @@ for details.
   large calibrated **natural-image** set (~19 GB) is **too large for GitHub** and must be obtained separately
   (`setup.m` warns if the store is missing; edit `cfg.paths.data_root` if it's elsewhere).
 - **Psychtoolbox-3** — required only to *run* the experiments (`+experiment`).
-- MATLAB with the Image Processing and Statistics & Machine Learning toolboxes
-  (and Deep Learning Toolbox for `cnn/`).
+- MATLAB with the Image Processing and Statistics & Machine Learning toolboxes.
 
 ## Setup
 
@@ -55,8 +55,7 @@ texture-segmentation/
 ├── +grouping/            texture-region stimulus generation + segmentation
 ├── +general/             patch-pair generators, simulations, analysis scripts
 ├── +stats/               natural-scene statistics infrastructure
-├── +lib/                 repo-specific helpers (texture_patch, find_nat_patch, ...)
-├── cnn/                  twin/Siamese network baseline
+├── +lib/                 repo-specific helpers (texture_patch, steerable_filter, ...)
 ├── data/                 stimuli/ (derived patch sets, git-ignored where large) + model/ (analysis artifacts)
 ├── exp_files/            human-subject experiment output
 └── notes/                paper + code documentation
