@@ -1,9 +1,9 @@
-function posPix = monitorDegreesToPixels(posDeg, monitorSize, pixPerDeg)
-%MONITORDEGREESTOPIXELS Convert a position in degrees to pixels (center is
+function posPix = monitor_degrees_to_pixels(posDeg, monitorSize, pixPerDeg)
+%MONITOR_DEGREES_TO_PIXELS Convert a position in degrees to pixels (center is
 % at 0,0).
 %
 % Example: 
-%   posPix = MONITORDEGREESTOPIXELS(ImgStats)
+%   posPix = MONITOR_DEGREES_TO_PIXELS(ImgStats)
 %   
 % Outout: 
 %   posPix  Absolute position in pixels

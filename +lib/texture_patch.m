@@ -38,7 +38,7 @@ coords=[x,y];
 ptch=(ptch-mean(ptch(:)))*lum*cont/std(ptch(:))+lum;
 
 % compute percentage clipped
-pClipped=lib.compute_pClipped(ptch);
+pClipped=lib.compute_p_clipped(ptch);
 
 if pClipped
     warning('Texture %d, %.1f%% clipped!',tex_num,100*pClipped)

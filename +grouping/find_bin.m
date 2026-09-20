@@ -1,4 +1,4 @@
-function bin = fnd_bin(i0,j0,dist,mecc,decc,bbdist,bbmecc,bbdecc,bindex)
+function bin = find_bin(i0,j0,dist,mecc,decc,bbdist,bbmecc,bbdecc,bindex)
 %
 % find the geometry bin for a given pair of patch locations
 %

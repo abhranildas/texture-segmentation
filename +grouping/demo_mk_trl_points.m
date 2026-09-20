@@ -1,5 +1,5 @@
 %
-% test_mk_trl_points
+% demo_mk_trl_points
 % demonstrates one call to mk_trial_points during a session
 %
 % experiment set up:

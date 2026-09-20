@@ -53,7 +53,7 @@ for t = 1:ntrl
         l = 0;
         while l < 4 && chkflg == 0
           l = l+1;
-          [chkflg,xout,yout] = grouping.chktlst(dprm(l),x,y,map,np);
+          [chkflg,xout,yout] = grouping.check_tlst(dprm(l),x,y,map,np);
         end
         if chkflg == 1
           tlst(j,1) = tlst(j,1) + 1; % when 1 is added move on to next region

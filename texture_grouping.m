@@ -69,7 +69,7 @@ for i = 1:nij
   klo = (kj-1)*psz+1; khi = klo+psz-1;
   llo = (lj-1)*psz+1; lhi = llo+psz-1;
   ptchj = scn(klo:khi,llo:lhi);
-  rsp(i,j,1) = Rp(ptchi,ptchj,b,psz,win);
+  rsp(i,j,1) = rp(ptchi,ptchj,b,psz,win);
   rsp(i,j,2) = Rh(ptchi,ptchj,edges);
  end
 end

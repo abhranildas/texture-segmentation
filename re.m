@@ -1,4 +1,4 @@
-function Reout = Re(ptch1,ptch2,psz,ks,nks,thresh)
+function Reout = re(ptch1,ptch2,psz,ks,nks,thresh)
     %
     % edge similarity response
     %

@@ -1,4 +1,4 @@
-function displayLevelStart(SessionSettings)
+function display_level_start(SessionSettings)
 %% presenttargetonly
 %   Used for the beginning of blocks. Presents that target, with text, at
 %   the beginning of the block.

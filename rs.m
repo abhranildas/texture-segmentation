@@ -1,4 +1,4 @@
-function Rsout = Rs(ptch1,ptch2,psz)
+function Rsout = rs(ptch1,ptch2,psz)
 %
 % spatial pattern similarity response
 %

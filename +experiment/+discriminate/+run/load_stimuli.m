@@ -1,4 +1,4 @@
-function SessionSettings = loadStimuli(exp_settings)
+function SessionSettings = load_stimuli(exp_settings)
 % Formats and loads stimuli for a session of the experiment 
 
 %% Set up 
@@ -17,8 +17,8 @@ pixelsPerDeg = exp_settings.ppd;
 
 stim1PosDeg = [0 .75];
 stim2PosDeg = [0 -.75];
-stim1PosPix = lib.monitorDegreesToPixels(stim1PosDeg, monitorSizePix, pixelsPerDeg);
-stim2PosPix = lib.monitorDegreesToPixels(stim2PosDeg, monitorSizePix, pixelsPerDeg);
+stim1PosPix = lib.monitor_degrees_to_pixels(stim1PosDeg, monitorSizePix, pixelsPerDeg);
+stim2PosPix = lib.monitor_degrees_to_pixels(stim2PosDeg, monitorSizePix, pixelsPerDeg);
 
 if strcmpi(exp_settings.exp_type,'joined')
     % put the two texture patches adjacent to each other
@@ -27,7 +27,7 @@ if strcmpi(exp_settings.exp_type,'joined')
 end
 
 fixPosDeg = [exp_settings.ecc(currentLevel) 0];
-fixPosPix = lib.monitorDegreesToPixels(fixPosDeg, monitorSizePix, pixelsPerDeg);
+fixPosPix = lib.monitor_degrees_to_pixels(fixPosDeg, monitorSizePix, pixelsPerDeg);
   
 responseIntervalS = exp_settings.responseIntervalMs/1000;
 stimulusIntervalS = exp_settings.stimulusIntervalMs/1000;
@@ -47,7 +47,7 @@ for iTrial = 1:size(stimuli,4)
         stim(stim>1)=1;
         stim(stim<0)=0;
         
-        stim=lib.gammaCorrect(stim, gammaValue, bitDepthOut);        
+        stim=lib.gamma_correct(stim, gammaValue, bitDepthOut);        
         stimuli(:,:,iPair,iTrial) = stim;
     end
 end
@@ -60,14 +60,14 @@ target_outline(:,[1 end])=1;
 target_outline([1 end],:)=1;
 target_outline=double(~target_outline);
 target_outline(target_outline==1)=exp_settings.luminance;
-targetOutline=lib.gammaCorrect(target_outline,gammaValue,bitDepthOut);
+targetOutline=lib.gamma_correct(target_outline,gammaValue,bitDepthOut);
 
 %% Create the fixation target
 
 fixationSize = round(pixelsPerDeg.*0.1);
 fixationPixelVal = 0.7*bgPixVal;
 fixationTarget = fixationPixelVal.*ones(fixationSize, fixationSize);
-fixationTarget = lib.gammaCorrect(fixationTarget, gammaValue, bitDepthOut);
+fixationTarget = lib.gamma_correct(fixationTarget, gammaValue, bitDepthOut);
 
 %% Save
 

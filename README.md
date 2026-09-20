@@ -79,7 +79,7 @@ texture-learning / camouflage_detection repos; see `../REORGANIZATION_PLAN.md`).
   in, `otf_filter` repointed to `vislab.lib.otf_filter`), so it no longer depends on the shared
   lab-root `+lib`.
 - **Pending (see `CLEANUP.md`):** removing `edgecode/` and `.asv` autosaves, fixing the
-  pre-existing dangling references (`edge_contour_props`, bare `Rp`/`Rh`), and the stale
+  pre-existing dangling references (`edge_contour_props`, bare `rp`/`Rh`), and the stale
   hardcoded `addpath` in the legacy `nat_near_far_patches_bayes.m`. Per request, those are
   flagged in `CLEANUP.md` rather than deleted.
 

@@ -1,4 +1,4 @@
-function flg = chk_xy(x,y,trl,maps,sz)
+function flg = check_xy(x,y,trl,maps,sz)
 %
 % find a location that is not a boundary location
 %

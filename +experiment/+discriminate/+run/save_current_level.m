@@ -1,4 +1,4 @@
-function saveCurrentLevel(SessionSettings, response, levelNumber)
+function save_current_level(SessionSettings, response, levelNumber)
 %LOADCURRENSESSIONS Saves the stimuli and experiment info for the next
 %session. Called only during experiment.
 %

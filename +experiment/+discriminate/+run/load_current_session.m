@@ -1,5 +1,5 @@
-function SettingsOut = loadCurrentSession(subjectStr, expTypeStr, condition, sessionNumber, levelNumber)
-%LOADCURRENTSESSION Load the stimuli and experiment info for the next
+function SettingsOut = load_current_session(subjectStr, expTypeStr, condition, sessionNumber, levelNumber)
+%LOAD_CURRENT_SESSION Load the stimuli and experiment info for the next
 %session. Called only during experiment.
 %
 % v1.0, 1/26/2016, Steve Sebastian <sebastian@utexas.edu>
@@ -50,7 +50,7 @@ SettingsOut=exp_settings;
 SettingsOut.stimuli=exp_settings.stimuli(:,:,:,subject_file.idx(:,currentLevel,currentSession));
 SettingsOut.diffpair=cellfun(@(x) numel(x)==2,exp_settings.tex(subject_file.idx(:,currentLevel,currentSession)));
 SettingsOut.bgPixVal = exp_settings.bgPixVal./255;
-SettingsOut.bgPixValGamma = lib.gammaCorrect(SettingsOut.bgPixVal, 2.089, 8);
+SettingsOut.bgPixValGamma = lib.gamma_correct(SettingsOut.bgPixVal, 2.089, 8);
 SettingsOut.subjectStr = subjectStr;
 SettingsOut.expTypeStr = expTypeStr;
 SettingsOut.currentLevel = currentLevel;

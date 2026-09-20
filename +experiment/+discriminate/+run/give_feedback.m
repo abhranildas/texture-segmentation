@@ -1,4 +1,4 @@
-function giveFeedback(SessionSettings, response, trialNumber)
+function give_feedback(SessionSettings, response, trialNumber)
 
 %% Sound parameters
 correctFreqHz   = 900;                      

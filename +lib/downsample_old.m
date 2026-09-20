@@ -1,4 +1,4 @@
-function img_out = downsample(img_in,down_level,varargin)
+function img_out = downsample_old(img_in,down_level,varargin)
 %
 % filter and downsample image
 

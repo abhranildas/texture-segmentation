@@ -43,7 +43,7 @@ bindex = grouping.mk_bindex(bbdist,bbmecc,bbdecc);
 for i = 1:sz^2
   for j = 1:sz^2
     if i ~= j
-      bin = grouping.fnd_bin(i,j,dist,mecc,decc,bbdist,bbmecc,bbdecc,bindex);
+      bin = grouping.find_bin(i,j,dist,mecc,decc,bbdist,bbmecc,bbdecc,bindex);
       bintbl(1,bin) = bintbl(1,bin) + 1;
       idx = 2*bintbl(1,bin);
       bintbl(idx,bin) = i; bintbl(idx+1,bin) = j;
@@ -63,13 +63,13 @@ while trl <= ntrl
   end
   %
   % randomly sample a patch location and determine its region number
-  [x1,y1] = grouping.fnd_xy(trl,maps,sz);
+  [x1,y1] = grouping.find_xy(trl,maps,sz);
   regnum1 = maps(x1,y1,trl);
   %
   % random sample a second patch location and determine its region
   done = 0;
   while done == 0
-    [x2,y2] = grouping.fnd_xy(trl,maps,sz);    
+    [x2,y2] = grouping.find_xy(trl,maps,sz);    
     regnum2 = maps(x2,y2,trl);
     if (regnum1 == regnum2) && (cond == 0)
       done = 1;
@@ -91,7 +91,7 @@ while trl <= ntrl
   end
   i0 = (x1-1)*sz + y1;
   j0 = (x2-1)*sz + y2;
-  bin = grouping.fnd_bin(i0,j0,dist,mecc,decc,bbdist,bbmecc,bbdecc,bindex);
+  bin = grouping.find_bin(i0,j0,dist,mecc,decc,bbdist,bbmecc,bbdecc,bindex);
   np = bintbl(1,bin);
   done = 0; wcnt = 0;
   while done == 0 && wcnt < wcntmx
@@ -109,7 +109,7 @@ while trl <= ntrl
       y2 = sz;
     end
     x2 = 1 + (j-y2)/sz;
-    flg1 = grouping.chk_xy(x1,y1,trl+1,maps,sz); flg2 = grouping.chk_xy(x2,y2,trl+1,maps,sz);
+    flg1 = grouping.check_xy(x1,y1,trl+1,maps,sz); flg2 = grouping.check_xy(x2,y2,trl+1,maps,sz);
     if (flg1 == 0)  && (flg2 == 0)
       regnum1 = maps(x1,y1,trl+1);
       regnum2 = maps(x2,y2,trl+1);

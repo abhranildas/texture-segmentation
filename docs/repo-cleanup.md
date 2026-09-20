@@ -17,7 +17,7 @@
 **To-do.**
 
 - [x] **0.1.0.** Tooling: `canon`/`check_stage1`/`assert_rename_bijection`, golden-output harness, housekeeping (drop the tracked `.asv` autosaves from git — they're already gitignored).
-- [ ] **0.1.1.** Function and file renames, repo-wide — the map in section 3.1.1, verified over every file.
+- [x] **0.1.1.** Function and file renames, repo-wide — the map in section 3.1.1, verified over every file.
 - [ ] **0.1.2.** `+lib` (14 files, 1103 lines) — sets the in-file naming/header conventions for cluster B (the already-mostly-snake_case directories).
 - [ ] **0.1.3.** `+grouping` part 1 — the pure geometry/bin helpers (`mk_dist`, `mk_decc`, `mk_mecc`, `mk_bindex`, `mk_masks`, `mk_texs`, `find_bin`, `find_xy`, `check_xy`, `check_tlst`, `effective_distance`, `find_tex_regions`; ~11 files) — sets the terse-abbreviation vocabulary for cluster C.
 - [ ] **0.1.4.** `+grouping` part 2 — the stimulus-generation scripts (`mk_texseg_session`, `mk_texseg_stim_points`, `mk_texseg_stim_shape`, `mk_texseg_stim_shape_old`, `mk_trl_points`, `tex_regions`, `s_gtr_img`, `demo_mk_trl_points`; ~10 files) — applies 0.1.3's vocabulary.
@@ -58,8 +58,8 @@
 
 **To-do.**
 
-- [ ] 🔴 **S1.1.** Merge the byte-identical duplicate files across `+experiment/+discriminate/+run/` and `+experiment/+grouping/+run/` (`displayLevelStart.m`/`giveFeedback.m`/`saveCurrentLevel.m`/`stimulusInterval.m`) into one shared implementation.
-- [ ] 🟠 **S2.1.** Merge the near-duplicate files in the same two trees that differ by a handful of lines (`responseInterval.m`, `loadCurrentSession.m`, `fixationInterval.m`, `+prep/setup_subject.m`, `runExperiment.m`, `loadStimuli.m`), deciding how to parametrize the discriminate-vs-grouping difference.
+- [ ] 🔴 **S1.1.** Merge the byte-identical duplicate files across `+experiment/+discriminate/+run/` and `+experiment/+grouping/+run/` (`display_level_start.m`/`give_feedback.m`/`save_current_level.m`/`stimulus_interval.m`) into one shared implementation.
+- [ ] 🟠 **S2.1.** Merge the near-duplicate files in the same two trees that differ by a handful of lines (`response_interval.m`, `load_current_session.m`, `fixation_interval.m`, `+prep/setup_subject.m`, `run_experiment.m`, `load_stimuli.m`), deciding how to parametrize the discriminate-vs-grouping difference.
 - [ ] 🟠 **S2.2.** Repoint `+lib/downsample.m`/`downsample_old.m` to `vislab.lib.downsample` and delete the local copies (both also currently shadow the Signal Processing Toolbox's `downsample` builtin).
 - [ ] 🟠 **S2.3.** Repoint `+lib/power_dv.m` and `rp.m` (formerly `Rp_win.m`) to `vislab.nat_stat_bayes.dv_power`, which `simulate_discrimination.m` already calls directly; update the remaining callers (`texture_grouping.m:72`, `rs_new.m:49-50`).
 - [ ] 🟠 **S2.4.** Unify the two paths used for the same Brodatz texture set (`'img_data/brodatz/'` vs `'vislab-common/data/textures/brodatz/'`) onto `config.m`'s `cfg.paths.textures`.
@@ -83,12 +83,12 @@
 **To-do.**
 
 - [ ] 🔴 **B1.1.** `+lib/edge_props_stim.m:30` — a bare `randi(10)` with no semicolon, on the per-trial call path from `simulate_discrimination.m` (called `nchoosek(n_tex,2)*n_samp` times), prints to the console and silently consumes an extra draw from the RNG stream on every call, shifting every later random draw in the simulation.
-- [ ] 🔴 **B1.2.** `Re.m:103` — `for k = 1:nc1` inside the "patch 2" block (lines 85-119, mirroring "patch 1" at 48-82) almost certainly should be `for k = 1:nc2`; as written it iterates the wrong count for patch 2's labelled regions whenever `nc1 ≠ nc2`, on a live decision-variable function actually used in analysis.
+- [ ] 🔴 **B1.2.** `re.m:103` — `for k = 1:nc1` inside the "patch 2" block (lines 85-119, mirroring "patch 1" at 48-82) almost certainly should be `for k = 1:nc2`; as written it iterates the wrong count for patch 2's labelled regions whenever `nc1 ≠ nc2`, on a live decision-variable function actually used in analysis.
 - [ ] 🟠 **B2.1.** `edge_dv.m:2-3` calls `lib.edge_contour_props(...)`, which does not exist anywhere in `+lib` — errors if reached.
 - [ ] 🟠 **B2.2.** `texture_grouping.m:72-73` calls bare `Rp(...)` and `Rh(...)`; `Rp` will resolve once the Stage 1 rename below lands (`rp.m`), but `Rh` is not defined as a callable function anywhere — it only exists as an output-variable name inside `+lib/hist_dv.m`.
 - [ ] 🟠 **B2.3.** `+general/nat_near_far_patches_bayes.m:9,11` hardcodes `addpath('C:\Users\Bill Geisler\Documents\...')` — breaks on any machine other than the original author's.
 - [ ] 🟡 **B3.1.** `+general/simulate_discrimination.m:245-246` loads `exp_files/norm/exp_settings.mat` and `exp_files/norm/subject_out/neel.mat`, but no `norm` subdirectory exists under `exp_files/` (only `grouping`, `joined`, `sep`) — latent, only reachable if some code path selects an experiment type of `'norm'`.
-- [ ] 🟡 **B3.2.** `+grouping/fnd_bin.m:5-29` — only `id` is initialized (`id = 0`); `ime` and `ide` are not. If `mecc`/`decc` fall outside their bin bounds the function throws `Unrecognized function or variable 'ime'` rather than reporting a bin-lookup failure. The `id == 0` branch is no better: it assigns a dead local `err = 1` that is never returned or checked, then falls straight through to `bindex(0, ime, ide)`, which errors on the zero index. Latent with the current bounds (`bbdist = [1,2,4,8,16,32]` etc. cover every pair on a 16×16 grid), but any larger `sz` or narrower bounds hits it. Found while building the golden harness — the harness's `find_bin` sweep had to be sized so this could not trigger.
+- [ ] 🟡 **B3.2.** `+grouping/find_bin.m:5-29` — only `id` is initialized (`id = 0`); `ime` and `ide` are not. If `mecc`/`decc` fall outside their bin bounds the function throws `Unrecognized function or variable 'ime'` rather than reporting a bin-lookup failure. The `id == 0` branch is no better: it assigns a dead local `err = 1` that is never returned or checked, then falls straight through to `bindex(0, ime, ide)`, which errors on the zero index. Latent with the current bounds (`bbdist = [1,2,4,8,16,32]` etc. cover every pair on a 16×16 grid), but any larger `sz` or narrower bounds hits it. Found while building the golden harness — the harness's `find_bin` sweep had to be sized so this could not trigger.
 - [ ] 🟡 **B3.3.** `+grouping/mk_masks.m:11` preallocates `masks = zeros(np, np, np*ntr)`, but the array is written at `(t-1)*ntr+i` for `t = 1:ntrl`, so the third dimension should be `ntrl*ntr`. With `ntrl < np` the result carries trailing all-zero slices and a wrong `size(masks, 3)`; with `ntrl > np` MATLAB silently grows the array instead (correct values, defeated preallocation). Latent only because the first output is currently dead: all four call sites (`mk_texseg_session.m:34` discards it with `~`; `mk_texseg_stim_points.m:31`, `mk_texseg_stim_shape.m:19`, `mk_texseg_stim_shape_old.m:26` assign `masks` and never read it) use only `maps`.
 
 </div>
@@ -112,8 +112,8 @@
 - [ ] 🟠 **O2.1.** `+lib/edge_props_stim.m:152-153,188-249` unconditionally opens/redraws figures and plots on every call (1 `figure`/`imshow` + 15 `subplot`/`bar` calls across 5 scales); removing this, along with B1.1's stray `randi(10)`, changes the RNG draw sequence for the rest of the run, so it needs an explicit tolerance decision before it can be verified. Unprofiled.
 - [ ] 🟠 **O2.2.** `+grouping/mk_texseg_stim_points.m:169-178,219-228,233-242` calls `figure; image; set(gcf); pause; close all` three times inside the triple trial loop, blocking on `pause` every trial; gating behind a debug flag changes interactive behaviour, not a pure no-behaviour-change win. Unprofiled.
 - [ ] 🟡 **O3.1.** `+grouping/mk_dist.m:6-16`, `mk_decc.m:6-18`, `mk_mecc.m:6-18` are 4-deep loops over `sz²×sz²` of pure arithmetic on `x1,y1,x2,y2` (vectorizable via `meshgrid`), and `mk_bindex.m:12-19`'s 3-deep loop is exactly `reshape(1:N,...)` with a permute — tangled with S2.6, since the same rebuild currently happens at three call sites. Unprofiled.
-- [ ] 🟡 **O3.2.** `+grouping/fnd_bin.m:11-25` does three linear-scan loops to find one bin, called `sz⁴` times from three call sites — replacing the whole pattern with one `discretize` call over the full matrices at once is a large potential win, entirely unmeasured, and also tangled with S2.6. Unprofiled.
-- [ ] 🟡 **O3.3.** Remaining small vectorizable loops: `thresh.m:3-12`, `nlsame.m:5-11`, `mk_win.m:6-15,25-30`, `Re.m:32-45,55-64,92-101` (tangled with B1.2 — fix the bug first), `+grouping/mk_masks.m:75-88`, `tex_regions.m:66-76`, `mk_trl_points.m:18-28`'s block-mask construction. Unprofiled.
+- [ ] 🟡 **O3.2.** `+grouping/find_bin.m:11-25` does three linear-scan loops to find one bin, called `sz⁴` times from three call sites — replacing the whole pattern with one `discretize` call over the full matrices at once is a large potential win, entirely unmeasured, and also tangled with S2.6. Unprofiled.
+- [ ] 🟡 **O3.3.** Remaining small vectorizable loops: `thresh.m:3-12`, `nlsame.m:5-11`, `mk_win.m:6-15,25-30`, `re.m:32-45,55-64,92-101` (tangled with B1.2 — fix the bug first), `+grouping/mk_masks.m:75-88`, `tex_regions.m:66-76`, `mk_trl_points.m:18-28`'s block-mask construction. Unprofiled.
 - [ ] 🟡 **O3.4.** `parfor` candidates: `+general/simulate_discrimination.m:30-36`'s image-load/OTF-filter loop is cleanly sliced with no reduction variable; `generate_stimuli.m:13-46`'s first loop is similarly sliceable; `+general/nat_near_far_patches_bayes.m`'s three per-image loops carry `pcnt9/10/12` counters and `while dflg==0` rejection sampling, needing restructuring first. Unprofiled.
 
 </div>
@@ -176,7 +176,7 @@ assert(isempty(intersect(dom, ran)));
 
 Caveat: `mtree`/`tree2str` are undocumented MATLAB APIs — pin the MATLAB version (R2024b, per the survey) in every commit that depends on this check.
 
-**Stage 2's extra requirement: runtime golden output — and this repo's coverage is narrow.** This repo has no single runnable pipeline: `+experiment` needs Psychtoolbox and a display, and `+general`'s three files need either the ~19 GB natural-image set or the Brodatz/`exp_files` data, neither of which is confirmed present on the machine doing the cleanup. The golden harness therefore covers only the pure, self-contained functions callable with small synthetic inputs: `config()`, and the `+grouping` geometry helpers (`mk_dist`, `mk_decc`, `mk_mecc`, `mk_bindex`, `mk_masks`, `find_bin`, `check_xy`, `check_tlst`) and the `+lib`/root utilities that don't require real image files (`steerable_filter`, `steerable_grad`, `local_sd`, `mk_win`, `mk_contour`, `thresh`, `nlsame`) — call these directly with small synthetic arrays, seeded explicitly, never through `texture_grouping.m` or any Psychtoolbox launcher. Everything touching real Brodatz/natural-image data or Psychtoolbox (all of `+experiment`, `+general`, `+lib/texture_patch.m`, `+lib/edge_props_stim.m`, `Re.m`/`Rs.m`/`Rs_new.m`/`rp.m`/`edge_dv.m`/`contour_blur_estimation.m`/`texture_grouping.m`) is pattern-check-only for Stage 2 — state this explicitly in each such tranche's findings-log entry rather than skipping the question. No `parfor` loops exist anywhere in the repo yet, so there's nothing to check for sliced-vs-reduction safety.
+**Stage 2's extra requirement: runtime golden output — and this repo's coverage is narrow.** This repo has no single runnable pipeline: `+experiment` needs Psychtoolbox and a display, and `+general`'s three files need either the ~19 GB natural-image set or the Brodatz/`exp_files` data, neither of which is confirmed present on the machine doing the cleanup. The golden harness therefore covers only the pure, self-contained functions callable with small synthetic inputs: `config()`, and the `+grouping` geometry helpers (`mk_dist`, `mk_decc`, `mk_mecc`, `mk_bindex`, `mk_masks`, `find_bin`, `check_xy`, `check_tlst`) and the `+lib`/root utilities that don't require real image files (`steerable_filter`, `steerable_grad`, `local_sd`, `mk_win`, `mk_contour`, `thresh`, `nlsame`) — call these directly with small synthetic arrays, seeded explicitly, never through `texture_grouping.m` or any Psychtoolbox launcher. Everything touching real Brodatz/natural-image data or Psychtoolbox (all of `+experiment`, `+general`, `+lib/texture_patch.m`, `+lib/edge_props_stim.m`, `re.m`/`rs.m`/`rs_new.m`/`rp.m`/`edge_dv.m`/`contour_blur_estimation.m`/`texture_grouping.m`) is pattern-check-only for Stage 2 — state this explicitly in each such tranche's findings-log entry rather than skipping the question. No `parfor` loops exist anywhere in the repo yet, so there's nothing to check for sliced-vs-reduction safety.
 
 Semicolon insertion is stage 2, not stage 1: `tree2str` preserves display-vs-suppress, so the canonical diff is exactly `X` → `X;` — trivially whitelisted, but not invisible. One thing to watch here specifically: `+general/simulate_discrimination.m:69,114` and `+lib/edge_props_stim.m:30` have *missing* semicolons that are almost certainly leftover debug prints rather than deliberate interactive output (all three are deep inside per-trial loops, not top-level script lines) — ask before "fixing" if in doubt, per the skill's rule, but the loop-nesting context here argues they're accidental.
 
@@ -428,6 +428,96 @@ Capture and replay both verified in the same MATLAB session; `golden_harness('re
 **`parfor`.** Re-confirmed: no `parfor` loop exists anywhere in the repo, so there is nothing to check for sliced-vs-reduction safety. Documented negative.
 
 **Baseline note for later tranches.** At the start of this step the working tree was clean apart from the untracked `docs/` directory, so **HEAD is a valid `check_stage1` baseline for every in-scope `.m` file** — no file carries uncommitted work-in-progress. Re-check `git status` before each tranche rather than assuming this still holds.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">Step 1 — function and file renames</h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-09-20, **MATLAB R2024b**. Baseline: HEAD (`f35debf48`), working tree clean at the start, so `git show HEAD:<path>` gave the pre-move `old` copy for every file — taken for all 78 tracked `.m` files *before* the first `git mv`. Scope was the whole repo; the only edits made were `git mv`, `function` lines, call sites, and name references in comments and docs.
+
+**What moved.** All 30 file renames in section 3.1.1's map, plus `+lib/downsample_old.m`'s `function` line (no move). 22 identifier renames in total (the 30 files collapse to 22 distinct names, since the nine `+experiment/+run` names each exist in both trees).
+
+**Collision check, re-run at execution time** (`which('<new>', '-all')`, R2024b, before any move). Every new name came back empty except the three case-only renames, which resolved only to the file being renamed itself — Windows' case-insensitive `which` finding `Re.m` for `re` and so on. No name shadows a builtin, a toolbox function, or anything reachable on the path:
+
+```
+rp:0  re:1(Re.m)  rs:1(Rs.m)  rs_new:1(Rs_new.m)  check_tlst:0  check_xy:0
+find_bin:0  find_xy:0  demo_mk_trl_points:0  display_level_start:0
+fixation_interval:0  give_feedback:0  load_current_session:0  load_stimuli:0
+response_interval:0  run_experiment:0  save_current_level:0  stimulus_interval:0
+gamma_correct:0  monitor_degrees_to_pixels:0  compute_p_clipped:0  downsample_old:0
+```
+
+**`check_stage1` over all 74 in-scope files — verbatim:**
+
+```
+rename bijection: OK (22 entries)
+in-scope .m files found: 74
+
+FAIL  +experiment/+discriminate/+prep/setup_experiment.m
+FAIL  +experiment/+discriminate/+run/load_current_session.m
+FAIL  +experiment/+discriminate/+run/load_stimuli.m
+FAIL  +experiment/+discriminate/+run/run_experiment.m
+FAIL  +experiment/+grouping/+prep/setup_experiment.m
+FAIL  +experiment/+grouping/+run/load_current_session.m
+FAIL  +experiment/+grouping/+run/load_stimuli.m
+FAIL  +experiment/+grouping/+run/run_experiment.m
+FAIL  +grouping/mk_masks.m
+FAIL  +grouping/mk_texseg_session.m
+FAIL  +lib/texture_patch.m
+
+check_stage1: 63 / 74 pass, 11 fail
+
+-- auxiliary check on the 11 failures: reverse-rename including
+   dot-qualified occurrences (lookbehind dropped only for these files)
+  +experiment/+discriminate/+prep/setup_experiment.m      true
+  +experiment/+discriminate/+run/load_current_session.m   true
+  +experiment/+discriminate/+run/load_stimuli.m           true
+  +experiment/+discriminate/+run/run_experiment.m         false
+  +experiment/+grouping/+prep/setup_experiment.m          true
+  +experiment/+grouping/+run/load_current_session.m       true
+  +experiment/+grouping/+run/load_stimuli.m               true
+  +experiment/+grouping/+run/run_experiment.m             false
+  +grouping/mk_masks.m                                    true
+  +grouping/mk_texseg_session.m                           true
+  +lib/texture_patch.m                                    true
+auxiliary: 9 / 11 pass
+```
+
+**All 11 failures are the documented package-qualified case, and the check was not loosened.** `check_stage1.m:30`'s lookbehind `(?<![A-Za-z0-9_.])` refuses to reverse-rename a name preceded by a `.`, so a file whose only rename sites are `lib.gamma_correct(...)`, `grouping.find_bin(...)`, `@experiment.grouping.run.load_stimuli` etc. fails on a correct edit, by design. Each of the 11 was verified two ways instead: by reading its diff line by line (all 11 contain nothing but the expected `old.name` → `new.name` substitution — no other token on any changed line), and by a separate auxiliary script that reverse-renames with the lookbehind dropped. The auxiliary script is a one-off in the scratch directory; `tools/check_stage1.m` is untouched.
+
+**The two auxiliary-check "false" results are the auxiliary script's own artefact, not a real diff.** Both `run_experiment.m` files call the external `vislab.psychframework.run_experiment(ExpSettings, hooks)` — a name that is *already* `run_experiment` and has nothing to do with our rename. Dropping the lookbehind reverse-renames that external call to `vislab.psychframework.runExperiment` too, which the old file never had. Re-running the same comparison with that one fully-qualified external call masked out returns `1` for both files. This is worth remembering: **`run_experiment` is now the name of both this repo's `experiment.{discriminate,grouping}.run.run_experiment` and the shared `vislab.psychframework.run_experiment` it delegates to.** They live in different packages so MATLAB dispatch is unambiguous, but any future text-level rename tooling has to distinguish them.
+
+**Golden-harness replay: passes unchanged.** `golden_harness('replay', 'tools/golden_ref.mat')` asserts clean and prints `REPLAY PASSED`. Expected — these are pure renames — and it confirms the three call expressions changed in `tools/golden_harness.m` (`grouping.fnd_bin`→`find_bin`, `chk_xy`→`check_xy`, `chktlst`→`check_tlst`) still reach the same functions. Per step 0's decision 1, the `golden.*` struct **field names were left untouched**; they already used the post-rename spelling, so `golden_ref.mat` is still valid and was not recaptured.
+
+**The four sweeps `check_stage1` cannot do.**
+
+1. **Package-qualified call sites.** 11 files, listed above; all verified by reading the diff, plus the auxiliary reverse-rename. The complete set of package-qualified sites touched: `lib.gamma_correct` (×9), `lib.monitor_degrees_to_pixels` (×5), `lib.compute_p_clipped` (×1), `grouping.find_bin` (×2), `grouping.find_xy` (×2), `grouping.check_xy` (×2), `grouping.check_tlst` (×1), `@experiment.{discriminate,grouping}.run.load_stimuli` (×2), and the 16 `experiment.{discriminate,grouping}.run.*` hook assignments plus 4 `load_current_session` calls inside the two `run_experiment.m` files.
+2. **References outside `.m` files.** One real hit: `README.md:82` named the dangling reference as `Rp`; updated to `rp`. Nothing in `CITATION.cff`, `.gitignore`, or `.claude/settings.json`. In this plan document, the six *current-state* pointers that named a renamed file were updated (S1.1, S2.1, B1.2, B3.2, O3.2, O3.3); the rename map in 3.1.1, S2.3's "(formerly `Rp_win.m`)", and the section 2 survey measurements were deliberately **left naming the old files**, because those are a historical record of what was found, not pointers to current files — section 2 already carries its own "re-measure before trusting this" caveat and Stage 6's 0.6.4 re-checks it. `.mat`/`.fig`/`.pptx` binaries match `Rp` on a byte scan, but they are frozen out-of-scope artifacts and no `save`/`load` string literal was touched.
+3. **Dynamic references — documented negative.** Grepping every `.m` file for `feval`, `str2func`, `which(`, `exist(`, and `help <name>` returns only three sites, none of which names a renamed function: `+lib/create_pink_noise_line.m:4` (`exist('alpha','var')`), and `setup.m:98,110,131`, which probe external add-on functions (`gx2cdf`/`gx2pdf`/`gx2inv`) by string. No renamed name appears as a quoted string anywhere in the repo.
+4. **Case-only renames on Windows.** `Re.m`→`re.m`, `Rs.m`→`rs.m`, `Rs_new.m`→`rs_new.m` each went through a temp name (`git mv Re.m tmp_re.m && git mv tmp_re.m re.m`). The nine `+experiment/+run` renames and the three `+lib` camelCase renames technically differ by more than case, but were put through the same two-step to be safe, since a case-insensitive filesystem can still collide on an intermediate state. `git ls-files` and the on-disk listing both show `re.m`, `rp.m`, `rs.m`, `rs_new.m` in lowercase, and `git status` records all 30 as `R` (rename), so history follows every file.
+
+**Decisions made here that bind later tranches.**
+
+1. **A header's uppercase self-name follows the file.** Four files carried a MATLAB-style `%FUNCTIONNAME ...` first comment line naming themselves in caps; those were updated in step with the rename (`%LOADCURRENTSESSION`→`%LOAD_CURRENT_SESSION` in both trees, `%GAMMACORRECT`→`%GAMMA_CORRECT`, `%MONITORDEGREESTOPIXELS`→`%MONITOR_DEGREES_TO_PIXELS` twice). Whether to keep that shout-caps convention at all is a header-shape question for tranche 0.1.2, not a rename question — this step only kept the existing convention *correct*.
+2. **Historical mentions of deleted code keep their old names.** `run_experiment.m:9-10` in both trees says "The old runExperiment + runLevel + runTrial were retired in favour of this shared harness". `runLevel` and `runTrial` no longer exist anywhere, so this sentence names *deleted legacy functions*, not current files; renaming `runExperiment` inside it would falsely imply the retired thing was called `run_experiment`. Left as written. Later tranches rewriting these headers should keep that distinction: rename a reference to a file that still exists, leave a reference to one that doesn't.
+3. **Prose uses of a word that happens to be a function name are not renamed.** `+lib/downsample_old.m` lines 3, 29, 31 say "downsample" as an English verb describing the operation. Only the `function` line changed. The same rule applies wherever a later tranche meets `filter`, `contour`, or `patch` in a sentence.
+4. **`mk_*` stays, and this is now settled.** The 11 `mk_*` files were re-confirmed untouched, per section 3.1.1. Later tranches treat `mk_` as the cluster-C verb prefix and do not relitigate it.
+5. **No file-local variable was renamed, even where it was obviously wrong.** `+lib/texture_patch.m:41` still reads `pClipped = lib.compute_p_clipped(ptch);` — the camelCase *variable* is tranche 0.1.2's job. `re.m`/`rs.m`/`rs_new.m`/`rp.m` still return `Reout`/`Rsout`/`Rpout`; those are tranche 0.1.5's. Leaving them creates a deliberate, temporary mismatch between a lowercase function and a TitleCase output variable.
+
+**Deliberately left alone.**
+
+- The README's stale layout section (`edgecode/`, `+stats/`, `CLEANUP.md`, and the two `CLEANUP.md` links under "Documentation") — none of those exist on disk. Pre-existing and unrelated to any rename, already recorded in section 2; still awaiting tranche 0.1.9 or a standalone doc fix.
+- `README.md:82` still lists `bare rp`/`Rh` as a *pending dangling reference*. After this rename `rp` resolves (that half of B2.2 is now moot); only `Rh` is still dangling. Rewording that bullet is a content edit, not a rename, so only the name was changed.
+- Every `save`/`load` string literal and every zone-3 frozen name (section 3.1.1) — untouched, confirmed by the diff containing no changed line inside a string literal.
+
+**Bugs, optimizations, structure.** Nothing new found. This step read only `function` lines and call sites, not function bodies, so it is not a meaningful negative on bug-hunting — the tranches that actually read these files will say. No commented-out block was reached (none of this step's edits touched one), so section 3.1.4 gains no rows here.
+
+**Baseline note for later tranches.** The working tree is clean again after this step's commit, so **HEAD remains a valid `check_stage1` baseline** — but the file *paths* have changed, so a later tranche must take its baseline from the post-rename HEAD, not from `f35debf48`.
 
 </div>
 

@@ -1,4 +1,4 @@
-function [x,y] = fnd_xy(trl,maps,sz)
+function [x,y] = find_xy(trl,maps,sz)
 %
 % find a location that is not a boundary location
 %

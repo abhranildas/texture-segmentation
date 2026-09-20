@@ -1,4 +1,4 @@
-function SessionSettings = loadStimuli(exp_settings)
+function SessionSettings = load_stimuli(exp_settings)
 % Formats and loads stimuli for experiment 
 
 %% Set up 
@@ -16,10 +16,10 @@ bgPixVal = exp_settings.bgPixVal;
 pixelsPerDeg = exp_settings.ppd; 
 
 stimPosDeg = [0 0];
-stimPosPix = lib.monitorDegreesToPixels(stimPosDeg, monitorSizePix, pixelsPerDeg);
+stimPosPix = lib.monitor_degrees_to_pixels(stimPosDeg, monitorSizePix, pixelsPerDeg);
 
 fixPosDeg = [exp_settings.ecc(currentLevel) 0];
-fixPosPix = lib.monitorDegreesToPixels(fixPosDeg, monitorSizePix, pixelsPerDeg);
+fixPosPix = lib.monitor_degrees_to_pixels(fixPosDeg, monitorSizePix, pixelsPerDeg);
   
 responseIntervalS = exp_settings.responseIntervalMs/1000;
 stimulusIntervalS = exp_settings.stimulusIntervalMs/1000;
@@ -31,7 +31,7 @@ blankIntervalS    = exp_settings.blankIntervalMs/1000;
 fixationSize = round(pixelsPerDeg.*0.1);
 fixationPixelVal = 0.5*bgPixVal;
 fixationTarget = fixationPixelVal.*ones(fixationSize, fixationSize);
-fixationTarget = lib.gammaCorrect(fixationTarget, gammaValue, bitDepthOut);
+fixationTarget = lib.gamma_correct(fixationTarget, gammaValue, bitDepthOut);
 
 %% Save
 

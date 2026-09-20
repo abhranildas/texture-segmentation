@@ -1,4 +1,4 @@
-function [response, RT] = responseInterval(SessionSettings)
+function [response, RT] = response_interval(SessionSettings)
 %% waitforresponse
 %
 %   Waits for a response to be made. If the response is made during the

@@ -1,4 +1,4 @@
-function [chkflg,xout,yout] = chktlst(dprm,x,y,map,np)
+function [chkflg,xout,yout] = check_tlst(dprm,x,y,map,np)
 %
 % check the list of patches to see if side dprm of the patch at x,y
 % is untaken

@@ -99,7 +99,7 @@ bins = zeros(n_loc, n_loc);
 for i0 = 1:n_loc
     for j0 = 1:n_loc
         if i0 ~= j0
-            bins(i0, j0) = grouping.fnd_bin(i0, j0, dist, mecc, decc, ...
+            bins(i0, j0) = grouping.find_bin(i0, j0, dist, mecc, decc, ...
                 bb_dist, bb_mecc, bb_decc, bindex);
         end
     end
@@ -133,7 +133,7 @@ xy_flags = zeros(grid_size, grid_size, 2);
 for trial = 1:2
     for x = 1:grid_size
         for y = 1:grid_size
-            xy_flags(x, y, trial) = grouping.chk_xy(x, y, trial, maps_2, grid_size);
+            xy_flags(x, y, trial) = grouping.check_xy(x, y, trial, maps_2, grid_size);
         end
     end
 end
@@ -147,7 +147,7 @@ tlst_out = zeros(4, grid_size, grid_size, 3);
 for dprm = 1:4
     for x = 1:grid_size
         for y = 1:grid_size
-            [chk_flag, x_out, y_out] = grouping.chktlst(dprm, x, y, free_map, grid_size);
+            [chk_flag, x_out, y_out] = grouping.check_tlst(dprm, x, y, free_map, grid_size);
             tlst_out(dprm, x, y, :) = [chk_flag, x_out, y_out];
         end
     end

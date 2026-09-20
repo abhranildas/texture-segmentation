@@ -1,5 +1,5 @@
-function imgOut = gammaCorrect(imgIn, gammaValue, bitDepthOut)
-%GAMMACORRECT Apply gamma commpression to the 
+function imgOut = gamma_correct(imgIn, gammaValue, bitDepthOut)
+%GAMMA_CORRECT Apply gamma commpression to the 
 % 
 % Example: 
 %  [stimiuli pIndex] = SAMPLEPATCHESFOREXPERIMENT(ImgStats, 'gabor', [5 5 5], 'uniform'); 

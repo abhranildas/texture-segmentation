@@ -1,4 +1,4 @@
-function Rsout = Rs_new(ptch1,ptch2,psz,np)
+function Rsout = rs_new(ptch1,ptch2,psz,np)
 %
 % spatial pattern similarity response
 %
@@ -46,8 +46,8 @@ for i = 1:pstp:psz-pstp
    p12c = max(p12c,thresh)-thresh;
    p21c = max(p21c,thresh)-thresh; 
 %
-   r1 = Rp(p11c,p21c,b,pszc);
-   r2 = Rp(p22c,p12c,b,pszc);
+   r1 = rp(p11c,p21c,b,pszc);
+   r2 = rp(p22c,p12c,b,pszc);
    Rsout = Rsout + r1 + r2;
 % 
 %    s11 = s11 + sum(sum(p11c));

@@ -1,4 +1,4 @@
-function fixationInterval(SessionSettings)
+function fixation_interval(SessionSettings)
 %PRESENTFIXATIONCROSS Draw a fixation cross at the specified position.
 %
 % Example:
@@ -21,7 +21,7 @@ Screen('DrawTexture', SessionSettings.window, fixTexture, [], targetDestination)
 Screen('Flip', SessionSettings.window, 0, 1);
 WaitSecs(fixationIntervalS);
 
-blankIntervalS = SessionSettings.blankIntervalS;
-Screen('FillRect', SessionSettings.window, SessionSettings.bgPixValGamma, targetDestination);
-Screen('Flip', SessionSettings.window);
-WaitSecs(blankIntervalS);
+% blankIntervalS = SessionSettings.blankIntervalS;
+% Screen('FillRect', SessionSettings.window, SessionSettings.bgPixValGamma, targetDestination);
+% Screen('Flip', SessionSettings.window);
+% WaitSecs(blankIntervalS);

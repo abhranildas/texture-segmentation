@@ -1,4 +1,4 @@
-function Rpout = Rp(ptch1,ptch2,b,psz,win)
+function Rpout = rp(ptch1,ptch2,b,psz,win)
 % power difference response
 %
 % ptch1 & ptch2 = two patches that are compared

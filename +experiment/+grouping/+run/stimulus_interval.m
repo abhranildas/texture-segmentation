@@ -1,4 +1,4 @@
-function stimulusOnsetMs = stimulusInterval(SessionSettings, trialNumber)
+function stimulusOnsetMs = stimulus_interval(SessionSettings, trialNumber)
 %DRAWSTIMULUS Draw the detection stimulus.
 %
 % Description:
