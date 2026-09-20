@@ -1,58 +1,69 @@
-function [x,y] = find_xy(trl,maps,sz)
+function [x, y] = find_xy(trial, maps, grid_size)
+% FIND_XY  Draw a random patch location that is not on a region boundary.
+%   [x, y] = grouping.find_xy(trial, maps, grid_size)
 %
-% find a location that is not a boundary location
+%   Samples locations uniformly over the grid and rejects any whose eight
+%   neighbours are not all in the same texture region, so the returned patch
+%   sits in the interior of one region. The rejection test is the same one
+%   GROUPING.CHECK_XY applies, written out inline here.
 %
-% trl = trial number
-% maps = map of region numbers for each trial number
-% sz = size map
+%   Inputs
+%     trial     - trial number, indexing the third dimension of maps.
+%     maps      - grid_size by grid_size by (number of trials) array of
+%                 texture-region labels, from GROUPING.MK_MASKS.
+%     grid_size - side length of the square patch grid, as an integer count of
+%                 patches.
 %
-% x,y = location
+%   Output
+%     x, y - patch location on the grid, integer patch indices in 1:grid_size.
 %
-flg = 1;
-while flg == 1
-  x = randi(sz); y = randi(sz);
-  rnum = maps(x,y,trl);
-  flg = 0;
-  if x < sz
-    if maps(x+1,y,trl) ~= rnum
-      flg = 1;
+%   See also GROUPING.CHECK_XY, GROUPING.MK_MASKS.
+
+    is_boundary = 1;
+    while is_boundary == 1
+        x = randi(grid_size);
+        y = randi(grid_size);
+        region = maps(x, y, trial);
+        is_boundary = 0;
+        if x < grid_size
+            if maps(x+1, y, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if y < grid_size
+            if maps(x, y+1, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if x < grid_size && y < grid_size
+            if maps(x+1, y+1, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if x > 1
+            if maps(x-1, y, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if y > 1
+            if maps(x, y-1, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if x > 1 && y > 1
+            if maps(x-1, y-1, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if x > 1 && y < grid_size
+            if maps(x-1, y+1, trial) ~= region
+                is_boundary = 1;
+            end
+        end
+        if x < grid_size && y > 1
+            if maps(x+1, y-1, trial) ~= region
+                is_boundary = 1;
+            end
+        end
     end
-  end
-  if y < sz
-    if maps(x,y+1,trl) ~= rnum
-      flg = 1;
-    end
-  end
-  if x < sz && y < sz
-    if maps(x+1,y+1,trl) ~= rnum
-      flg = 1;
-    end
-  end
-  if x > 1
-    if maps(x-1,y,trl) ~= rnum
-      flg = 1;
-    end
-  end
-  if y > 1
-    if maps(x,y-1,trl) ~= rnum
-      flg = 1;
-    end
-  end
-  if x > 1 && y > 1
-    if maps(x-1,y-1,trl) ~= rnum
-      flg = 1;
-    end
-  end
-  if x > 1 && y < sz
-    if maps(x-1,y+1,trl) ~= rnum
-      flg = 1;
-    end
-  end
-  if x < sz && y > 1
-    if maps(x+1,y-1,trl) ~= rnum
-      flg = 1;
-    end  
-  end
-end
-%
 end

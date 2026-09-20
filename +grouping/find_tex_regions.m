@@ -1,32 +1,54 @@
+% FIND_TEX_REGIONS  Enumerate the patch grid and every unordered patch pair.
+%   grouping.find_tex_regions
 %
-% find texture regions
+%   Script, not a function. Numbers the patches of a 16 by 16 grid, then lists
+%   every unordered pair of distinct patches together with the distance
+%   between them. The pair array is sized for five columns but only three are
+%   filled, and nothing reads it afterwards, so the script stops short of
+%   whatever it was meant to find. GROUPING.MK_DIST already computes the same
+%   distances in matrix form.
 %
+%   Inputs
+%     none (the grid geometry is hardcoded below).
+%
+%   Output
+%     pairs - n_pairs by 5 array; columns 1 and 2 are the two patch numbers,
+%             column 3 their separation in patches, columns 4 and 5 unused.
+%
+%   See also GROUPING.MK_DIST, GROUPING.TEX_REGIONS.
+
 clearvars; close all;
-pw = 64;        % patch width (pixels)
-np = 16;        % number of patches per row and per column (pixels)
-imw = pw*np;    % image width (pixels)
-npt = np^2;     % total number of patches
-%
+patch_width = 64;  % patch width (pixels)
+grid_size = 16;  % patches per row and per column
+image_width = patch_width*grid_size;  % image width (pixels)
+n_patches = grid_size^2;  % total number of patches
+
 % load patch locations
-xp = zeros(npt,1); yp = zeros(npt,1);
-cpt = 0;
-for j = 1:np
-  for i = 1:np
-    cpt = cpt + 1;  
-    xp(cpt) = j; yp(cpt) = i;
-  end
+patch_x = zeros(n_patches, 1);
+patch_y = zeros(n_patches, 1);
+i_patch = 0;
+for index1 = 1:grid_size
+    for index2 = 1:grid_size
+        i_patch = i_patch + 1;
+        patch_x(i_patch) = index1;
+        patch_y(i_patch) = index2;
+    end
 end
-%
+
 % initialize patch pair array
-npp = npt*(npt-1)/2;
-pp = zeros(npp,5); % patch pair array
-%
+n_pairs = n_patches*(n_patches-1)/2;
+pairs = zeros(n_pairs, 5);  % patch pair array
+
 % load patch pair indices and distances
-cpp = 0; % initialize patch pair counter
-for j = 1:npt
-  for i = j+1:npt
-    cpp = cpp+1;
-    pp(cpp,1) = j; pp(cpp,2) = i; % patch numbers
-    pp(cpp,3) = sqrt((xp(j)-xp(i))^2 + (yp(j)-yp(i))^2); % distances
-  end
+i_pair = 0;  % initialize patch pair counter
+for index1 = 1:n_patches
+    for index2 = index1+1:n_patches
+        i_pair = i_pair + 1;
+        % patch numbers
+        pairs(i_pair, 1) = index1;
+        pairs(i_pair, 2) = index2;
+        % distance
+        pairs(i_pair, 3) = sqrt((patch_x(index1)-patch_x(index2))^2 + ...
+            (patch_y(index1)-patch_y(index2))^2);
+    end
 end
