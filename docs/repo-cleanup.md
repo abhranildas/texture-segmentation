@@ -32,7 +32,7 @@
 </details>
 
 <details style="margin:0.7em 0 0.7em 1.5em">
-<summary><h3 style="display:inline; margin:0; font-size:1.05em">🚧 0.2 · Stage 2 · Tidying</h3></summary>
+<summary><h3 style="display:inline; margin:0; font-size:1.05em">✅ 0.2 · Stage 2 · Tidying</h3></summary>
 
 <div style="margin-left:1.5em">
 
