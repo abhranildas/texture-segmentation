@@ -262,16 +262,17 @@ if ~has_brodatz
         brodatz_dir);
 end
 
-% texture_patch. Its mean and SD are fixed by construction ('lum' and 'cont'),
-% so a plain checksum would pass whatever pixels came back; the reduction is
-% therefore position-weighted as well, which no reshuffle or wrong crop can
-% survive. Two calls: one fully explicit, and one taking the 'rand' defaults
-% for texture number and seed, which is the only branch here that draws from
-% the RNG (and the only reason a seed is set immediately before it).
+% texture_patch. Its mean and SD are fixed by construction ('luminance' and
+% 'contrast'), so a plain checksum would pass whatever pixels came back; the
+% reduction is therefore position-weighted as well, which no reshuffle or
+% wrong crop can survive. Two calls: one fully explicit, and one taking the
+% 'rand' defaults for texture number and seed, which is the only branch here
+% that draws from the RNG (and the only reason a seed is set immediately
+% before it).
 if has_brodatz
     rng(cfg.seed);
     [tex_patch, tex_seed, tex_number, tex_coords] = lib.texture_patch( ...
-        'tex_num', 3, 'patch_sz', [64 64], 'seed', 1, 'cont', 0.12);
+        'tex_num', 3, 'patch_size', [64 64], 'seed', 1, 'contrast', 0.12);
     golden.texture_patch_checksum = sum(tex_patch, 'all');
     golden.texture_patch_weighted_checksum = weighted_checksum(tex_patch);
     golden.texture_patch_sq_checksum = sum(tex_patch.^2, 'all');
@@ -282,7 +283,7 @@ if has_brodatz
 
     rng(cfg.seed);
     [rand_patch, rand_seed, rand_tex_num, rand_coords] = lib.texture_patch( ...
-        'patch_sz', [32 32], 'cont', 0.12);
+        'patch_size', [32 32], 'contrast', 0.12);
     golden.texture_patch_rand_weighted_checksum = weighted_checksum(rand_patch);
     golden.texture_patch_rand_seed = rand_seed;
     golden.texture_patch_rand_tex_num = rand_tex_num;

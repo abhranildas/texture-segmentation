@@ -50,7 +50,7 @@ for i_tex = 1:n_tex
 
         elseif strcmpi(exp_type, 'joined')
             % total patch
-            [patch_joined, seed, ~, coord] = lib.texture_patch('tex_num', i_tex, 'patch_sz', [128 64]);
+            [patch_joined, seed, ~, coord] = lib.texture_patch('tex_num', i_tex, 'patch_size', [128 64]);
 
             patch1 = patch_joined(1:64, :);
             stimuli(:, :, 1, idx) = patch1;

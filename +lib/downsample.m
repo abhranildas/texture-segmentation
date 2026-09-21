@@ -16,12 +16,12 @@ function img = downsample(img_in, down_level, varargin)
 %
 %   Name-value inputs (all parsed but unused by this function; they exist so
 %   the call signature matches LIB.DOWNSAMPLE_OLD, which does use them)
-%     'ppd'    - pixels per degree (default 60).
-%     'pd'     - pupil diameter in mm (default 4).
-%     'w'      - wavelength in nm (default 550).
-%     'filter' - 1 to apply the optical filter (default 0).
-%     'ncolr'  - number of color channels for the histogram, use 3 even for
-%                grayscale (default 3).
+%     'ppd'            - pixels per degree (default 60).
+%     'pupil_diameter' - pupil diameter in mm (default 4).
+%     'wavelength'     - wavelength in nm (default 550).
+%     'apply_filter'   - 1 to apply the optical filter (default 0).
+%     'n_color_channels' - number of color channels for the histogram, use 3
+%                          even for grayscale (default 3).
 %
 %   Output
 %     img - the downsampled image, size(img_in) / down_level in pixels along
@@ -34,10 +34,10 @@ function img = downsample(img_in, down_level, varargin)
     addRequired(parser, 'img_in');
     addRequired(parser, 'down_level');  % lev = power of two of downsampling (0, 2, 4, 8, 16)
     addParameter(parser, 'ppd', 60);  % ppd = pixels per degree
-    addParameter(parser, 'pd', 4);  % pd = pupil diameter (mm)
-    addParameter(parser, 'w', 550);  % w = wavelength (nm)
-    addParameter(parser, 'filter', 0);  % filter = 1 then apply optical filter
-    addParameter(parser, 'ncolr', 3);  % color channels (use 3 even for grayscale)
+    addParameter(parser, 'pupil_diameter', 4);  % pupil diameter (mm)
+    addParameter(parser, 'wavelength', 550);  % wavelength (nm)
+    addParameter(parser, 'apply_filter', 0);  % apply_filter = 1 then apply optical filter
+    addParameter(parser, 'n_color_channels', 3);  % color channels (use 3 even for grayscale)
 
     parse(parser, img_in, down_level, varargin{:});
 

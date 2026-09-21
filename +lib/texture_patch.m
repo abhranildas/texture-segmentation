@@ -10,19 +10,19 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
 %   function works from any current folder.
 %
 %   Name-value inputs
-%     'tex_num'  - Brodatz texture number, 1 to 60, or 'rand' to draw one
-%                  (default 'rand').
-%     'patch_sz' - patch size in pixels, [rows cols] (default [64 64]).
-%     'seed'     - RNG seed, or 'rand' to draw one (default 'rand').
-%     'lum'      - mean luminance of the returned patch, in normalized units
-%                  where 0 is black and 1 is white (default 0.5).
-%     'cont'     - RMS contrast, as a fraction of the mean luminance
-%                  (default 0.2).
+%     'tex_num'    - Brodatz texture number, 1 to 60, or 'rand' to draw one
+%                    (default 'rand').
+%     'patch_size' - patch size in pixels, [rows cols] (default [64 64]).
+%     'seed'       - RNG seed, or 'rand' to draw one (default 'rand').
+%     'luminance'  - mean luminance of the returned patch, in normalized
+%                    units where 0 is black and 1 is white (default 0.5).
+%     'contrast'   - RMS contrast, as a fraction of the mean luminance
+%                    (default 0.2).
 %
 %   Outputs
-%     patch_img - the sampled patch, patch_sz pixels, in normalized luminance
-%                 units. May fall outside [0, 1]; the fraction that does is
-%                 warned about.
+%     patch_img - the sampled patch, patch_size pixels, in normalized
+%                 luminance units. May fall outside [0, 1]; the fraction
+%                 that does is warned about.
 %     seed      - the RNG seed used, so the draw can be repeated.
 %     tex_num   - the Brodatz texture number used, 1 to 60.
 %     coords    - [row col] of the patch's top-left corner in the source
@@ -33,10 +33,10 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
     parser = inputParser;
     parser.KeepUnmatched = true;
     addParameter(parser, 'tex_num', 'rand', @(x) isscalar(x) || strcmp(x, 'rand'));
-    addParameter(parser, 'patch_sz', [64 64]);
+    addParameter(parser, 'patch_size', [64 64]);
     addParameter(parser, 'seed', 'rand', @(x) isscalar(x) || strcmp(x, 'rand'));
-    addParameter(parser, 'lum', 0.5, @isscalar);
-    addParameter(parser, 'cont', 0.2, @isscalar);
+    addParameter(parser, 'luminance', 0.5, @isscalar);
+    addParameter(parser, 'contrast', 0.2, @isscalar);
     parse(parser, varargin{:});
 
     % set rng seed
@@ -52,9 +52,9 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
         tex_num = randi(60);
     end
 
-    patch_sz = parser.Results.patch_sz;
-    lum = parser.Results.lum;
-    cont = parser.Results.cont;
+    patch_size = parser.Results.patch_size;
+    luminance = parser.Results.luminance;
+    contrast = parser.Results.contrast;
 
     % sample the patch; the sheets live in the shared data store, located by
     % config() rather than by a relative string against the current folder
@@ -62,13 +62,13 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
     img = imread(fullfile(cfg.paths.textures, 'brodatz', ...
         ['B' num2str(tex_num) '.gif']));
     img_size = size(img, 1);
-    x = randi(img_size - patch_sz(1));
-    y = randi(img_size - patch_sz(2));
-    patch_img = double(img(x:x+patch_sz(1)-1, y:y+patch_sz(2)-1));
+    x = randi(img_size - patch_size(1));
+    y = randi(img_size - patch_size(2));
+    patch_img = double(img(x:x+patch_size(1)-1, y:y+patch_size(2)-1));
     coords = [x, y];
 
-    % adjust lum and cont
-    patch_img = (patch_img - mean(patch_img(:)))*lum*cont/std(patch_img(:)) + lum;
+    % adjust luminance and contrast
+    patch_img = (patch_img - mean(patch_img(:)))*luminance*contrast/std(patch_img(:)) + luminance;
 
     % compute fraction clipped
     p_clipped = lib.compute_p_clipped(patch_img);

@@ -88,14 +88,14 @@ diff_patches = cell(n_pairs, 2);
 for i_pair = 1:n_pairs
     % same-texture pair: one sheet, two random locations in it
     same_patches{i_pair, 1} = lib.texture_patch('tex_num', same_tex(i_pair), ...
-        'patch_sz', patch_size, 'seed', patch_seeds(i_pair, 1), 'cont', patch_contrast);
+        'patch_size', patch_size, 'seed', patch_seeds(i_pair, 1), 'contrast', patch_contrast);
     same_patches{i_pair, 2} = lib.texture_patch('tex_num', same_tex(i_pair), ...
-        'patch_sz', patch_size, 'seed', patch_seeds(i_pair, 2), 'cont', patch_contrast);
+        'patch_size', patch_size, 'seed', patch_seeds(i_pair, 2), 'contrast', patch_contrast);
     % different-texture pair: two sheets
     diff_patches{i_pair, 1} = lib.texture_patch('tex_num', diff_tex(i_pair, 1), ...
-        'patch_sz', patch_size, 'seed', patch_seeds(i_pair, 3), 'cont', patch_contrast);
+        'patch_size', patch_size, 'seed', patch_seeds(i_pair, 3), 'contrast', patch_contrast);
     diff_patches{i_pair, 2} = lib.texture_patch('tex_num', diff_tex(i_pair, 2), ...
-        'patch_sz', patch_size, 'seed', patch_seeds(i_pair, 4), 'cont', patch_contrast);
+        'patch_size', patch_size, 'seed', patch_seeds(i_pair, 4), 'contrast', patch_contrast);
 end
 
 figure('Name', 'Demo 1: example patch pairs');
@@ -187,8 +187,8 @@ for i_row = 1:grid_size
     for i_col = 1:grid_size
         tex_num = region_tex(1, region_map(i_row, i_col));
         patch_img = lib.texture_patch('tex_num', tex_num, ...
-            'patch_sz', region_patch_size, 'seed', patch_seed, ...
-            'cont', patch_contrast);
+            'patch_size', region_patch_size, 'seed', patch_seed, ...
+            'contrast', patch_contrast);
         rows = (i_row-1)*region_patch_size(1) + (1:region_patch_size(1));
         cols = (i_col-1)*region_patch_size(2) + (1:region_patch_size(2));
         stimulus(rows, cols) = patch_img;
