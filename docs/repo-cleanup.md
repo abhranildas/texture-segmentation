@@ -32,7 +32,7 @@
 </details>
 
 <details style="margin:0.7em 0 0.7em 1.5em">
-<summary><h3 style="display:inline; margin:0; font-size:1.05em">⬜ 0.2 · Stage 2 · Tidying</h3></summary>
+<summary><h3 style="display:inline; margin:0; font-size:1.05em">🚧 0.2 · Stage 2 · Tidying</h3></summary>
 
 <div style="margin-left:1.5em">
 
@@ -49,8 +49,8 @@
 - [ ] **0.2.4.** Root cluster-C files (tranche 5 boundary) — golden-covered for `re`/`rs`/`rs_new`/`rp` once 0.2.0 lands; `thresh`/`nlsame`/`mk_win`/`mk_contour` already covered; `edge_dv.m`/`contour_blur_estimation.m` stay pattern-check-only — **question closed 2026-09-21 while doing 0.2.0**: neither is a usable entry point (`edge_dv.m` errors on its first statement, B2.1; `contour_blur_estimation.m` is a figure script with no function line and no Brodatz input at all), so neither was added. Note `rs_new` is covered by an error identity, not an output (B3.13).
 - [x] **0.2.5.** `+experiment/+run` (tranche 6 boundary) — pattern-check-only, Psychtoolbox.
 - [x] **0.2.6.** `+experiment/+prep` (tranche 7 boundary) — pattern-check-only, Psychtoolbox.
-- [ ] **0.2.7.** `+general` (tranche 8 boundary) — pattern-check-only; documented negative, cite B2.12/B2.13/S2.5 as the reason, not missing data.
-- [ ] **0.2.8.** `config.m`/`setup.m`/`texture_grouping.m` (tranche 9 boundary) — `config()` golden-covered already; `setup.m`/`texture_grouping.m` pattern-check-only.
+- [x] **0.2.7.** `+general` (tranche 8 boundary) — pattern-check-only; documented negative, cite B2.12/B2.13/S2.5 as the reason, not missing data. **Done 2026-09-21** — 56 missing semicolons added across `compute_exp_error_mat.m` and `simulate_discrimination.m` (54 graphics/`load` calls plus the two bare progress displays section 1 named in advance); patterns 2 and 3 a documented negative; the one `NASGU` left in place with reasons.
+- [x] **0.2.8.** `config.m`/`setup.m`/`texture_grouping.m` (tranche 9 boundary) — `config()` golden-covered already; `setup.m`/`texture_grouping.m` pattern-check-only. **Done 2026-09-21** — a complete documented negative, nothing changed in any of the three.
 
 </div>
 
@@ -1368,6 +1368,81 @@ grouping/+prep/setup_experiment.m: NOPRT (line 84, `[i_session i_trial_flat]`)
 **Golden-harness replay: passes, and covers none of this tranche's files, before or after the edit.** `golden_harness('replay', 'tools/golden_ref.mat')` returns the reference struct without throwing (checked once at the end, after the one edit). Per section 1's coverage note, every file under `+experiment` needs Psychtoolbox and a live display, so none of the harness's entry points touch any of these 23 files — the replay's only job here is confirming the tranche's one edit didn't disturb anything the harness *does* cover, which it didn't (nothing outside `+experiment` was touched). No `golden_harness('capture', ...)` was run.
 
 **Verdict per section 0.2.5/0.2.6.** `+experiment/+run` (0.2.5, 18 files): a full documented negative — none of the four patterns found anything to fix. `+experiment/+prep` (0.2.6, 5 files, discounting the 4 `Contents.m`): one genuine fix, the deferred `NOPRT` in `grouping/+prep/setup_experiment.m`; the other 4 files are a documented negative. No new commented-out-code, structural, or speed findings — those were tranches 6/7's job (Stage 1), not this one's, and were not re-scanned.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">0.2.7 — <code>+general</code></h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-09-21, **MATLAB R2024b**. Baseline: HEAD, working tree confirmed clean with `git status` before the first edit. Scope: the 3 code files of tranche 8's boundary — `compute_exp_error_mat.m`, `nat_near_far_patches_bayes.m`, `simulate_discrimination.m` (`+general/Contents.m` is a documentation listing and carries none of the four patterns). **Pattern-check-only**, and the reason is *not* missing data: since S2.4 every path in these files resolves. The blockers are **B2.12** (`aply_otf`/`rgb2lms`/`dsmp` resolve nowhere), **B2.13** (`cdfs_abr_mo13_mo23_cs33*.mat`), and **S2.5** (all three are scripts with no `function` line, so there is no entry point to call). None of the three was executed end to end, and nothing was added to the golden harness.
+
+**Pattern 1 — missing suppressing semicolons. Found and fixed: 56 lines in two files** (13 in `compute_exp_error_mat.m`, 43 in `simulate_discrimination.m`). `nat_near_far_patches_bayes.m` has none — every statement in it already ends in `;`, a documented negative. Two groups:
+
+- **54 graphics calls** — `axis`, `colorbar`, `set(gca, ...)`, `xlabel`/`ylabel`/`zlabel`/`title` (including the command-syntax forms `axis image`, `xlabel 'accuracy'`), `hold on`, `xlim`/`ylim`, `imshow`, the `errorbar`/`plot` continuation tails — plus the five `load(...)` calls with no requested output. None of these prints anything, exactly as in 0.2.1's `+lib` plotting block, but `tree2str` records the display/suppress bit regardless, which is why Stage 1 could not touch them. **What makes these unambiguously accidental rather than deliberate is that they sit interleaved with already-suppressed neighbours in the same block:** `compute_exp_error_mat.m:82-94` reads `figure;` / `h_pcolor = pcolor(...);` / `set(h_pcolor, ...);` / `axis image` / `colormap winter;` / `colorbar`, and `simulate_discrimination.m:430-437` alternates `subplot(1, 2, 1);` with a bare `imshow(patch_a, [])`. The "ask before fixing" case the skill warns about needs a line whose display is the author's only output; here the neighbouring line one row up is already suppressed.
+- **The two bare progress displays**, `simulate_discrimination.m:133` (`[i_tex i_tex i_samp]`) and `:185` (`[i_tex j_tex i_samp]`) — the only two lines here that genuinely printed. Section 1 named both in advance (as `:69,114`, pre-tranche-8 numbering) as accidental debug output rather than deliberate interactive output, on the grounds that both sit three loops deep. **Checked against section 0.4 before touching them, per this tranche's instruction: neither is a filed bug**, so 0.2.1's rule ("where a missing semicolon is itself part of a filed bug whose fix is deletion, leave it and cite the bug id") does not apply — that rule covers `+lib/edge_props_stim.m:89`'s `randi(10)` (B1.1) and nothing in these three files. Suppressed, following tranche 0.2.5/0.2.6's handling of the identical `[i_session i_trial_flat]` display. `checkcode` confirms the expected residual signature of exactly this whitelisted edit: `NOPTS` ×2 → `VUNUS` ×2, the statement unchanged and only its display bit flipped.
+
+One consequence worth stating rather than acting on: suppressed, `[i_tex i_tex i_samp]` is now a statement with no effect at all. Deleting it is not one of Stage 2's four patterns (it is not an *assignment*), and neither is replacing it with a real `fprintf` progress line. Left as-is, consistent with what 0.2.5/0.2.6 did to the same shape of line; no new item filed, since the script's whole shape is already S2.5's.
+
+**Pattern 2 — `find(...)` that could be logical indexing. None found.** `find` does not appear as a call anywhere in the three files (`grep -w find` over all six of this tranche's files returns only two English-prose comments in `texture_grouping.m` and one inside a `setup.m` warning string). Nothing to judge.
+
+**Pattern 3 — unpreallocated growth. None found.** No `end+1` in any of the three, and `checkcode` reports no `AGROW`. Tranche 8's Stage 1 read already recorded that every storage array in these files is preallocated at the top; re-confirmed here.
+
+**Pattern 4 — unused assignments `checkcode` flags. One hit, left in place with reasons.** `simulate_discrimination.m:249`, the first `results = classify_normals([pow_dv_same hist_dv_same], ...)`, whose value is overwritten at `:257` with no read in between (lines 250-254 are `axis`/`xlabel`/`ylabel` only). It is genuinely unused, but it is **not deleted**, for three reasons, and this is a decision a later pass should not silently reverse:
+
+1. **The whitelisted form of this pattern is deleting a whole statement, and that is not available here.** `classify_normals` is the call that *draws the figure* those next three lines then label, so the statement has to stay; the only available edit is rewriting `results = f(...)` into `f(...)`, which deletes the assignment node rather than the statement. That changes the `nargout` the callee sees, and `classify_normals` is external code (the sibling `IntClassNorm` repo), out of scope and unverifiable from here.
+2. **This file has no golden coverage**, so a change of that kind could not be checked at runtime at all — only by pattern, which is exactly the situation the coverage note says to be conservative in.
+3. The assignment is structurally parallel to the five sibling `classify_normals` calls below it that *do* read `results`; the odd one out is that this cue pair's boundary is never extracted, which is a question about the script, not about a dead variable.
+
+Two related `checkcode` non-hits are recorded so the gap is visible: `results` at `:308` and `results_grad` at `:301` are *also* never read, but `checkcode` does not flag them because they are the final values of those names in a script, which a later cell or the caller's workspace could legitimately read (the same script-`NASGU` suppression 0.2.2 recorded for `effective_distance.m`). `compute_exp_error_mat.m`'s one message, `ISCL` at `:56`, is a real AST change and so is none of the four patterns — unchanged, as in tranche 8.
+
+**`checkcode` before → after, all three files:** `compute_exp_error_mat.m` ISCL ×1 → unchanged; `nat_near_far_patches_bayes.m` clean → clean; `simulate_discrimination.m` NOPTS ×2 + NASGU ×1 → VUNUS ×2 + NASGU ×1. No message introduced beyond the expected `NOPTS`→`VUNUS` flip.
+
+**Golden-harness replay after the edits, verbatim:**
+
+```
+REPLAY PASS
+```
+
+(`golden_harness('replay', 'tools/golden_ref.mat')` returned without throwing. The two `ans = 9` lines and the docked-figure warning in the console around it are B1.1 and B2.15 inside `edge_props_stim`, as 0.2.1 recorded.) Per section 1's coverage note the harness reaches none of these three files, so the replay's job here is only to confirm the edits disturbed nothing it *does* cover — they didn't; nothing outside `+general/` was touched in this half. No `golden_harness('capture', ...)` was run.
+
+**Nothing else touched.** No new bug, structural or speed finding: the four patterns are a closed list and this tranche re-read only what they ask about. Every item already recorded against these files (B1.3, B2.12, B2.13, B3.1, B3.18-B3.21, S2.5, S2.8, S3.2, O2.3, O3.4) was left alone.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">0.2.8 — <code>config.m</code>, <code>setup.m</code>, <code>texture_grouping.m</code></h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-09-21, **MATLAB R2024b**, in the same session as 0.2.7 above. Baseline: HEAD, same clean-tree check. Scope: exactly the 3 root-level files of tranche 9's boundary. `config()` is golden-covered (six reference fields, unchanged since Stage 1); `setup.m` and `texture_grouping.m` are pattern-check-only — a path-modifying script and a full driver script, per the skill's rule against verifying through a driver. Neither was executed.
+
+**Outcome: a complete documented negative — nothing was changed in any of the three files.** All four patterns, file by file:
+
+**Pattern 1 — missing suppressing semicolons. None found.** Every non-comment, non-continuation statement in all three files already ends in `;` — checked mechanically (a scan for statements ending in neither `;`, `,` nor `...`, discounting block keywords, run over all six of this tranche's files at once) and cross-checked against `checkcode`, which reports no `NOPTS`/`NOPRT`/`VUNUS` in any of them. Worth recording because `texture_grouping.m` is a script, which is where the skill warns a bare display line is most likely to be deliberate: it has none, so the "ask before fixing" case never arose. `config.m` and `setup.m` are functions and are `checkcode`-clean outright.
+
+**Pattern 2 — `find(...)` that could be logical indexing. None found.** No `find` call in any of the three. The three textual matches are not calls: `texture_grouping.m:168,201` are the section comments `% find links` and `% find groups`, and `setup.m:168` is the word inside a warning message's string literal.
+
+**Pattern 3 — unpreallocated growth. None found.** No `end+1` anywhere in the three files and no `AGROW` from `checkcode`. `setup.m`'s `candidates` cell is a literal built whole; `texture_grouping.m` preallocates `dv`, `links` and the map arrays to their final sizes before its loops.
+
+**Pattern 4 — unused assignments `checkcode` flags. None.** `config.m` and `setup.m` are `checkcode`-clean, and `texture_grouping.m`'s single message is `CLALL` on `clear all` at `:56`, which is O3.7 and not this pattern. One genuinely-unused assignment does exist and is deliberately **not** touched: `texture_grouping.m`'s `n_images = 60`, whose only reader is the commented-out `% image_num = randi(n_images);`. `checkcode` does not flag it, because it suppresses `NASGU` in scripts — the same gap 0.2.2 recorded for `effective_distance.m` and `find_tex_regions.m` — so it falls outside this pattern by its own definition. It is also tied to that block's *alternative* triage verdict (section 3.1.4): Stage 3 is to convert the block, not drop it, and deleting the variable now would break what Stage 3 has been told to revive. Same shape of reasoning as 0.2.1's `bd_strip_rep`.
+
+**Golden-harness replay, verbatim:**
+
+```
+REPLAY PASS
+```
+
+Run once at the end, after 0.2.7's edits. `config()` is covered by `config_path_fields` (8 field names, sorted), `config_optics`, `config_rgb_to_lms_checksum`/`_size`, `config_norm` and `config_seed` — all unchanged, which is the expected and required result: nothing in Stage 2 should be able to move `config()`, and this tranche did not edit it at all. Step 0's decision 2 still holds, paths recorded by field *name* only. No separate before/after `isequal(config_HEAD(), config())` run was needed this time, unlike tranche 9's Stage 1 pass: `config.m`'s diff against HEAD is empty. `setup.m` and `texture_grouping.m` have no harness coverage at all, as recorded above.
+
+**Nothing else.** No new bug, structural or speed finding; every item already recorded against these three files (B2.2, B3.22, S2.4, S2.9, S3.5-S3.8, O1.3, O3.7, O3.8) was left untouched.
+
+**Stage 2 status at the close of this tranche.** 0.2.0, 0.2.1, 0.2.2, 0.2.5, 0.2.6, 0.2.7 and 0.2.8 are ticked; **0.2.3 (`+grouping` stimulus scripts) and 0.2.4 (root cluster-C files) are still open**, so section 0.2 stays 🚧 rather than closing. Recorded explicitly because this tranche was dispatched as "the last piece of Stage 2", which the checklist does not bear out.
 
 </div>
 

@@ -74,7 +74,7 @@ pad_val = 128;  % pad patches with this mean greylevel value when taking gradien
 
 % load the efficient-coding histogram bins of gradient magnitude computed from
 % natural images
-load(fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat'))
+load(fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat'));
 
 % load('vislab-common/data/eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
 % n_bins=64;                 % # of grayscale histogram bins
@@ -130,7 +130,7 @@ for i_tex = 1:n_tex
 
     % same trials
     for i_samp = 1:n_all/n_tex
-        [i_tex i_tex i_samp]
+        [i_tex i_tex i_samp];
 
         % sample patch a from image
         x = randi(image_size - patch_size);  y = randi(image_size - patch_size);
@@ -182,7 +182,7 @@ for i_tex = 1:n_tex
         img_b = imgs(:, :, j_tex);
 
         for i_samp = 1:n_samp
-            [i_tex j_tex i_samp]
+            [i_tex j_tex i_samp];
             while true
 
                 % sample patch a from image
@@ -249,17 +249,17 @@ tx_pair_labels = categorical(tx_pair_labels);
 results = classify_normals([pow_dv_same hist_dv_same], ...
     [pow_dv_diff hist_dv_diff], 'input_type', 'samp', 'samp_opt', false, ...
     'd_con', true);
-axis normal
-xlabel 'power spectrum'
-ylabel 'greyscale histogram'
+axis normal;
+xlabel 'power spectrum';
+ylabel 'greyscale histogram';
 
 % discriminate using gradient magnitude, and merge to single dv
 results = classify_normals(grad_m_same, grad_m_diff, 'input_type', 'samp', ...
     'samp_opt', false, 'd_con', true);
-xlim([-20 15])
-ylim([0 .16])
-xlabel 'gradient magnitude (scales combined)'
-set(gca, 'ytick', [], 'fontsize', 13)
+xlim([-20 15]);
+ylim([0 .16]);
+xlabel 'gradient magnitude (scales combined)';
+set(gca, 'ytick', [], 'fontsize', 13);
 grad_m_bd = results.norm_bd;
 grad_m_dv_same = results.samp_dv{1};
 grad_m_dv_diff = results.samp_dv{2};
@@ -267,9 +267,9 @@ grad_m_dv_diff = results.samp_dv{2};
 % discriminate using gradient orientation, and merge to single dv
 results = classify_normals(grad_o_same, grad_o_diff, 'input_type', 'samp', ...
     'samp_opt', false, 'd_con', true);
-xlim([-10 10])
-xlabel 'gradient orientation (scales combined)'
-set(gca, 'ytick', [], 'fontsize', 13)
+xlim([-10 10]);
+xlabel 'gradient orientation (scales combined)';
+set(gca, 'ytick', [], 'fontsize', 13);
 grad_o_bd = results.norm_bd;
 grad_o_dv_same = results.samp_dv{1};
 grad_o_dv_diff = results.samp_dv{2};
@@ -277,9 +277,9 @@ grad_o_dv_diff = results.samp_dv{2};
 % discriminate using gradient product, and merge to single dv
 results = classify_normals(grad_p_same, grad_p_diff, 'input_type', 'samp', ...
     'samp_opt', false, 'd_con', true);
-xlim([-7 10])
-xlabel 'gradient product (scales combined)'
-set(gca, 'ytick', [], 'fontsize', 13)
+xlim([-7 10]);
+xlabel 'gradient product (scales combined)';
+set(gca, 'ytick', [], 'fontsize', 13);
 grad_p_bd = results.norm_bd;
 grad_p_dv_same = results.samp_dv{1};
 grad_p_dv_diff = results.samp_dv{2};
@@ -289,29 +289,29 @@ results_grad = classify_normals( ...
     [grad_m_dv_same grad_o_dv_same grad_p_dv_same], ...
     [grad_m_dv_diff grad_o_dv_diff grad_p_dv_diff], ...
     'input_type', 'samp', 'samp_opt', false, 'd_con', true);
-axis([-10 10 -10 10 -10 10])
-xlabel 'gradient magnitude'
-ylabel 'gradient orientation'
-zlabel 'gradient product'
-set(gca, 'fontsize', 13)
+axis([-10 10 -10 10 -10 10]);
+xlabel 'gradient magnitude';
+ylabel 'gradient orientation';
+zlabel 'gradient product';
+set(gca, 'fontsize', 13);
 grad_dv_same = results_grad.samp_dv{1};
 grad_dv_diff = results_grad.samp_dv{2};
 
 % discriminate using grey level and gradients
 results_grad = classify_normals([hist_dv_same grad_dv_same], ...
     [hist_dv_diff grad_dv_diff], 'input_type', 'samp', 'samp_opt', false);
-axis([0 10 -10 25])
-xlabel 'greyscale histogram'
-ylabel 'gradient histograms'
+axis([0 10 -10 25]);
+xlabel 'greyscale histogram';
+ylabel 'gradient histograms';
 
 % discriminate using edge contour properties
 results = classify_normals( ...
     [pix_num_same con_num_same con_len_same con_curv_same], ...
     [pix_num_diff con_num_diff con_len_diff con_curv_diff], ...
     'input_type', 'samp', 'samp_opt', false, 'd_con', true);
-xlim([-7 10])
-xlabel 'all edge contour properties combined'
-set(gca, 'ytick', [], 'fontsize', 13)
+xlim([-7 10]);
+xlabel 'all edge contour properties combined';
+set(gca, 'ytick', [], 'fontsize', 13);
 
 % discriminate using all cues
 results_all = classify_normals( ...
@@ -320,9 +320,9 @@ results_all = classify_normals( ...
     [pow_dv_diff hist_dv_diff grad_m_dv_diff grad_o_dv_diff grad_p_dv_diff ...
     pix_num_diff con_num_diff con_len_diff con_curv_diff], ...
     'input_type', 'samp', 'samp_opt', false, 'd_con', true);
-xlim([-50 50])
-xlabel 'final decision variable'
-set(gca, 'ytick', [], 'fontsize', 13)
+xlim([-50 50]);
+xlabel 'final decision variable';
+set(gca, 'ytick', [], 'fontsize', 13);
 all_bd = results_all.norm_bd;
 
 % save decision boundaries
@@ -335,8 +335,8 @@ tx_discrim_bd.all_bd = all_bd;
 % save("data/model/texture discrimination boundaries.mat","tx_discrim_bd")
 
 %% add actual experimental patches to the plot
-load('exp_files/norm/exp_settings.mat')
-load('exp_files/norm/subject_out/neel.mat')
+load('exp_files/norm/exp_settings.mat');
+load('exp_files/norm/subject_out/neel.mat');
 
 i_level = 1;  % pick eccentricity level
 
@@ -359,24 +359,24 @@ for i_exp_trial = 1:size(idx, 1)
     hist_dv_exp(i_exp_trial) = log(lib.hist_dv(patch_a, patch_b, grey_hist_bins));
 end
 
-hold on
+hold on;
 default_colors = colororder;
 
 plot(pow_dv_exp(~diffpair(:, i_level) & correct(:, i_level)), ...
     hist_dv_exp(~diffpair(:, i_level) & correct(:, i_level)), ...
-    '.', 'color', default_colors(1, :), 'markersize', 8)
+    '.', 'color', default_colors(1, :), 'markersize', 8);
 plot(pow_dv_exp(~diffpair(:, i_level) & ~correct(:, i_level)), ...
     hist_dv_exp(~diffpair(:, i_level) & ~correct(:, i_level)), ...
     'o', 'markerfacecolor', default_colors(1, :), 'markeredgecolor', 'k', ...
-    'markersize', 4)
+    'markersize', 4);
 
 plot(pow_dv_exp(diffpair(:, i_level) & correct(:, i_level)), ...
     hist_dv_exp(diffpair(:, i_level) & correct(:, i_level)), ...
-    '.', 'color', default_colors(2, :), 'markersize', 8)
+    '.', 'color', default_colors(2, :), 'markersize', 8);
 plot(pow_dv_exp(diffpair(:, i_level) & ~correct(:, i_level)), ...
     hist_dv_exp(diffpair(:, i_level) & ~correct(:, i_level)), ...
     'o', 'markerfacecolor', default_colors(2, :), 'markeredgecolor', 'k', ...
-    'markersize', 4)
+    'markersize', 4);
 
 %% discriminate a single pair of texture patches
 
@@ -387,10 +387,10 @@ cfg = config();
 % from natural images. This used to read 'eff_coding_bins.mat', which exists
 % nowhere; nat_im_eff_coding.mat is the same file cell 1 loads and holds the
 % grad_m_bins / grad_o_bins / grad_p_bins this cell goes on to use (B2.14).
-load(fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat'))
+load(fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat'));
 
 % load texture-discrimination boundaries:
-load(fullfile(cfg.paths.model, 'texture discrimination boundaries.mat'))
+load(fullfile(cfg.paths.model, 'texture discrimination boundaries.mat'));
 
 % parameters
 n_tex = 60;  % # of textures
@@ -430,11 +430,11 @@ patch_b = img_b(x:x+patch_size-1, y:y+patch_size-1);
 
 % figure;
 subplot(1, 2, 1);
-imshow(patch_a, [])
-title(tex_a)
+imshow(patch_a, []);
+title(tex_a);
 subplot(1, 2, 2);
-imshow(patch_b, [])
-title(tex_b)
+imshow(patch_b, []);
+title(tex_b);
 
 % compute decision variables
 pow_dv = log(vislab.nat_stat_bayes.dv_power(patch_a, patch_b, noise_const, ...

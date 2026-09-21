@@ -82,24 +82,24 @@ for i_level = 1:4
     figure;
     h_pcolor = pcolor(err_mat_all(:, :, i_level));
     set(h_pcolor, 'edgecolor', 'none');
-    axis image
+    axis image;
     colormap winter;
-    colorbar
-    set(gca, 'YDir', 'reverse')
-    set(gca, 'xtick', [1 60])
-    set(gca, 'ytick', [1 60])
-    set(gca, 'fontsize', 13)
-    xlabel 'texture #'
-    ylabel 'texture #'
-    title(sprintf('eccentricity: %.1f', exp_settings.ecc(i_level)))
+    colorbar;
+    set(gca, 'YDir', 'reverse');
+    set(gca, 'xtick', [1 60]);
+    set(gca, 'ytick', [1 60]);
+    set(gca, 'fontsize', 13);
+    xlabel 'texture #';
+    ylabel 'texture #';
+    title(sprintf('eccentricity: %.1f', exp_settings.ecc(i_level)));
 end
 
 %% plot accuracy vs eccentricity
 subject_accuracy = squeeze(mean(subject_file.correct, 1))';
 
 figure;
-hold on
+hold on;
 errorbar(exp_settings.ecc, mean(subject_accuracy), std(subject_accuracy), '-ok', ...
-    'markerfacecolor', 'k')
-xlabel 'eccentricity (deg)'
-ylabel 'accuracy'
+    'markerfacecolor', 'k');
+xlabel 'eccentricity (deg)';
+ylabel 'accuracy';
