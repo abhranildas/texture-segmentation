@@ -31,10 +31,8 @@ function dv = rs(patch1, patch2, patch_size)
             sm = sum(sum(p1s.*p2));
             if sm > dv
                 dv = sm;
-                dxmx = dx; dymx = dy;
             end
         end
     end
-    p1s = circshift(p1, [dxmx, dymx]);
     dv = 1/dv;
 end

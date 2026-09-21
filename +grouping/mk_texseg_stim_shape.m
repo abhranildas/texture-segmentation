@@ -75,9 +75,9 @@ for i_trial = 1:n_trials
     y0 = 100;
     width = 1000;
     height = 1000;
-    set(gcf, 'position', [x0, y0, width, height])
+    set(gcf, 'position', [x0, y0, width, height]);
     axis off;
-    pause
+    pause;
     close all;
 
     % make masks for a trial
@@ -138,9 +138,9 @@ for i_trial = 1:n_trials
     y0 = 100;
     width = 1000;
     height = 1000;
-    set(gcf, 'position', [x0, y0, width, height])
+    set(gcf, 'position', [x0, y0, width, height]);
     axis off;
-    pause
+    pause;
     close all;
 
     if is_diff == 0
@@ -155,8 +155,8 @@ for i_trial = 1:n_trials
     y0 = 100;
     width = 1000;
     height = 1000;
-    set(gcf, 'position', [x0, y0, width, height])
+    set(gcf, 'position', [x0, y0, width, height]);
     axis off;
-    pause
+    pause;
     close all;
 end

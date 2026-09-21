@@ -182,8 +182,6 @@ function session = mk_texseg_session(tex_set, n_tex)
     end
 
     % make contrasts for the trials
-    image_width = patch_width*grid_size;
-    n_pixels = image_width*image_width;
     trial_order = randperm(n_trials);
     trial = 0;
     for i_group = 1:contrast_block_size:n_trials  % all contrast blocks

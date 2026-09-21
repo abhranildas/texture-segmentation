@@ -6,12 +6,15 @@ function [simg] = s_gtr_img(patch_img, patch_width, grid_size, n_channels)
 %   distinct patches together with the distance between them - the same
 %   enumeration GROUPING.FIND_TEX_REGIONS builds. Declares simg as its output
 %   but never assigns it, so a call requesting that output errors; see bug
-%   B3.11 in docs/repo-cleanup.md. patch_img and n_channels are accepted but
-%   not used by the body. No caller exists anywhere in the repo.
+%   B3.11 in docs/repo-cleanup.md. patch_img, patch_width and n_channels are
+%   accepted but not used by the body (patch_width's only former use, a local
+%   image-width computation, was itself unused and was removed in Stage 2 -
+%   see this tranche's findings-log note). No caller exists anywhere in the
+%   repo.
 %
 %   Inputs
 %     patch_img   - image to segment (unused).
-%     patch_width - patch width, in pixels.
+%     patch_width - patch width, in pixels (unused).
 %     grid_size   - side length of the square patch grid, as an integer count
 %                   of patches (not pixels).
 %     n_channels  - number of color channels (unused).
@@ -21,7 +24,6 @@ function [simg] = s_gtr_img(patch_img, patch_width, grid_size, n_channels)
 %
 %   See also GROUPING.FIND_TEX_REGIONS, GROUPING.MK_DIST, GROUPING.TEX_REGIONS.
 
-    image_width = patch_width*grid_size;  % image width (pixels)
     n_patches = grid_size^2;  % total number of patches
 
     % load patch locations

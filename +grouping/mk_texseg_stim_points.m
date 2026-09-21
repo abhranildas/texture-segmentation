@@ -224,9 +224,9 @@ for i_group = 1:contrast_block_size:n_trials  % all contrast blocks
             y0 = 100;
             width = 1000;
             height = 1000;
-            set(gcf, 'position', [x0, y0, width, height])
+            set(gcf, 'position', [x0, y0, width, height]);
             axis off;
-            pause
+            pause;
             close all;
 
             % make masks for a trial (ii = region index, jj = grid row, kk = grid column)
@@ -275,9 +275,9 @@ for i_group = 1:contrast_block_size:n_trials  % all contrast blocks
             y0 = 100;
             width = 1000;
             height = 1000;
-            set(gcf, 'position', [x0, y0, width, height])
+            set(gcf, 'position', [x0, y0, width, height]);
             axis off;
-            pause
+            pause;
             close all;
 
             % show feedback
@@ -289,9 +289,9 @@ for i_group = 1:contrast_block_size:n_trials  % all contrast blocks
             y0 = 100;
             width = 1000;
             height = 1000;
-            set(gcf, 'position', [x0, y0, width, height])
+            set(gcf, 'position', [x0, y0, width, height]);
             axis off;
-            pause
+            pause;
             close all;
         end
     end
