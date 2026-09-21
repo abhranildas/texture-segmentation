@@ -81,7 +81,7 @@ for i_session = 1:n_sessions
     cue_imgs_flat = zeros([stim_sz stim_sz n_trials*n_levels], 'uint8');
     feedback_imgs_flat = zeros([stim_sz stim_sz n_trials*n_levels], 'uint8');
     for i_trial_flat = 1:n_trials*n_levels
-        [i_session i_trial_flat]
+        [i_session i_trial_flat];
         c0 = session.cntrst(i_trial_flat);
         [~, cue_img, stim, fimg] = grouping.mk_trl_points(i_trial_flat, session.sz, session.pw, ...
             session.m0, session.tex_set, c0, session.cuelocs, session.texs, session.maps);
