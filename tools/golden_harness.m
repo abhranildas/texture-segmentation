@@ -12,17 +12,30 @@ function golden = golden_harness(mode, golden_file)
 %     9 (config/driver)      config
 %     3 (+grouping helpers)  mk_dist, mk_mecc, mk_decc, mk_bindex, mk_masks,
 %                            find_bin, check_xy, check_tlst
-%     2 (+lib)               steerable_filter, steerable_grad, local_sd
-%     5 (root cluster C)     mk_win, mk_contour, thresh, nlsame
+%     2 (+lib)               steerable_filter, steerable_grad, local_sd,
+%                            texture_patch, edge_props_stim (error identity
+%                            only -- see below)
+%     5 (root cluster C)     mk_win, mk_contour, thresh, nlsame, re, rs, rp,
+%                            rs_new (error identity only -- see below)
+%
+%   The first three groups run on small synthetic inputs; texture_patch and
+%   everything from re onward run on real, small, git-tracked Brodatz patches
+%   read through cfg.paths.textures, never on the ~19 GB natural-image set.
+%
+%   Three entry points have no runnable path at all and are covered by the
+%   IDENTITY OF THE ERROR THEY RAISE rather than by an output checksum:
+%   edge_props_stim's 'tex' path (bug B2.15), its 'camo' default (B3.6) and
+%   rs_new (B3.13). That pins where each one dies, so a Stage 2 edit cannot
+%   move it; their numeric outputs stay unverified until Stage 4 fixes them.
 %
 %   Not covered, and pattern-check-only for Stage 2: all of +experiment
-%   (needs Psychtoolbox and a live display), all of +general (needs the ~19 GB
-%   natural-image set or exp_files/Brodatz data), +lib/texture_patch.m,
-%   +lib/edge_props_stim.m, and the root files that consume real images
-%   (re.m, rs.m, rs_new.m, rp.m, edge_dv.m, contour_blur_estimation.m,
-%   texture_grouping.m). Also not covered: +grouping/mk_texs.m, find_xy.m,
-%   effective_distance.m, find_tex_regions.m and the +grouping stimulus
-%   scripts, which are scripts or need real texture sheets.
+%   (needs Psychtoolbox and a live display), all of +general (see bugs
+%   B2.12/B2.13 and item S2.5 -- not a data problem), edge_dv.m (B2.1: calls
+%   a function that does not exist), contour_blur_estimation.m (a figure
+%   script with no callable entry point), texture_grouping.m and setup.m
+%   (driver / path-modifying scripts). Also not covered: +grouping/mk_texs.m,
+%   find_xy.m, effective_distance.m, find_tex_regions.m and the +grouping
+%   stimulus scripts, which are scripts or need real texture sheets.
 %
 % Inputs
 %   mode         'capture' or 'replay', char
@@ -235,6 +248,151 @@ lnk_b = [2, 3, 5, 8];
 golden.nlsame_value = nlsame(lnk_a, numel(lnk_a), lnk_b, numel(lnk_b));
 
 % -------------------------------------------------------------------------
+% Real-data entry points. Everything below reads the small, git-tracked
+% Brodatz sheets through cfg.paths.textures -- two sheets, four 64x64 crops.
+% The natural-image set is never touched.
+% -------------------------------------------------------------------------
+
+brodatz_dir = fullfile(cfg.paths.textures, 'brodatz');
+has_brodatz = isfolder(brodatz_dir) && isfile(fullfile(brodatz_dir, 'B1.gif'));
+if ~has_brodatz
+    warning('golden_harness:noTextures', ...
+        ['Brodatz sheets not found at %s -- every real-data entry point ', ...
+         '(texture_patch, re, rs, rs_new, rp, edge_props_stim) skipped.'], ...
+        brodatz_dir);
+end
+
+% texture_patch. Its mean and SD are fixed by construction ('lum' and 'cont'),
+% so a plain checksum would pass whatever pixels came back; the reduction is
+% therefore position-weighted as well, which no reshuffle or wrong crop can
+% survive. Two calls: one fully explicit, and one taking the 'rand' defaults
+% for texture number and seed, which is the only branch here that draws from
+% the RNG (and the only reason a seed is set immediately before it).
+if has_brodatz
+    rng(cfg.seed);
+    [tex_patch, tex_seed, tex_number, tex_coords] = lib.texture_patch( ...
+        'tex_num', 3, 'patch_sz', [64 64], 'seed', 1, 'cont', 0.12);
+    golden.texture_patch_checksum = sum(tex_patch, 'all');
+    golden.texture_patch_weighted_checksum = weighted_checksum(tex_patch);
+    golden.texture_patch_sq_checksum = sum(tex_patch.^2, 'all');
+    golden.texture_patch_size = size(tex_patch);
+    golden.texture_patch_seed = tex_seed;
+    golden.texture_patch_tex_num = tex_number;
+    golden.texture_patch_coords = tex_coords;
+
+    rng(cfg.seed);
+    [rand_patch, rand_seed, rand_tex_num, rand_coords] = lib.texture_patch( ...
+        'patch_sz', [32 32], 'cont', 0.12);
+    golden.texture_patch_rand_weighted_checksum = weighted_checksum(rand_patch);
+    golden.texture_patch_rand_seed = rand_seed;
+    golden.texture_patch_rand_tex_num = rand_tex_num;
+    golden.texture_patch_rand_coords = rand_coords;
+else
+    golden.texture_patch_checksum = [];
+    golden.texture_patch_weighted_checksum = [];
+    golden.texture_patch_sq_checksum = [];
+    golden.texture_patch_size = [];
+    golden.texture_patch_seed = [];
+    golden.texture_patch_tex_num = [];
+    golden.texture_patch_coords = [];
+    golden.texture_patch_rand_weighted_checksum = [];
+    golden.texture_patch_rand_seed = [];
+    golden.texture_patch_rand_tex_num = [];
+    golden.texture_patch_rand_coords = [];
+end
+
+% Gray-level patches for the decision-variable functions, cut at fixed
+% offsets so no RNG draw is involved: two crops from one sheet (a "same
+% texture" pair) and one from a second sheet (a "different texture" pair).
+% Raw gray levels rather than texture_patch's normalized [0, 1] output,
+% because that is what these functions and the efficient-coding histogram
+% bins below were written for (+general/simulate_discrimination.m:151-174).
+patch_size_px = 64;
+if has_brodatz
+    sheet_a = double(imread(fullfile(brodatz_dir, 'B1.gif')));
+    sheet_b = double(imread(fullfile(brodatz_dir, 'B2.gif')));
+    patch_a1 = sheet_a(1:patch_size_px, 1:patch_size_px);
+    patch_a2 = sheet_a(301:300+patch_size_px, 201:200+patch_size_px);
+    patch_b1 = sheet_b(1:patch_size_px, 1:patch_size_px);
+end
+
+% rp and rs -- pure, no toolbox, no RNG.
+if has_brodatz
+    rng(cfg.seed);
+    win_rp = mk_win(patch_size_px, patch_size_px/4, 1);
+    golden.rp_diff = rp(patch_a1, patch_b1, 10, patch_size_px, win_rp);
+    golden.rp_same = rp(patch_a1, patch_a2, 10, patch_size_px, win_rp);
+
+    rng(cfg.seed);
+    golden.rs_diff = rs(patch_a1, patch_b1, patch_size_px);
+    golden.rs_same = rs(patch_a1, patch_a2, patch_size_px);
+else
+    golden.rp_diff = [];
+    golden.rp_same = [];
+    golden.rs_diff = [];
+    golden.rs_same = [];
+end
+
+% re needs edge/imgradient/bwconncomp/labelmatrix from the Image Processing
+% Toolbox, so it is gated. The gradient-magnitude threshold is 50 rather than
+% anything lower on purpose: below about 30 these patches yield more contours
+% in patch 1 than in patch 2, and re.m's patch-2 loop runs to patch 1's
+% contour count (bug B1.2), so the call dies on an out-of-range index. Same
+% precaution as the find_bin sweep above, which is sized to stay inside B3.2.
+has_ipt_edges = exist('edge', 'file') && exist('imgradient', 'file') && ...
+    exist('bwconncomp', 'file') && exist('labelmatrix', 'file');
+if has_brodatz && has_ipt_edges
+    rng(cfg.seed);
+    golden.re_diff = re(patch_a1, patch_b1, patch_size_px, 2, 8, 50);
+    golden.re_same = re(patch_a1, patch_a2, patch_size_px, 2, 8, 50);
+else
+    golden.re_diff = [];
+    golden.re_same = [];
+end
+
+% rs_new and edge_props_stim have no runnable path: each one errors before
+% returning anything (B3.13, B2.15, B3.6 -- see this file's header). What is
+% captured is therefore the identity of the error, which pins where each one
+% dies so that a Stage 2 edit cannot silently move it.
+if has_brodatz
+    rng(cfg.seed);
+    golden.rs_new_error_id = error_id(@() rs_new(patch_a1, patch_b1, ...
+        patch_size_px, 8));
+else
+    golden.rs_new_error_id = [];
+end
+
+% edge_props_stim additionally needs the efficient-coding histogram bins and
+% (through steerable_grad/local_sd/imshow) the Image Processing Toolbox. It
+% is called exactly as +general/simulate_discrimination.m:171-174 calls it,
+% minus the OTF prefilter, which would pull in vislab.lib.otf_filter without
+% changing what is being pinned here. Its four figures are closed afterwards,
+% and only the ones it opened.
+bins_file = fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat');
+if has_brodatz && has_ipt_edges && exist('imshow', 'file') && isfile(bins_file)
+    bins = load(bins_file, 'grad_m_bins', 'grad_o_bins', 'grad_p_bins');
+    figs_before = findobj(0, 'Type', 'figure');
+
+    rng(cfg.seed);
+    golden.edge_props_stim_tex_error_id = error_id(@() ...
+        edge_props_stim_probe(cat(3, patch_a1, patch_b1), 'tex', bins));
+
+    rng(cfg.seed);
+    golden.edge_props_stim_camo_error_id = error_id(@() ...
+        edge_props_stim_probe(patch_a1, 'camo', bins));
+
+    figs_after = findobj(0, 'Type', 'figure');
+    for i_fig = 1:numel(figs_after)
+        if ~any(figs_after(i_fig) == figs_before)
+            close(figs_after(i_fig));
+        end
+    end
+else
+    golden.edge_props_stim_tex_error_id = [];
+    golden.edge_props_stim_camo_error_id = [];
+end
+
+% -------------------------------------------------------------------------
 
 if strcmp(mode, 'capture')
     save(golden_file, 'golden');
@@ -245,4 +403,36 @@ elseif strcmp(mode, 'replay')
 else
     error('golden_harness:mode', 'mode must be ''capture'' or ''replay''');
 end
+end
+
+% -------------------------------------------------------------------------
+% Local helpers
+% -------------------------------------------------------------------------
+
+function checksum = weighted_checksum(x)
+% Position-weighted checksum, for arrays whose plain sum is fixed by
+% construction (texture_patch's output has an imposed mean and SD, so a plain
+% checksum would match whatever pixels came back).
+    checksum = sum(x.*reshape(1:numel(x), size(x)), 'all');
+end
+
+function id = error_id(fn)
+% Identifier of the error FN raises, or '' if it unexpectedly succeeds. The
+% success case is captured rather than ignored: if a fix later makes one of
+% these entry points run, the replay fails and says so.
+    try
+        fn();
+        id = '';
+    catch err
+        id = err.identifier;
+    end
+end
+
+function edge_props_stim_probe(stim, stim_type, bins)
+% One edge_props_stim call asking for its 15 live outputs, wrapped so that
+% error_id can call it with no arguments and no outputs.
+    out = cell(1, 15);
+    [out{:}] = lib.edge_props_stim(stim, 'stim_type', stim_type, ...
+        'pad_val', 128, 'grad_mag_bins', bins.grad_m_bins, ...
+        'grad_or_bins', bins.grad_o_bins, 'grad_prod_bins', bins.grad_p_bins);
 end
