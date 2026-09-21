@@ -43,8 +43,8 @@
 **To-do.**
 
 - [x] **0.2.0.** Extend the golden harness with real-Brodatz-patch entry points for `texture_patch`, `edge_props_stim`, `re`, `rs`, `rs_new`, `rp` (seeded explicitly, small patches, checksummed outputs per the skill's rules) — done once, before the tranches below that depend on it (0.2.3, 0.2.5). **Done 2026-09-21**, 20 new reference fields; `edge_props_stim` and `rs_new` turned out to have no runnable path and are covered by the identity of the error each raises instead (B2.15/B3.6/B3.13).
-- [ ] **0.2.1.** `+lib` (tranche 2 boundary) — golden-covered.
-- [ ] **0.2.2.** `+grouping` pure helpers (tranche 3 boundary) — already golden-covered by the Stage 1 harness, no extension needed.
+- [x] **0.2.1.** `+lib` (tranche 2 boundary) — golden-covered.
+- [x] **0.2.2.** `+grouping` pure helpers (tranche 3 boundary) — already golden-covered by the Stage 1 harness, no extension needed.
 - [ ] **0.2.3.** `+grouping` stimulus scripts (tranche 4 boundary) — pattern-check-only: most of these files are scripts (S2.5) and several are known-broken (B2.5–B2.7, B3.11), so there's no entry point to golden-test yet regardless of data.
 - [ ] **0.2.4.** Root cluster-C files (tranche 5 boundary) — golden-covered for `re`/`rs`/`rs_new`/`rp` once 0.2.0 lands; `thresh`/`nlsame`/`mk_win`/`mk_contour` already covered; `edge_dv.m`/`contour_blur_estimation.m` stay pattern-check-only — **question closed 2026-09-21 while doing 0.2.0**: neither is a usable entry point (`edge_dv.m` errors on its first statement, B2.1; `contour_blur_estimation.m` is a figure script with no function line and no Brodatz input at all), so neither was added. Note `rs_new` is covered by an error identity, not an output (B3.13).
 - [x] **0.2.5.** `+experiment/+run` (tranche 6 boundary) — pattern-check-only, Psychtoolbox.
@@ -1263,6 +1263,75 @@ replay 2 OK
 **Two questions closed while here.** `edge_dv.m` and `contour_blur_estimation.m` were read in full to answer 0.2.4's retroactive question: neither is a viable entry point. `edge_dv.m`'s first executable statement is `lib.edge_contour_props(patch_a)`, and that function exists nowhere in `+lib` (B2.1), so the function cannot run at all, on Brodatz data or anything else — it is not even an error-identity candidate worth recording, since the error is a missing dependency rather than anything Stage 2 could move. `contour_blur_estimation.m` has no `function` line, takes no input, reads no data, and only renders a hardcoded 64x64 annulus into a figure after a `close all`; there is nothing to check a checksum against. Both stay pattern-check-only, permanently, not "not checked yet".
 
 **One bug found and not fixed: B2.15** (`imshow` on a 3-plane non-RGB array kills every `'tex'` call). Filed in section 0.4. It was found by this step rather than by tranche 2's Stage 1 read because it only shows up when the function is actually called.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">0.2.1 — <code>+lib</code></h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-09-21, **MATLAB R2024b**, immediately after the harness extension above. Baseline: HEAD (working tree clean for these files at the start). Scope: the 14 code files in `+lib/` plus `Contents.m`, which is a documentation listing and carries none of the four patterns. Golden-covered: `steerable_filter`, `steerable_grad`, `local_sd`, `texture_patch` by output checksum, and `edge_props_stim` by error identity (0.2.0).
+
+**Pattern 1 — missing suppressing semicolons. Found and fixed: 17 lines in two files.** `texture_patch.m:47,48,77` (`rng('default')`, `rng(seed)`, `warning(...)`) and `edge_props_stim.m:214,215` and `:252-255,283-286,314-317` (the `figure`/`imshow`/`subplot`/`bar`/`title` calls in the plotting block). None of these actually prints anything — each is a call with no requested output, so there is no `ans` to display — but `tree2str` records the display/suppress bit either way, which is exactly why Stage 1 could not add them and Stage 2 can: the canonical diff is the whitelisted `X` → `X;` and nothing else. `git diff` on both files is 17 lines changed by one character each, and no new `checkcode` message appears (a `VUNUS` would have, had any of these produced a value).
+
+**One missing semicolon deliberately NOT added, and this is a decision later tranches should follow: `edge_props_stim.m:89`'s bare `randi(10)`.** Section 1 flagged it in advance as an accidental debug print, and it is — but it is also filed as **B1.1**, a 🔴 bug, precisely because the draw it makes shifts the RNG stream for the rest of any run that calls it, and the fix recorded there is to delete the line, not to quiet it. Adding a `;` would remove the one visible symptom (the `ans = 9` this tranche watched it print on every harness call) while leaving the actual defect in place, making the bug strictly harder to notice before Stage 4 gets to it. **Rule: where a missing semicolon is itself part of a filed bug whose fix is deletion, leave it and cite the bug id.** The general form of this rule — a Stage 2 pattern hit that overlaps a filed bug belongs to the bug, not to Stage 2 — is applied three more times below.
+
+**Pattern 2 — `find(...)` that could be logical indexing. None found.** `find` does not appear anywhere in `+lib` — grep over all 14 files returns no match at all, so there was nothing to judge.
+
+**Pattern 3 — unpreallocated growth. None found.** No `end+1` anywhere in `+lib`, and `checkcode` reports no `AGROW`. Every array in these files is either preallocated to its final size or assigned whole.
+
+**Pattern 4 — unused assignments `checkcode` flags. Eight hits; five deleted, three left with reasons.**
+
+- **Deleted:** `downsample.m:43-47`, the five locals `ppd`/`pd`/`w`/`apply_filter`/`ncolr` pulled out of `parser.Results` and never read — the function's body is six lines and uses none of them. The `addParameter` declarations stay, so the documented call-signature compatibility with `downsample_old` (which does use all five) is untouched, and so is the header paragraph describing them. Verified beyond the pattern check, since `downsample` has no harness entry: HEAD's version was copied out under a temporary name and both were run on the same random 64x64 image at every supported `down_level` with `'filter', 1, 'ncolr', 1` — `isequal` true at 1, 2, 4, 8 and 16.
+- **Left — `edge_props_stim.m:194`, `grads_pca`.** This is **B3.5** itself: the live PCA branch computes `grads_pca` and never assigns it back to `grads`, unlike both commented-out variants beside it which end in `grads = grads_pca`. The assignment is not dead code, it is a bug's missing second half. Deleting it would delete the evidence.
+- **Left — `edge_props_stim.m:81`, `bd_strip_rep`.** Read only by the commented-out old gradient loop (`grad_bd(~bd_strip_rep) = nan`), whose Stage 1 triage verdict is *alternative* (section 3.1.4) — i.e. Stage 3 is to convert it, not drop it. Deleting the variable now would quietly break the block Stage 3 has been told to revive, and B3.6 names that same block as the fix for the `'camo'` path.
+- **Left — `edge_props_stim.m:109`, `grad_hist_thresh`.** Same shape: it is a documented name-value input whose only reader is the commented-out line `% grad_mag(grad_mag<grad_hist_thresh)=0;` at `:221`. The parameter is documented in the header as parsed but currently unused, so the local mirrors a deliberate state of affairs, not an oversight.
+
+**Golden-harness replay after the edits, verbatim:**
+
+```
+REPLAY PASS
+```
+
+(`golden_harness('replay', 'tools/golden_ref.mat')` returned without throwing; the `ans = 9` lines and the docked-figure warning in the console around it are B1.1 and the plotting block doing their usual thing inside `edge_props_stim`, not harness output.) This is the first tranche where replay covered files the tranche actually edited — `texture_patch` by four checksums and `edge_props_stim` by its two error identifiers — so the semicolon edits are verified at runtime, not only by pattern.
+
+**`checkcode` before → after, whole package:** `compute_p_clipped` LOGSUM x2 → unchanged (not one of the four patterns — a readability suggestion about `sum` on a logical, which is a Stage 3 question at most); `downsample` NASGU x5 → **clean**; `edge_props_stim` STOUT x15 + NASGU x3 → unchanged (STOUT is B2.4, NASGU as discussed); all 11 other files clean before and after. No message was introduced.
+
+**Nothing else touched.** No structural or speed findings beyond what sections 0.3/0.5 already record for these files (S2.2, S2.3, S2.7, S3.2, O1.1, O1.4, O2.1, O3.5 all sit in `+lib` and were left alone). One new bug came out of this tranche's half of the work, B2.15, but it was found by the harness extension calling the function rather than by the pattern check — it is logged with 0.2.0 above.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">0.2.2 — <code>+grouping</code> pure helpers</h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-09-21, **MATLAB R2024b**. Baseline: HEAD. Scope: the 12 files that were tranche 3's Stage 1 boundary — `mk_dist.m`, `mk_decc.m`, `mk_mecc.m`, `mk_bindex.m`, `mk_masks.m`, `mk_texs.m`, `find_bin.m`, `find_xy.m`, `check_xy.m`, `check_tlst.m`, `effective_distance.m`, `find_tex_regions.m`. Eight of the twelve are golden-covered by the original harness; `mk_texs`, `find_xy`, `effective_distance` and `find_tex_regions` are not (the last two are scripts).
+
+**Outcome: a complete documented negative — nothing was changed in any of the twelve files.** All four patterns were checked file by file:
+
+**Pattern 1 — missing suppressing semicolons. None found.** Every non-comment, non-continuation line in all twelve files already ends in `;` — checked mechanically (a scan for statements ending in neither `;`, `,` nor `...`, discounting block keywords) and confirmed by reading each file. Worth recording because two of the twelve, `effective_distance.m` and `find_tex_regions.m`, *are* scripts, which is where the skill warns a bare display line is most likely to be deliberate: neither has one, so the "ask before fixing" case never arose here.
+
+**Pattern 2 — `find(...)` that could be logical indexing. None found.** `find` does not appear in any of the twelve files. (`find_bin`, `find_xy` and `find_tex_regions` are named for what they look up, not for the builtin.)
+
+**Pattern 3 — unpreallocated growth. None found.** No `end+1` in any of the twelve, and no `AGROW` from `checkcode`. Two related things were looked at and are deliberately *not* targets: `mk_masks.m:39`'s `masks` third dimension is preallocated wrong, but that is **B3.3**, a sizing bug, not unpreallocated growth; and `mk_masks.m:44`'s `patch_list` is preallocated to a guessed width, `round(3*grid_size^2/n_regions) + 1`, which MATLAB would silently grow past if a region ever exceeded it. Growth-by-implicit-resize inside a `while` is real, but it is not the `x(end+1)` form this pattern covers, and fixing it needs a size that is only knowable after the fact — that makes it a Speed/Structure question, and it is already inside O3.3's `mk_masks.m:75-88` entry, so no new item is filed.
+
+**Pattern 4 — unused assignments `checkcode` flags. One hit, left in place.** `find_bin.m:67`'s `err = 1;` inside `if i_dist == 0`. It is genuinely never read — `err` appears nowhere else in the file and is not an output — so by the letter of the pattern it is deletable. It is **not** deleted, for the same reason `response_interval.m`'s `response = -1;` was not deleted in tranche 6/7 and `edge_props_stim.m`'s `grads_pca` was not deleted in 0.2.1: it is already half of a filed bug. **B3.2** names this exact line — the `i_dist == 0` branch sets a dead flag and then falls through to `bin_index(0, ...)`, which errors on the zero index — and its fix is to make that branch actually report the bin-lookup failure, not to remove the only trace that the author meant to handle it. Deleting the assignment would leave a branch with an empty body, which is a worse thing to hand Stage 4 than what is there now.
+
+Two further genuinely-unused assignments exist in the scripts and are **outside** this pattern because `checkcode` does not flag them: `effective_distance.m:24`'s `dist_max` (already recorded as part of B3.9's item (d)) and `find_tex_regions.m:23`'s `image_width`. `checkcode` suppresses `NASGU` in scripts, since a script's variables can legitimately be read by whatever runs after it. Recorded here so the gap is visible rather than silently inherited; neither is touched, and both files' fate is S3.3's question anyway.
+
+**Golden-harness replay, verbatim:**
+
+```
+REPLAY PASS
+```
+
+Run after 0.2.1's edits, covering `mk_dist`, `mk_mecc`, `mk_decc`, `mk_bindex`, `mk_masks`, `find_bin`, `check_xy` and `check_tlst` — unchanged, as expected for a tranche that changed nothing.
 
 </div>
 

@@ -40,11 +40,6 @@ function img = downsample(img_in, down_level, varargin)
     addParameter(parser, 'ncolr', 3);  % color channels (use 3 even for grayscale)
 
     parse(parser, img_in, down_level, varargin{:});
-    ppd = parser.Results.ppd;
-    pd = parser.Results.pd;
-    w = parser.Results.w;
-    apply_filter = parser.Results.filter;
-    ncolr = parser.Results.ncolr;
 
     img = img_in;
     kernel = [1/16 1/8 1/16; 1/8 1/4 1/8; 1/16 1/8 1/16];  % small gaussian blurring kernel

@@ -44,8 +44,8 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
     if strcmp(seed, 'rand')
         seed = randi(intmax);
     end
-    rng('default')
-    rng(seed)
+    rng('default');
+    rng(seed);
 
     tex_num = parser.Results.tex_num;
     if strcmp(tex_num, 'rand')
@@ -74,6 +74,6 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
     p_clipped = lib.compute_p_clipped(patch_img);
 
     if p_clipped
-        warning('Texture %d, %.1f%% clipped!', tex_num, 100*p_clipped)
+        warning('Texture %d, %.1f%% clipped!', tex_num, 100*p_clipped);
     end
 end

@@ -211,8 +211,8 @@ function [grad_m_llr_1, grad_m_llr_2, grad_m_llr_4, grad_m_llr_8, grad_m_llr_16,
     grad_o_llr = nan(num_scales, 1);
     grad_p_llr = nan(num_scales, 1);
 
-    figure(1)
-    imshow(stim)
+    figure(1);
+    imshow(stim);
 
     for i_scale = 1:num_scales
         % gradient magnitude:
@@ -249,10 +249,10 @@ function [grad_m_llr_1, grad_m_llr_2, grad_m_llr_4, grad_m_llr_8, grad_m_llr_16,
         grad_m_llr(i_scale) = log(sum(term_llr) + eps_offset);
 
         % plot figure
-        figure(2)
-        subplot(num_scales, 1, i_scale)
-        bar([grad_m_hist_b/n_elem_b; grad_m_hist_a/n_elem_a]')
-        title(sprintf('LLR = %.1f', grad_m_llr(i_scale)))
+        figure(2);
+        subplot(num_scales, 1, i_scale);
+        bar([grad_m_hist_b/n_elem_b; grad_m_hist_a/n_elem_a]');
+        title(sprintf('LLR = %.1f', grad_m_llr(i_scale)));
 
         % gradient orientation:
 
@@ -280,10 +280,10 @@ function [grad_m_llr_1, grad_m_llr_2, grad_m_llr_4, grad_m_llr_8, grad_m_llr_16,
         grad_o_llr(i_scale) = log(sum(term_llr) + eps_offset);
 
         % plot figure
-        figure(3)
-        subplot(num_scales, 1, i_scale)
-        bar([grad_o_hist_b/n_elem_b; grad_o_hist_a/n_elem_a]')
-        title(sprintf('LLR = %.1f', grad_o_llr(i_scale)))
+        figure(3);
+        subplot(num_scales, 1, i_scale);
+        bar([grad_o_hist_b/n_elem_b; grad_o_hist_a/n_elem_a]');
+        title(sprintf('LLR = %.1f', grad_o_llr(i_scale)));
 
         % product of gradient magnitude and orientation:
 
@@ -311,10 +311,10 @@ function [grad_m_llr_1, grad_m_llr_2, grad_m_llr_4, grad_m_llr_8, grad_m_llr_16,
         grad_p_llr(i_scale) = log(sum(term_llr) + eps_offset);
 
         % plot figure
-        figure(4)
-        subplot(num_scales, 1, i_scale)
-        bar([grad_p_hist_b/n_elem_b; grad_p_hist_a/n_elem_a]')
-        title(sprintf('LLR = %.1f', grad_p_llr(i_scale)))
+        figure(4);
+        subplot(num_scales, 1, i_scale);
+        bar([grad_p_hist_b/n_elem_b; grad_p_hist_a/n_elem_a]');
+        title(sprintf('LLR = %.1f', grad_p_llr(i_scale)));
     end
 
     grad_m_llr_1 = grad_m_llr(1);
