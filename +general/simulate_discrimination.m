@@ -43,22 +43,24 @@
 %                     boundaries.mat.
 %
 %   Data this script reads, and whether the path resolves (checked 2026-09-21):
-%     'vislab-common/data/nat_im_eff_coding_bins.mat' - does NOT resolve: the
-%       real file is ../vislab-common/data/nat_im_eff_coding.mat (B2.14).
-%     'vislab-common/data/eff_coding_bins.mat'        - does NOT resolve, same
-%       reason (B2.14).
-%     'img_data/brodatz/'                             - does NOT resolve: the
-%       Brodatz sheets live in ../vislab-common/data/textures/brodatz (S2.4).
-%     'data/model/texture discrimination boundaries.mat' - resolves, from the
-%       repo root.
-%     'exp_files/norm/...'                            - does NOT resolve: no
-%       norm subdirectory exists under exp_files (B3.1).
-%   None of these are fixed here; Stage 1 does not change a path string.
+%     fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat') - resolves; holds
+%       the gradient and gray-level bin edges (cells 1 and 3).
+%     fullfile(cfg.paths.textures, 'brodatz')                - resolves; the
+%       60 Brodatz sheets (cells 1 and 3).
+%     fullfile(cfg.paths.model, 'texture discrimination boundaries.mat')
+%                                                            - resolves (cell 3).
+%     'exp_files/norm/...'                                   - does NOT
+%       resolve: no norm subdirectory exists under exp_files. Left as written,
+%       since that is Stage 4 item B3.1, not a data-store routing problem.
 %
-%   See also LIB.EDGE_PROPS_STIM, LIB.HIST_DV, GENERAL.COMPUTE_EXP_ERROR_MAT.
+%   See also CONFIG, LIB.EDGE_PROPS_STIM, LIB.HIST_DV,
+%   GENERAL.COMPUTE_EXP_ERROR_MAT.
 
 %% simulate texture discrimination from patches
 % rng(0);
+
+% every data path below comes from config(), never from the current folder
+cfg = config();
 
 % constants and parameters
 n_tex = 60;  % # of textures
@@ -72,16 +74,16 @@ pad_val = 128;  % pad patches with this mean greylevel value when taking gradien
 
 % load the efficient-coding histogram bins of gradient magnitude computed from
 % natural images
-load('vislab-common/data/nat_im_eff_coding_bins.mat')
+load(fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat'))
 
 % load('vislab-common/data/eff_coding_bins.mat') % load the efficient-coding histogram bins of gradient magnitude computed from natural images
 % n_bins=64;                 % # of grayscale histogram bins
 % grey_hist_bins=linspace(0,256,n_bins+1); % gray-level bin edges
 
 % load image files
-tex_dir = 'img_data/brodatz/';
+tex_dir = fullfile(cfg.paths.textures, 'brodatz');
 file_type = 'gif';
-files = dir([tex_dir '*.' file_type]);
+files = dir(fullfile(tex_dir, ['*.' file_type]));
 
 % sort them right
 file_numbers = cellfun(@(x) str2double(regexp(x, '\d+', 'match', 'once')), ...
@@ -91,7 +93,7 @@ files = files(sort_idx);
 
 imgs = nan(640, 640, n_tex);
 for i_file = 1:n_tex
-    file_name = [tex_dir files(i_file).name];
+    file_name = fullfile(tex_dir, files(i_file).name);
     img = double(imread(file_name));
     img = mean(img, 3);
     img = vislab.lib.otf_filter(img, ppd);
@@ -378,12 +380,17 @@ plot(pow_dv_exp(diffpair(:, i_level) & ~correct(:, i_level)), ...
 
 %% discriminate a single pair of texture patches
 
+% this cell is self-contained, so it fetches the paths itself
+cfg = config();
+
 % load the efficient-coding histogram bins of gradient magnitude computed
-% from natural images:
-load('vislab-common/data/eff_coding_bins.mat')
+% from natural images. This used to read 'eff_coding_bins.mat', which exists
+% nowhere; nat_im_eff_coding.mat is the same file cell 1 loads and holds the
+% grad_m_bins / grad_o_bins / grad_p_bins this cell goes on to use (B2.14).
+load(fullfile(cfg.paths.data_root, 'nat_im_eff_coding.mat'))
 
 % load texture-discrimination boundaries:
-load('data/model/texture discrimination boundaries.mat')
+load(fullfile(cfg.paths.model, 'texture discrimination boundaries.mat'))
 
 % parameters
 n_tex = 60;  % # of textures
@@ -407,13 +414,15 @@ else
 end
 
 % sample patches
-img_a = double(imread(['img_data/brodatz/B', num2str(tex_a), '.gif']));
+img_a = double(imread(fullfile(cfg.paths.textures, 'brodatz', ...
+    ['B', num2str(tex_a), '.gif'])));
 img_a = vislab.lib.otf_filter(img_a, ppd);
 % img_a=imresize(img_a, [1024 1024]);
 x = randi(image_size - patch_size);  y = randi(image_size - patch_size);
 patch_a = img_a(x:x+patch_size-1, y:y+patch_size-1);
 
-img_b = double(imread(['img_data/brodatz/B', num2str(tex_b), '.gif']));
+img_b = double(imread(fullfile(cfg.paths.textures, 'brodatz', ...
+    ['B', num2str(tex_b), '.gif'])));
 img_b = vislab.lib.otf_filter(img_b, ppd);
 % img_b=imresize(img_b, [1024 1024]);
 x = randi(image_size - patch_size);  y = randi(image_size - patch_size);

@@ -21,7 +21,8 @@ function [condition, cue_img, tex_img, feedback_img] = mk_trl_points(trial, ...
 %     mean_lum      - target mean luminance the texture image is normalized
 %                     to.
 %     tex_set       - which texture database to draw from: 'brodatz',
-%                     'fabric', or 'pertex'.
+%                     'fabric', or 'pertex'. The sheets are read from that
+%                     subfolder of cfg.paths.textures (see CONFIG).
 %     contrast      - target RMS contrast the texture image is normalized to,
 %                     as a fraction of mean_lum.
 %     cue_locations - n_trials by 5 array from GROUPING.MK_TEXSEG_SESSION:
@@ -42,7 +43,8 @@ function [condition, cue_img, tex_img, feedback_img] = mk_trl_points(trial, ...
 %                    normalized texture per region.
 %     feedback_img - tex_img with the two cued patch centers marked dark.
 %
-%   See also GROUPING.MK_TEXSEG_SESSION, GROUPING.MK_TEXS, GROUPING.MK_MASKS.
+%   See also CONFIG, GROUPING.MK_TEXSEG_SESSION, GROUPING.MK_TEXS,
+%   GROUPING.MK_MASKS.
 
     % make cue image for a trial
     image_width = grid_size*patch_width;
@@ -72,18 +74,24 @@ function [condition, cue_img, tex_img, feedback_img] = mk_trl_points(trial, ...
         end
     end
 
-    % make the texture image for a trial
+    % make the texture image for a trial; the sheets live in the shared data
+    % store, located by config() rather than by a relative string against the
+    % current folder
+    cfg = config();
     tex_img = zeros(image_width, image_width);
     for i_region = 1:n_tex_regions
         tex_num = tex_nums(trial, i_region);
         if strcmpi(tex_set, 'brodatz')
-            img_file = ['vislab-common/data/textures/brodatz/B' num2str(tex_num) '.gif'];
+            img_file = fullfile(cfg.paths.textures, 'brodatz', ...
+                ['B' num2str(tex_num) '.gif']);
             img_in = double(imread(img_file));
         elseif strcmpi(tex_set, 'fabric')
-            img_file = ['vislab-common/data/textures/fabric/FC' num2str(tex_num) '.png'];
+            img_file = fullfile(cfg.paths.textures, 'fabric', ...
+                ['FC' num2str(tex_num) '.png']);
             img_in = double(rgb2gray(imread(img_file)));
         elseif strcmpi(tex_set, 'pertex')
-            img_file = sprintf('vislab-common/data/textures/pertex/%03d.png', tex_num);
+            img_file = fullfile(cfg.paths.textures, 'pertex', ...
+                sprintf('%03d.png', tex_num));
             img_in = double(imread(img_file));
         end
 

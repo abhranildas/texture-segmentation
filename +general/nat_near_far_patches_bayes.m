@@ -9,9 +9,11 @@
 %   down pair by transposing, so each reference patch yields two near pairs and
 %   two far pairs. Results are written as three .mat files, one per image set.
 %
-%   This is a script, not a function: it clears the workspace, hardcodes every
-%   parameter below, and writes its results to the current folder. Converting
-%   it into a proper function is Stage 3 item S2.5.
+%   This is a script, not a function: it clears the workspace and hardcodes
+%   every parameter below. Converting it into a proper function is Stage 3
+%   item S2.5. Every path it reads or writes is built from CONFIG -- with one
+%   exception, the two cdfs files of B2.13, which are not in the shared data
+%   store and so have no cfg.paths.* home to point at.
 %
 %   Inputs: none. The parameters are the constants at the top of the file --
 %     level           - resolution scale-down factor (1, 2, 4 or 8;
@@ -26,7 +28,10 @@
 %     n_samples       - reference patches drawn per image (count)
 %     max_pix_val     - largest pixel value in the 16-bit source images
 %
-%   Outputs (three files in the current folder, one per image set):
+%   Reads the three CPS natural-image sets from cfg.paths.natural_images and
+%   the camera RGB->LMS matrix from cfg.paths.data_root (see CONFIG).
+%
+%   Outputs (three files in cfg.paths.stimuli, one per image set):
 %     patch_pairs_9<level>.mat   - ptchn9, ptchf9, pcnt9
 %     patch_pairs_10<level>.mat  - ptchn10, ptchf10, pcnt10
 %     patch_pairs_12<level>.mat  - ptchn12, ptchf12, pcnt12
@@ -36,21 +41,24 @@
 %   as save string literals), so the locals feeding them keep their original
 %   spelling while every other local is renamed.
 %
-%   Note: this script does not run as written. Its two addpath lines point at
-%   a directory that exists only on the original author's machine (B2.3), it
-%   calls three functions that are not on this repo's path (B2.12), and the
-%   two histogram .mat files it loads do not exist under those names anywhere
-%   (B2.13). Its image-set-12 slice bounds are also wrong (B1.3).
+%   Note: this script still does not run as written. It calls three functions
+%   that are not on this repo's path (B2.12), and the two histogram .mat files
+%   it loads are not in the shared data store (B2.13). Its image-set-12 slice
+%   bounds are also wrong (B1.3). Its data paths, however, are now correct:
+%   the two machine-specific addpath calls (B2.3) are gone.
 %
-%   See also GENERAL.SIMULATE_DISCRIMINATION.
+%   See also CONFIG, GENERAL.SIMULATE_DISCRIMINATION.
 
 clearvars;
 close all;
 
-addpath(['C:\Users\Bill Geisler\Documents\Projects\Texture\Discrimination'...
-    '\Texture Discrimination Code'])
-addpath(['C:\Users\Bill Geisler\Documents\Projects\Texture\Images' ...
-    '\CPS Set-9-10-12_16-bit linear']);
+% All data locations come from config(), never from the current folder or the
+% MATLAB path. Two hardcoded addpath calls used to sit here (B2.3): one for
+% the natural images, replaced by cfg.paths.natural_images below, and one for
+% a "Texture Discrimination Code" folder on the original author's machine,
+% which is presumably where aply_otf / rgb2lms / dsmp lived -- repointing
+% those three calls is B2.12's job, not a path-routing fix.
+cfg = config();
 
 rng(0);  % random number generator seed
 % rng('shuffle');
@@ -74,14 +82,22 @@ patch_size = base_patch_size/level;  % patch size given level
 pair_width = 2*patch_size;
 ppd = 60;  % pixels per degree
 
-% RGB->LMS matrix from the CPS camera calibration (stored in shared
-% vislab-common/data)
-lms_file = load(fullfile(fileparts(mfilename('fullpath')), '..', '..', ...
-    'vislab-common/data', 'cps_rgb2lms.mat'), 'lms');
+% RGB->LMS matrix from the CPS camera calibration (stored in the shared data
+% store, ../vislab-common/data)
+lms_file = load(fullfile(cfg.paths.data_root, 'cps_rgb2lms.mat'), 'lms');
 lms = lms_file.lms;
 n_channels = 3;  % number of color channels
 
-% load color and edge histograms
+% Load color and edge histograms. These two loads are the only data access in
+% this file NOT routed through config(), because neither file is in the shared
+% data store and there is nothing there to point at (B2.13, searched
+% 2026-09-21): cdfs_abr_mo13_mo23_cs33_otf.mat exists only in the ancestral
+% ../texture-learning/Bill's old code[ - revised]/ folders, and
+% cdfs_abr_mo13_mo23_cs33.mat exists nowhere on this machine at all. Both
+% loads are also vestigial as written -- the otf file holds Na, Nb, Nm, No,
+% Nmo, Ncs1/2/4, ea, eb, ... and none of those names is read anywhere below.
+% Deciding whether these belong in the shared store, and under what name, is
+% B2.13's call; it is not a path-routing fix.
 if apply_filter == 0
     load("cdfs_abr_mo13_mo23_cs33.mat");  % natural image cdfs
 elseif apply_filter == 1
@@ -107,7 +123,7 @@ for i_img = 1:n_img9
     num_str = num2str(i_img);
 
     % load rgb image
-    file_name = append('Set9_16_', num_str, '.png');
+    file_name = fullfile(cfg.paths.natural_images, append('Set9_16_', num_str, '.png'));
     img_rgb = double(imread(file_name))*255/max_pix_val;
     if apply_filter == 1
         img_rgb = aply_otf(img_rgb, ppd, pupil_diameter, wavelength);  % apply otf
@@ -181,7 +197,7 @@ ptchn9 = patches_near(1:patch_size, 1:pair_width, 1:n_channels, 1:patch_count);
 ptchf9 = patches_far(1:patch_size, 1:pair_width, 1:n_channels, 1:patch_count);
 pcnt9 = patch_count;
 num_str = num2str(level);
-file_name = append('patch_pairs_9', num_str, '.mat');
+file_name = fullfile(cfg.paths.stimuli, append('patch_pairs_9', num_str, '.mat'));
 save(file_name, "ptchn9", "ptchf9", "pcnt9");
 
 % image set 10
@@ -189,7 +205,7 @@ for i_img = 1:n_img10
     num_str = num2str(i_img);
 
     % load rgb image
-    file_name = append('Set10_16_', num_str, '.png');
+    file_name = fullfile(cfg.paths.natural_images, append('Set10_16_', num_str, '.png'));
     img_rgb = double(imread(file_name))*255/max_pix_val;
     if apply_filter == 1
         img_rgb = aply_otf(img_rgb, ppd, pupil_diameter, wavelength);  % apply otf
@@ -261,7 +277,7 @@ ptchn10 = patches_near(1:patch_size, 1:pair_width, 1:n_channels, pcnt9+1:patch_c
 ptchf10 = patches_far(1:patch_size, 1:pair_width, 1:n_channels, pcnt9+1:patch_count);
 pcnt10 = patch_count - pcnt9;
 num_str = num2str(level);
-file_name = append('patch_pairs_10', num_str, '.mat');
+file_name = fullfile(cfg.paths.stimuli, append('patch_pairs_10', num_str, '.mat'));
 save(file_name, "ptchn10", "ptchf10", "pcnt10");
 
 % image set 12
@@ -269,7 +285,7 @@ for i_img = 1:n_img12
     num_str = num2str(i_img);
 
     % load rgb image
-    file_name = append('Set12_16_', num_str, '.png');
+    file_name = fullfile(cfg.paths.natural_images, append('Set12_16_', num_str, '.png'));
     img_rgb = double(imread(file_name))*255/max_pix_val;
     if apply_filter == 1
         img_rgb = aply_otf(img_rgb, ppd, pupil_diameter, wavelength);  % apply otf
@@ -341,5 +357,5 @@ ptchn12 = patches_near(1:patch_size, 1:pair_width, 1:n_channels, pcnt10+1:patch_
 ptchf12 = patches_far(1:patch_size, 1:pair_width, 1:n_channels, pcnt10+1:patch_count);
 pcnt12 = patch_count - pcnt10;
 num_str = num2str(level);
-file_name = append('patch_pairs_12', num_str, '.mat');
+file_name = fullfile(cfg.paths.stimuli, append('patch_pairs_12', num_str, '.mat'));
 save(file_name, "ptchn12", "ptchf12", "pcnt12");

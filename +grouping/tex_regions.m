@@ -23,6 +23,10 @@
 
 clearvars;
 close all;
+
+% texture-sheet location comes from config(), never from the current folder
+cfg = config();
+
 patch_width = 64;      % 64 patch width (pixels)
 grid_size = 16;        % 16 number of patches per row and per column (pixels)
 image_width = patch_width*grid_size;  % image width (pixels)
@@ -127,7 +131,8 @@ patch_img = zeros(image_width, image_width, 3);
 for i_region = 1:n_regions  % 8
     kk = tex_nums(i_region);
     num_str = num2str(kk);
-    img_file = append('B', num_str, '.gif');
+    img_file = fullfile(cfg.paths.textures, 'brodatz', ...
+        append('B', num_str, '.gif'));
     img_in0 = double(imread(img_file));
     img_in = imresize(img_in0, [image_width, image_width], "bilinear");
     % normalize

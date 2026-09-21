@@ -28,6 +28,10 @@
 
 clearvars;
 close all;
+
+% texture-sheet location comes from config(), never from the current folder
+cfg = config();
+
 session = 1;         % session number
 tex_set_id = 1;       % set of textures: 1=Brodatz,2=Fabric,3=Pertex
 n_contrasts = 5;
@@ -244,7 +248,8 @@ for i_group = 1:contrast_block_size:n_trials  % all contrast blocks
             for ii = 1:n_tex_regions
                 kk = tex_nums(t, ii);
                 num_str = num2str(kk);
-                img_file = append('B', num_str, '.gif');
+                img_file = fullfile(cfg.paths.textures, 'brodatz', ...
+                    append('B', num_str, '.gif'));
                 % num_str = num2str(6);
                 % img_file = append('00',num_str,'.png');
                 img_in0 = double(imread(img_file));

@@ -5,7 +5,9 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
 %   Reads one of the 60 Brodatz texture images shipped in the sibling
 %   vislab-common repo, cuts a patch from a random location in it, and rescales
 %   it to the requested mean luminance and contrast. The seed and texture
-%   number actually used are returned, so the same patch can be redrawn.
+%   number actually used are returned, so the same patch can be redrawn. The
+%   sheet's location comes from CONFIG (cfg.paths.textures/brodatz), so the
+%   function works from any current folder.
 %
 %   Name-value inputs
 %     'tex_num'  - Brodatz texture number, 1 to 60, or 'rand' to draw one
@@ -26,7 +28,7 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
 %     coords    - [row col] of the patch's top-left corner in the source
 %                 image, in pixels.
 %
-%   See also LIB.COMPUTE_P_CLIPPED.
+%   See also CONFIG, LIB.COMPUTE_P_CLIPPED.
 
     parser = inputParser;
     parser.KeepUnmatched = true;
@@ -54,8 +56,11 @@ function [patch_img, seed, tex_num, coords] = texture_patch(varargin)
     lum = parser.Results.lum;
     cont = parser.Results.cont;
 
-    % sample the patch
-    img = imread(['vislab-common/data/textures/brodatz/B' num2str(tex_num) '.gif']);
+    % sample the patch; the sheets live in the shared data store, located by
+    % config() rather than by a relative string against the current folder
+    cfg = config();
+    img = imread(fullfile(cfg.paths.textures, 'brodatz', ...
+        ['B' num2str(tex_num) '.gif']));
     img_size = size(img, 1);
     x = randi(img_size - patch_sz(1));
     y = randi(img_size - patch_sz(2));

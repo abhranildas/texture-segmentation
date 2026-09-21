@@ -16,14 +16,12 @@
 %   proper function is the treatment Stage 3 item S2.5 gives the repo's other
 %   scripts (docs/repo-cleanup.md).
 %
-%   Expects, in the current folder or on the path
+%   Expects, in the shared data store
 %     B1.gif ... B16.gif - the first 16 Brodatz sheets, 640x640 gray levels,
-%                          read by bare filename with no directory at all.
-%                          They live in the shared data store, at
-%                          <cfg.paths.textures>/brodatz, which nothing puts on
-%                          the path (see SETUP, CONFIG) -- so this script finds
-%                          them only when that folder is the current one.
-%                          Stage 3 item S2.4 routes this through CONFIG.
+%                          read from <cfg.paths.textures>/brodatz, i.e.
+%                          ../vislab-common/data/textures/brodatz. The path is
+%                          built from CONFIG, so the script runs from any
+%                          working directory.
 %
 %   Workspace outputs
 %     scene      - scene_size x scene_size scene image, in gray levels
@@ -59,6 +57,9 @@ clear all;
 close all;
 rng(2);
 
+% data locations come from config(), never from the current folder
+cfg = config();
+
 scene_size = 1024;      % scene side length, pixels
 image_size = 640;       % Brodatz sheet side length, pixels
 region_size = 256;      % texture region side length, pixels
@@ -87,7 +88,8 @@ for ii = 1:region_grid_size
         %   image_num = randi(n_images);
         image_num = image_num + 1;
         num_str = num2str(image_num-1+first_image_num);
-        file_name = append('B', num_str, '.gif');
+        file_name = fullfile(cfg.paths.textures, 'brodatz', ...
+            append('B', num_str, '.gif'));
         tex_img = imread(file_name);
 
         % randomly select a region within that texture image
