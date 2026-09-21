@@ -1,29 +1,49 @@
-function Rpout = rp(ptch1,ptch2,b,psz,win)
-% power difference response
-%
-% ptch1 & ptch2 = two patches that are compared
-% b = noise suppression constant
-% psz = patch size
-% win = window function
-%
-% ptch1
-ptch1 = ptch1.*win;
-ptch1 = ptch1 - mean(mean(ptch1));
-ftim = fftshift(fft2(fftshift(ptch1)));      % fourier transform patch
-pim1 = abs(ftim).^2;
-pim1 = pim1/mean(mean(pim1)) + b;
-%
-%   ptch2
-ptch2 = ptch2.*win;
-ptch2 = ptch2 - mean(mean(ptch2));
-ftim = fftshift(fft2(fftshift(ptch2)));       % fourier transform image
-pim2 = abs(ftim).^2;
-pim2 = pim2/mean(mean(pim2)) + b;
-%
-% compute power difference measure
-pnum = (pim1 + pim2).^2;
-pden = 4*pim1.*pim2;
-Rpout = sum(sum(log(pnum./pden)))/psz^2;
-%
-end
+function dv = rp(patch1, patch2, noise_const, patch_size, win)
+    %RP  Power difference decision variable from two windowed patches.
+    %   dv = rp(patch1, patch2, noise_const, patch_size, win)
+    %
+    %   Windowed, root-level counterpart of LIB.POWER_DV: each patch is
+    %   multiplied by win before being mean-subtracted, Fourier transformed,
+    %   and its power spectrum normalized to unit mean; noise_const is then
+    %   added to suppress the contribution of near-zero spectral components.
+    %   The returned measure is the mean over spatial frequencies of
+    %   log((P1 + P2)^2 / (4 P1 P2)), which is zero when the two spectra agree
+    %   and positive otherwise.
+    %
+    %   Inputs
+    %     patch1      - first image patch, square, in gray levels.
+    %     patch2      - second image patch, same size as patch1, in gray
+    %                   levels.
+    %     noise_const - noise suppression constant, added to each normalized
+    %                   power spectrum; dimensionless, since the spectra are
+    %                   normalized to unit mean.
+    %     patch_size  - patch side length, in pixels.
+    %     win         - window function applied to each patch before the
+    %                   Fourier transform, same size as patch1/patch2 (see
+    %                   MK_WIN).
+    %
+    %   Output
+    %     dv - the power difference measure, in nats per pixel. Larger means
+    %          more evidence the two patches differ.
+    %
+    %   See also LIB.POWER_DV, MK_WIN, RS_NEW.
 
+    % patch1
+    patch1 = patch1.*win;
+    patch1 = patch1 - mean(mean(patch1));
+    ft_img = fftshift(fft2(fftshift(patch1)));      % fourier transform patch
+    power1 = abs(ft_img).^2;
+    power1 = power1/mean(mean(power1)) + noise_const;
+
+    %   patch2
+    patch2 = patch2.*win;
+    patch2 = patch2 - mean(mean(patch2));
+    ft_img = fftshift(fft2(fftshift(patch2)));       % fourier transform image
+    power2 = abs(ft_img).^2;
+    power2 = power2/mean(mean(power2)) + noise_const;
+
+    % compute power difference measure
+    power_num = (power1 + power2).^2;
+    power_den = 4*power1.*power2;
+    dv = sum(sum(log(power_num./power_den)))/patch_size^2;
+end
