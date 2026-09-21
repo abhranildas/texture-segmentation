@@ -1,160 +1,234 @@
-% texture_grouping.m
+% TEXTURE_GROUPING  Group the patches of a synthetic texture scene into regions.
+%   run('texture_grouping.m')
 %
+%   Builds a 1024x1024 scene from a 4x4 grid of 256x256 texture regions, each
+%   cut at a random position out of a different Brodatz sheet, then splits the
+%   scene into a 16x16 grid of 64x64 patches and computes two same/different
+%   decision variables for every ordered pair of patches: a windowed
+%   power-spectrum difference (RP) and a gray-level histogram difference (Rh).
+%   A hardcoded 2-cue quadratic combines the two logs into one decision
+%   variable per pair, which is thresholded into links; links are then pruned
+%   and merged into groups by how many links each linked pair shares. Displays
+%   the scene and the resulting grouping map.
+%
+%   This is a script, not a function: it clears the workspace, runs top to
+%   bottom, and leaves its results in the base workspace. Converting it into a
+%   proper function is the treatment Stage 3 item S2.5 gives the repo's other
+%   scripts (docs/repo-cleanup.md).
+%
+%   Expects, in the current folder or on the path
+%     B1.gif ... B16.gif - the first 16 Brodatz sheets, 640x640 gray levels,
+%                          read by bare filename with no directory at all.
+%                          They live in the shared data store, at
+%                          <cfg.paths.textures>/brodatz, which nothing puts on
+%                          the path (see SETUP, CONFIG) -- so this script finds
+%                          them only when that folder is the current one.
+%                          Stage 3 item S2.4 routes this through CONFIG.
+%
+%   Workspace outputs
+%     scene      - scene_size x scene_size scene image, in gray levels
+%                  (0-255), that the patches were cut from.
+%     responses  - n_patches x n_patches x n_responses array of the two raw
+%                  decision variables for every ordered patch pair.
+%     dv         - n_patches x n_patches combined decision variable, 0 on the
+%                  diagonal. The thresholding step below links pairs scoring
+%                  above link_criterion and links every patch to itself
+%                  regardless, so a larger value means more evidence the two
+%                  patches share a texture, not that they differ.
+%     links      - n_patches x n_patches 0/1 link matrix, after weak links are
+%                  pruned.
+%     groups     - n_patches x (2+n_patches) x 2 table, one row per patch:
+%                  group number, link count, then one column per link holding
+%                  the linked patch's index (page 1) and the pair's decision
+%                  variable (page 2).
+%     group_img  - scene_size x scene_size map of each patch's group number.
+%
+%   Note: broken as written. The Rh call below names no function that exists in
+%   this repo -- Rh is only an output-variable name inside LIB.HIST_DV, whose
+%   signature (patch1, patch2, edges) is the one used here. Stage 4 item B2.2.
+%   RP resolves.
+%
+%   Note: seeds with the literal rng(2) where CONFIG exposes cfg.seed = 0, and
+%   hardcodes a 2-cue quadratic boundary of the same shape as the repo's
+%   shipped fabric_bd.mat (q2 2x2, q1 2x1, q0 scalar) but with different
+%   values, from an unrecorded fit. Stage 3 items S3.7 and S3.8.
+%
+%   See also RP, LIB.HIST_DV, MK_WIN, THRESH, NLSAME, CONFIG, SETUP.
+
 clear all;
 close all;
 rng(2);
-sz = 1024; % scene size
-bsz = 640; % Brodatz image size
-rsz = 256; % region size
-psz = 64;  % patch size
-nr = sz/rsz;
-ni = sz/psz;
-nij = ni^2;
-nrsp = 2;
-critl = 15;
-critg = 0.5;
-inum = 0;
-rsp = zeros(nij,nij,nrsp); % response storage array
-%
+
+scene_size = 1024;      % scene side length, pixels
+image_size = 640;       % Brodatz sheet side length, pixels
+region_size = 256;      % texture region side length, pixels
+patch_size = 64;        % patch side length, pixels
+region_grid_size = scene_size/region_size;   % regions per scene side
+grid_size = scene_size/patch_size;           % patches per scene side
+n_patches = grid_size^2;                     % patches in the scene
+n_responses = 2;
+link_criterion = 15;    % decision variable a pair must exceed to be linked
+group_criterion = 0.5;  % shared-link fraction two linked patches must exceed
+image_num = 0;
+responses = zeros(n_patches, n_patches, n_responses);   % response storage array
+
 % load scene
-scn = zeros(sz,sz);  % scene
-nimg = 60; mnk = 1; 
-for i = 1:nr
- for j = 1:nr
-  %
-  % randomly select a texture image
-  %   inum = randi(nimg);
-  inum = inum + 1;
-  num = num2str(inum-1+mnk);
-  name = append('B',num,'.gif');
-  imgk = imread(name);
-  %
-  % randomly select a region within that texture image
-  i0 = randi(bsz-rsz); j0 = randi(bsz-rsz);
-  imgij = imgk(i0:i0+rsz-1,j0:j0+rsz-1);
-  ilo = (i-1)*rsz+1; ihi = ilo+rsz-1;
-  jlo = (j-1)*rsz+1; jhi = jlo+rsz-1;
-  scn(ilo:ihi,jlo:jhi) = imgij; % insert texture region in to the scene
- end
+scene = zeros(scene_size, scene_size);
+n_images = 60;
+first_image_num = 1;
+% ii and jj are deliberately neutral names: each serves several roles through
+% this script -- region row and column here, patch index in the response and
+% grouping loops, histogram bin index below (rule C-6 in docs/repo-cleanup.md).
+for ii = 1:region_grid_size
+    for jj = 1:region_grid_size
+
+        % select a texture image -- sequentially, B1..B16; the commented line
+        % below is the earlier version, which picked one of the 60 at random
+        %   image_num = randi(n_images);
+        image_num = image_num + 1;
+        num_str = num2str(image_num-1+first_image_num);
+        file_name = append('B', num_str, '.gif');
+        tex_img = imread(file_name);
+
+        % randomly select a region within that texture image
+        row_offset = randi(image_size-region_size);
+        col_offset = randi(image_size-region_size);
+        region_img = tex_img(row_offset:row_offset+region_size-1, ...
+            col_offset:col_offset+region_size-1);
+        region_row_lo = (ii-1)*region_size+1;  region_row_hi = region_row_lo+region_size-1;
+        region_col_lo = (jj-1)*region_size+1;  region_col_hi = region_col_lo+region_size-1;
+
+        % insert the texture region into the scene
+        scene(region_row_lo:region_row_hi, region_col_lo:region_col_hi) = region_img;
+    end
 end
-figure; colormap(gray(256)); image(scn); axis image;
-%
+
+figure;
+colormap(gray(256));
+image(scene);
+axis image;
+
 % make patch-analysis window
-r = psz/2; shp = 2;      % window size (if r = psz/2 flat) and shape
-win = mk_win(psz,r,shp); % make raised-cosine-boundary window
-b = 10;                  % weak power suppression parameter
-%
+radius = patch_size/2;   % flat radius, pixels; at patch_size/2 the whole window is flat
+shape = 2;               % 1 radially symmetric, 2 separable
+win = mk_win(patch_size, radius, shape);
+noise_const = 10;        % weak power suppression parameter
+
 % make histogram edges
-bw = 4;                 % histogram bin width parameter, power of 2
-nbin = 256/bw;
-edges = zeros(nbin,1);  % histogram edges
-for i = 1:nbin+1
-  edges(i) = (i-1)*bw;
+bin_width = 4;           % gray levels per histogram bin, a power of 2
+n_bins = 256/bin_width;
+edges = zeros(n_bins, 1);
+for ii = 1:n_bins+1
+    edges(ii) = (ii-1)*bin_width;
 end
-%
+
 % compute responses
-pcoor = zeros(nij,2);
-for i = 1:nij
- ki = floor((i-1)/ni) + 1;
- li = i - (ki-1)*ni;
- % get patch i
- klo = (ki-1)*psz+1; khi = klo+psz-1;
- llo = (li-1)*psz+1; lhi = llo+psz-1;
- pcoor(i,1) = klo; pcoor(i,2) = llo;
- ptchi = scn(klo:khi,llo:lhi);
- for j = 1:nij
-  kj = floor((j-1)/ni) + 1;
-  lj = j - (kj-1)*ni;
-  % get patch j
-  klo = (kj-1)*psz+1; khi = klo+psz-1;
-  llo = (lj-1)*psz+1; lhi = llo+psz-1;
-  ptchj = scn(klo:khi,llo:lhi);
-  rsp(i,j,1) = rp(ptchi,ptchj,b,psz,win);
-  rsp(i,j,2) = Rh(ptchi,ptchj,edges);
- end
+patch_coords = zeros(n_patches, 2);
+for ii = 1:n_patches
+    row1 = floor((ii-1)/grid_size) + 1;
+    col1 = ii - (row1-1)*grid_size;
+
+    % get patch ii
+    patch_row_lo = (row1-1)*patch_size+1;  patch_row_hi = patch_row_lo+patch_size-1;
+    patch_col_lo = (col1-1)*patch_size+1;  patch_col_hi = patch_col_lo+patch_size-1;
+    patch_coords(ii, 1) = patch_row_lo;  patch_coords(ii, 2) = patch_col_lo;
+    patch1 = scene(patch_row_lo:patch_row_hi, patch_col_lo:patch_col_hi);
+    for jj = 1:n_patches
+        row2 = floor((jj-1)/grid_size) + 1;
+        col2 = jj - (row2-1)*grid_size;
+
+        % get patch jj
+        patch_row_lo = (row2-1)*patch_size+1;  patch_row_hi = patch_row_lo+patch_size-1;
+        patch_col_lo = (col2-1)*patch_size+1;  patch_col_hi = patch_col_lo+patch_size-1;
+        patch2 = scene(patch_row_lo:patch_row_hi, patch_col_lo:patch_col_hi);
+        responses(ii, jj, 1) = rp(patch1, patch2, noise_const, patch_size, win);
+        responses(ii, jj, 2) = Rh(patch1, patch2, edges);
+    end
 end
-%
+
 % quadratic parameters for decision variable
-q2 = [5.273048046354344,0.784966045877294;...
-      0.784966045877294,1.323305813271773];
-q1 = [0.154037415875747;-24.896804657431097];
+q2 = [5.273048046354344, 0.784966045877294;...
+      0.784966045877294, 1.323305813271773];
+q1 = [0.154037415875747; -24.896804657431097];
 q0 = 26.906021503125597;
-%
+
 % compute decision variable
-dv = zeros(nij,nij);
-for i = 1:nij
- for j = 1:nij
-  if  i ~= j
-    x = [log(rsp(i,j,1));log(rsp(i,j,2))];
-    dv(i,j) = x'*q2*x + x'*q1 + q0;
-  end
- end
+dv = zeros(n_patches, n_patches);
+for ii = 1:n_patches
+    for jj = 1:n_patches
+        if ii ~= jj
+            xx = [log(responses(ii, jj, 1)); log(responses(ii, jj, 2))];
+            dv(ii, jj) = xx'*q2*xx + xx'*q1 + q0;
+        end
+    end
 end
-%
+
 % find links
-links = thresh(dv,nij,critl);
-%
+links = thresh(dv, n_patches, link_criterion);
+
 % load links and strengths into groups array
-groups = zeros(nij,2+nij,2); % group#,#links,link1,link2,...
-for i = 1:nij
- for j = 1:nij
-  if links(i,j) == 1
-    nlnk = groups(i,2,1)+1; groups(i,2,1) = nlnk;
-    groups(i,2+nlnk,1) = j;
-    groups(i,2+nlnk,2) = dv(i,j);
-  end
- end
+groups = zeros(n_patches, 2+n_patches, 2);   % group#, #links, link1, link2, ...
+for ii = 1:n_patches
+    for jj = 1:n_patches
+        if links(ii, jj) == 1
+            n_links = groups(ii, 2, 1)+1;  groups(ii, 2, 1) = n_links;
+            groups(ii, 2+n_links, 1) = jj;
+            groups(ii, 2+n_links, 2) = dv(ii, jj);
+        end
+    end
 end
-groupset = groups(1:nij,1:nij,1);
-%
+group_set = groups(1:n_patches, 1:n_patches, 1);
+
 % remove weak links
-for i = 1:nij
- nlnka = groups(i,2,1); % number of links for patch i
- lnka = groups(i,3:3+nlnka-1,1); % list of links for patch i
- for j = 1:nlnka
-  nlnkb = groups(lnka(j),2,1); % number of links for link j|i
-  lnkb = groups(lnka(j),3:3+nlnkb-1,1); % list of links for link j|i
-  nls = nlsame(lnka,nlnka,lnkb,nlnkb); % number of same links
-  nlratio = 2*nls/(nlnka+nlnkb);
-  if nlnka > 1 && nlratio < critg
-   if i ~= lnka(j)
-     links(i,lnka(j)) = 0;
-   end
-  end
- end
+for ii = 1:n_patches
+    n_links_a = groups(ii, 2, 1);                     % number of links for patch ii
+    links_a = groups(ii, 3:3+n_links_a-1, 1);         % list of links for patch ii
+    for jj = 1:n_links_a
+        n_links_b = groups(links_a(jj), 2, 1);        % number of links for link jj|ii
+        links_b = groups(links_a(jj), 3:3+n_links_b-1, 1);   % list of links for link jj|ii
+        n_common = nlsame(links_a, n_links_a, links_b, n_links_b);
+        link_ratio = 2*n_common/(n_links_a+n_links_b);
+        if n_links_a > 1 && link_ratio < group_criterion
+            if ii ~= links_a(jj)
+                links(ii, links_a(jj)) = 0;
+            end
+        end
+    end
 end
-%
+
 % find groups
-gnum = 0;
-for i = 1:nij
- nlnka = groups(i,2,1); % number of links for patch i
- lnka = groups(i,3:3+nlnka-1,1); % list of links for patch i
- for j = 1:nlnka
-  nlnkb = groups(lnka(j),2,1); % number of links for link j|i
-  lnkb = groups(lnka(j),3:3+nlnkb-1,1); % list of links for link j|i
-  nls = nlsame(lnka,nlnka,lnkb,nlnkb); % number of same links
-  nlratio = 2*nls/(nlnka+nlnkb);
-  if nlnka > 1 && nlratio > critg
-   if groups(i,1,1) == 0
-    gnum = gnum+1;
-    groups(i,1,1) = gnum;
-    groupset(i,1) = gnum;
-   end
-   if groups(lnka(j),1,1) == 0
-     groups(lnka(j),1,1) = groups(i,1,1);
-     groupset(lnka(j),1) = groups(i,1,1);
-   end
-  end
- end
+group_num = 0;
+for ii = 1:n_patches
+    n_links_a = groups(ii, 2, 1);                     % number of links for patch ii
+    links_a = groups(ii, 3:3+n_links_a-1, 1);         % list of links for patch ii
+    for jj = 1:n_links_a
+        n_links_b = groups(links_a(jj), 2, 1);        % number of links for link jj|ii
+        links_b = groups(links_a(jj), 3:3+n_links_b-1, 1);   % list of links for link jj|ii
+        n_common = nlsame(links_a, n_links_a, links_b, n_links_b);
+        link_ratio = 2*n_common/(n_links_a+n_links_b);
+        if n_links_a > 1 && link_ratio > group_criterion
+            if groups(ii, 1, 1) == 0
+                group_num = group_num+1;
+                groups(ii, 1, 1) = group_num;
+                group_set(ii, 1) = group_num;
+            end
+            if groups(links_a(jj), 1, 1) == 0
+                groups(links_a(jj), 1, 1) = groups(ii, 1, 1);
+                group_set(links_a(jj), 1) = groups(ii, 1, 1);
+            end
+        end
+    end
 end
-%
+
 % make grouping map
-gimg = zeros(sz,sz);
-for i = 1:nij
-  x = pcoor(i,1); y = pcoor(i,2);
-  ptch = ones(psz,psz)*groups(i,1);
-  gimg(x:x+psz-1,y:y+psz-1) = ptch;
+group_img = zeros(scene_size, scene_size);
+for ii = 1:n_patches
+    xx = patch_coords(ii, 1);  yy = patch_coords(ii, 2);
+    patch_block = ones(patch_size, patch_size)*groups(ii, 1);
+    group_img(xx:xx+patch_size-1, yy:yy+patch_size-1) = patch_block;
 end
-figure; image(gimg,'CDataMapping','scaled'); axis image;
+figure;
+image(group_img, 'CDataMapping', 'scaled');
+axis image;
 
 % figure; colormap(gray(256)); image(rthres*255); axis image;
