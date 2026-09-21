@@ -1,6 +1,8 @@
-function SessionData = run_experiment(exp_type, subject_name, condition, sessionNumber, levelNumber)
+function session_data = run_experiment(exp_type, subject_name, condition, ...
+    session_number, level_number)
 % RUN_EXPERIMENT  Launch the grouping experiment.
-%   run_experiment(exp_type, subject_name [, condition, sessionNumber, levelNumber])
+%   session_data = run_experiment(exp_type, subject_name ...
+%       [, condition, session_number, level_number])
 %
 %   Delegates the level/trial loop and screen setup to the shared vislab
 %   harness (vislab.psychframework.run_experiment), wiring this package's interval functions
@@ -12,39 +14,55 @@ function SessionData = run_experiment(exp_type, subject_name, condition, session
 %   namespace references).
 %
 %   Run `setup` first (adds vislab). Requires Psychtoolbox.
+%
+%   Inputs
+%     exp_type        Experiment type string; selects exp_files/<exp_type>/.
+%     subject_name    Subject identifier.
+%     condition        Bin condition row (only used with session_number/level_number).
+%     session_number   1-based session index (only used with condition/level_number).
+%     level_number      1-based level index within that session.
+%
+%   Output
+%     session_data  Whatever VISLAB.PSYCHFRAMEWORK.RUN_EXPERIMENT returns for
+%                    the completed level (its own responses/timing record).
+%
+%   See also EXPERIMENT.GROUPING.RUN.LOAD_CURRENT_SESSION,
+%   EXPERIMENT.GROUPING.RUN.LOAD_STIMULI.
 
     if nargin < 4
-        ExpSettings = experiment.grouping.run.load_current_session(subject_name, exp_type);
+        exp_settings = experiment.grouping.run.load_current_session(subject_name, exp_type);
     else
-        ExpSettings = experiment.grouping.run.load_current_session(subject_name, exp_type, condition, sessionNumber, levelNumber);
+        exp_settings = experiment.grouping.run.load_current_session(subject_name, ...
+            exp_type, condition, session_number, level_number);
     end
-    ExpSettings.screenNumber = 1;    % original forced screen 1
+    exp_settings.screenNumber = 1;    % original forced screen 1
 
     hooks.load_session = @load_session;
-    hooks.level_start  = @(S, l)       experiment.grouping.run.display_level_start(S);
-    hooks.fixation     = @(S, t, l)    experiment.grouping.run.fixation_interval(S);
-    hooks.stimulus     = @(S, t, l)    experiment.grouping.run.stimulus_interval(S, t);
-    hooks.response     = @(S, t, l)    experiment.grouping.run.response_interval(S);
-    hooks.feedback     = @(S, r, t, l) experiment.grouping.run.give_feedback(S, r, t);
-    hooks.save_level   = @(S, resp, l) experiment.grouping.run.save_current_level(S, resp, l);
+    hooks.level_start  = @(s, l)       experiment.grouping.run.display_level_start(s);
+    hooks.fixation     = @(s, t, l)    experiment.grouping.run.fixation_interval(s);
+    hooks.stimulus     = @(s, t, l)    experiment.grouping.run.stimulus_interval(s, t);
+    hooks.response     = @(s, t, l)    experiment.grouping.run.response_interval(s);
+    hooks.feedback     = @(s, r, t, l) experiment.grouping.run.give_feedback(s, r, t);
+    hooks.save_level   = @(s, resp, l) experiment.grouping.run.save_current_level(s, resp, l);
     hooks.level_end    = @level_end;
 
-    SessionData = vislab.psychframework.run_experiment(ExpSettings, hooks);
+    session_data = vislab.psychframework.run_experiment(exp_settings, hooks);
 end
 
 % ------------------------------------------------------------------------------
-function S = load_session(ExpSettings)
+function s = load_session(exp_settings)
 % Use the settings' injected stimulus loader, then run just the current level.
-    S = ExpSettings.loadSessionStimuli(ExpSettings);             % = @load_stimuli
-    S.level_list = S.currentLevel;
+    s = exp_settings.loadSessionStimuli(exp_settings);             % = @load_stimuli
+    s.level_list = s.currentLevel;
 end
 
-function level_end(S, responses, ~)
+function level_end(s, responses, ~)
 % 2AFC percent-correct summary (was the tail of runLevel.m).
-    pCorrect = mean(S.diffpair == responses) * 100;
-    Screen('FillRect', S.window, S.bgPixValGamma);
-    Screen('TextSize', S.window, 25);
-    DrawFormattedText(S.window, sprintf('End of level: %d%% correct.', round(pCorrect)), 'center', 'center');
-    Screen('Flip', S.window);
+    p_correct = mean(s.diffpair == responses) * 100;
+    Screen('FillRect', s.window, s.bgPixValGamma);
+    Screen('TextSize', s.window, 25);
+    DrawFormattedText(s.window, sprintf('End of level: %d%% correct.', round(p_correct)), ...
+        'center', 'center');
+    Screen('Flip', s.window);
     WaitSecs(1);
 end

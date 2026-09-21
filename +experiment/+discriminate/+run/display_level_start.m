@@ -1,52 +1,66 @@
-function display_level_start(SessionSettings)
-%% presenttargetonly
-%   Used for the beginning of blocks. Presents that target, with text, at
-%   the beginning of the block.
+function display_level_start(session_settings)
+%DISPLAY_LEVEL_START  Show the target outline and start-of-block prompt.
+%   experiment.discriminate.run.display_level_start(session_settings)
+%
+%   Draws both target-outline stimuli and the fixation cross at the trial
+%   positions used for this block, together with a "Session N Level M,
+%   press any key to start" prompt, then waits for a keypress before
+%   returning. Called once per block, from RUN_EXPERIMENT's level_start
+%   hook.
+%
+%   Inputs
+%     session_settings  Struct from LOAD_CURRENT_SESSION/LOAD_STIMULI. Fields
+%                        read: window; fixPosPix, stim1PosPix, stim2PosPix
+%                        (screen pixel coordinates); fixationTarget,
+%                        targetOutline (gamma-corrected image arrays);
+%                        pixelsPerDeg; currentSession; currentLevel.
+%
+%   See also EXPERIMENT.DISCRIMINATE.RUN.RUN_EXPERIMENT,
+%   EXPERIMENT.DISCRIMINATE.RUN.RESPONSE_INTERVAL.
 
+% Display the fixation and stimulus position from a random trial in the block
+fix_pos_pix_xy = session_settings.fixPosPix;
+stim1_pos_pix_xy = session_settings.stim1PosPix;
+stim2_pos_pix_xy = session_settings.stim2PosPix;
 
-% Display the fixation and stimulus position from a random trial in the
-% block
+win = session_settings.window;
 
-fixPosPixXY = SessionSettings.fixPosPix;
-stim1PosPixXY = SessionSettings.stim1PosPix;
-stim2PosPixXY = SessionSettings.stim2PosPix;
+%% Set up
+fix_target = session_settings.fixationTarget;
+fix_texture = Screen('Maketexture', session_settings.window, fix_target);
+fix_rect = SetRect(0, 0, size(fix_target, 2), size(fix_target, 1));
+fix_destination = floor(CenterRectOnPointd(fix_rect, fix_pos_pix_xy(1), fix_pos_pix_xy(2)));
 
-w = SessionSettings.window;
+%% Draw the target outline, then the fixation cross on top
 
-%% Set up 
-fixTarget = SessionSettings.fixationTarget; 
-fixTexture  = Screen('Maketexture', SessionSettings.window, fixTarget);
-fixRect         = SetRect(0, 0, size(fixTarget,2), size(fixTarget,1));
-fixDestination  = floor(CenterRectOnPointd(fixRect, fixPosPixXY(1), fixPosPixXY(2)));  
+Screen('TextSize', win, 25);
+DrawFormattedText(win, sprintf('Session %d Level %d\n\n Press any key to start.', ...
+    session_settings.currentSession, session_settings.currentLevel), ...
+    'center', session_settings.pixelsPerDeg);
 
-%% Draw fixTarget followed by blank if foveal experiment
+target_img = session_settings.targetOutline;
+target_texture = Screen('MakeTexture', session_settings.window, target_img);
 
-Screen('TextSize', w, 25);
-DrawFormattedText(w, sprintf('Session %d Level %d\n\n Press any key to start.',SessionSettings.currentSession,SessionSettings.currentLevel), ...
-    'center',SessionSettings.pixelsPerDeg);
-
-target = SessionSettings.targetOutline;
-targetTexture = Screen('MakeTexture', SessionSettings.window, target);
-
-targetRect         = SetRect(0, 0, size(target,2), size(target,1));
-target1Destination  = floor(CenterRectOnPointd(targetRect, stim1PosPixXY(1), stim1PosPixXY(2))); 
-target2Destination  = floor(CenterRectOnPointd(targetRect, stim2PosPixXY(1), stim2PosPixXY(2))); 
- 
-
+target_rect = SetRect(0, 0, size(target_img, 2), size(target_img, 1));
+target1_destination = floor(CenterRectOnPointd(target_rect, ...
+    stim1_pos_pix_xy(1), stim1_pos_pix_xy(2)));
+target2_destination = floor(CenterRectOnPointd(target_rect, ...
+    stim2_pos_pix_xy(1), stim2_pos_pix_xy(2)));
 
 % if SessionSettings.bFovea % If foveal experiment, then draw stimulus after fixation cross.
 %     Screen('DrawTexture', SessionSettings.window, fixTexture, [], fixDestination);
 %     Screen('DrawTexture', SessionSettings.window, targetTexture, [], targetDestination);
 % else
-    Screen('DrawTexture', SessionSettings.window, targetTexture, [], target1Destination);    
-    Screen('DrawTexture', SessionSettings.window, targetTexture, [], target2Destination);    
-    Screen('DrawTexture', SessionSettings.window, fixTexture, [], fixDestination);
+Screen('DrawTexture', session_settings.window, target_texture, [], target1_destination);
+Screen('DrawTexture', session_settings.window, target_texture, [], target2_destination);
+Screen('DrawTexture', session_settings.window, fix_texture, [], fix_destination);
 % end
-Screen('Flip',SessionSettings.window);
-   
+Screen('Flip', session_settings.window);
+
 %WaitSecs(10); %Adapt to background luminance
 
 KbWait();
 
 WaitSecs(1);
 
+end

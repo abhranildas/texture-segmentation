@@ -1,28 +1,46 @@
-function save_current_level(SessionSettings, response, levelNumber)
-%LOADCURRENSESSIONS Saves the stimuli and experiment info for the next
-%session. Called only during experiment.
+function save_current_level(session_settings, response, level_number)
+%SAVE_CURRENT_LEVEL  Save one level's responses into the subject's progress file.
+%   experiment.grouping.run.save_current_level(session_settings, response, level_number)
+%
+%   Loads the subject's progress file, marks this session's levelCompleted
+%   counter one higher, records the per-trial diffpair/response/correct
+%   columns for this level, prints the level's percent correct, and saves
+%   the file back. Called once per level, from RUN_EXPERIMENT's save_level
+%   hook. session_settings.diffpair is never set in this tree (see B2.9),
+%   so every line below that reads it errors on a live call.
+%
+%   Inputs
+%     session_settings  Struct from LOAD_STIMULI. Fields read: subjectStr,
+%                        expTypeStr, currentSession, diffpair.
+%     response            Per-trial response vector for this level.
+%     level_number         1-based level index within the current session.
+%
+%   See also EXPERIMENT.GROUPING.RUN.LOAD_CURRENT_SESSION,
+%   EXPERIMENT.GROUPING.RUN.RUN_EXPERIMENT.
 %
 % v1.0, 1/26/2016, Steve Sebastian <sebastian@utexas.edu>
 
 %% Determine current session and update to completed
 
-subjectStr    = SessionSettings.subjectStr;
-expTypeStr    = SessionSettings.expTypeStr;
+subject_str = session_settings.subjectStr;
+exp_type_str = session_settings.expTypeStr;
 
-filePathSubject = ['exp_files/' expTypeStr '/subject_out/' subjectStr '.mat'];
-load(filePathSubject);
+file_path_subject = ['exp_files/' exp_type_str '/subject_out/' subject_str '.mat'];
+load(file_path_subject);
 
-sessionNumber = SessionSettings.currentSession;
+session_number = session_settings.currentSession;
 
-subject_file.levelCompleted(sessionNumber)=subject_file.levelCompleted(sessionNumber)+1;
+subject_file.levelCompleted(session_number) = subject_file.levelCompleted(session_number) + 1;
 
-subject_file.diffpair(:,levelNumber,sessionNumber)=SessionSettings.diffpair;
+subject_file.diffpair(:, level_number, session_number) = session_settings.diffpair;
 
 %% Performance
-subject_file.response(:,levelNumber,sessionNumber)=int8(response);
-subject_file.correct(:,levelNumber,sessionNumber) = SessionSettings.diffpair == response;
+subject_file.response(:, level_number, session_number) = int8(response);
+subject_file.correct(:, level_number, session_number) = session_settings.diffpair == response;
 
-disp(['Level ' num2str(levelNumber) ' complete: '...
-    num2str(mean(SessionSettings.diffpair == response)*100) '% correct.']);
+disp(['Level ' num2str(level_number) ' complete: ' ...
+    num2str(mean(session_settings.diffpair == response)*100) '% correct.']);
 
-save(filePathSubject, 'subject_file');
+save(file_path_subject, 'subject_file');
+
+end
