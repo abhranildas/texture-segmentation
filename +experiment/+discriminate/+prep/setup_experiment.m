@@ -1,13 +1,35 @@
 function setup_experiment(exp_type)
-% Create all experimental stimuli and settings
+%SETUP_EXPERIMENT  Build and save this experiment type's stimuli and settings.
+%   experiment.discriminate.prep.setup_experiment(exp_type)
+%
+%   Generates all stimuli via GENERATE_STIMULI, packs them with the fixed
+%   experiment parameters into exp_settings, and saves it to
+%   exp_files/<exp_type>/exp_settings.mat for SETUP_SUBJECT and the +run
+%   package to load. Run once per experiment type, before any subject.
+%
+%   Inputs
+%     exp_type   Experiment variant string ('norm' or 'joined'), passed
+%                through to GENERATE_STIMULI and saved as exp_settings.exp_type.
+%
+%   Output
+%     none (writes exp_files/<exp_type>/exp_settings.mat; see Note)
+%
+%   Note: exp_settings (the saved variable name) and the struct field names
+%   below (nTex, bgPixVal, stimulusIntervalMs, etc.) are frozen cross-file
+%   vocabulary shared with SETUP_SUBJECT and every +run hook, and are left
+%   unrenamed even where camelCase; only this function's own local
+%   variables were converted to snake_case.
+%
+%   See also EXPERIMENT.DISCRIMINATE.PREP.GENERATE_STIMULI,
+%   EXPERIMENT.DISCRIMINATE.PREP.SETUP_SUBJECT.
 
-nTex=60; % number of textures
-nTrials=300; % number of trials in each level
-nLevels=4; % number of eccentricity levels
-nSessions=4; % number of sessions to divide this into
+n_tex = 60; % number of textures
+n_trials = 300; % number of trials in each level
+n_levels = 4; % number of eccentricity levels
+n_sessions = 4; % number of sessions to divide this into
 
 % generate stimuli
-[stimuli, seeds, tex, coords]=experiment.discriminate.prep.generate_stimuli(exp_type);
+[stimuli, seeds, tex, coords] = experiment.discriminate.prep.generate_stimuli(exp_type);
 
 exp_settings = struct(...
     'exp_type', exp_type,...
@@ -15,12 +37,12 @@ exp_settings = struct(...
     'tex', {tex},...
     'coords', {coords},...
     'seeds', seeds,...
-    'ecc', [0 1.6 5 11.5],... % fixation eccentricities
+    'ecc', [0 1.6 5 11.5],... % fixation eccentricities, degrees
     'stim_size', 64,...
-    'nTex', nTex,...
-    'nLevels', nLevels,...
-    'nTrials', nTrials,...
-    'nSessions', nSessions, ...
+    'nTex', n_tex,...
+    'nLevels', n_levels,...
+    'nTrials', n_trials,...
+    'nSessions', n_sessions, ...
     'loadSessionStimuli', @experiment.discriminate.run.load_stimuli, ...
     'luminance', 0.5,...
     'contrast', 0.20,...
@@ -35,8 +57,8 @@ exp_settings = struct(...
     'blankIntervalMs', 0 ...
     );
 
-folderOut= ['exp_files/' exp_type];
-mkdir(folderOut);
-save([folderOut '/exp_settings.mat'], 'exp_settings');
+folder_out = ['exp_files/' exp_type];
+mkdir(folder_out);
+save([folder_out '/exp_settings.mat'], 'exp_settings');
 
 end
