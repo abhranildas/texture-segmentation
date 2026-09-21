@@ -1,64 +1,105 @@
-%% create a texture discrimination error matrix from subject data
+%COMPUTE_EXP_ERROR_MAT  Texture-discrimination error matrix from subject data.
+%   run('+general/compute_exp_error_mat.m')
+%
+%   Builds, for each eccentricity level, a symmetric n_tex x n_tex matrix of
+%   proportion-correct for every texture pair the subject saw, sorts the
+%   textures by their same-pair (diagonal) performance at the largest
+%   eccentricity, and plots one pcolor map per level plus an accuracy-vs-
+%   eccentricity curve.
+%
+%   This is a script, not a function: it reads two variables that must already
+%   be in the workspace, and writes its results there. Converting it into a
+%   proper function is Stage 3 item S2.5.
+%
+%   Workspace inputs (load these first, e.g. from exp_files/<type>/):
+%     exp_settings  - experiment settings struct. Fields read: nTex (number of
+%                     textures), nLevels (number of eccentricity levels),
+%                     nTrials (trials per session), nSessions (sessions per
+%                     level), tex (cell array, texture numbers per trial),
+%                     ecc (eccentricity of each level, in degrees).
+%     subject_file  - subject response struct. Fields read: idx (trial index
+%                     into exp_settings.tex) and correct (1 = correct, 0 =
+%                     incorrect), both nTrials x nLevels x nSessions.
+%
+%   Workspace outputs:
+%     err_mat_all      - nTex x nTex x nLevels, proportion correct per texture
+%                        pair per level, rows and columns sorted by the last
+%                        level's diagonal (dimensionless fraction, 0 to 1).
+%                        NaN wherever a pair was never presented.
+%     subject_accuracy - nSessions x nLevels, proportion correct per session
+%                        per level (dimensionless fraction, 0 to 1).
+%
+%   Note: exp_settings and subject_file are frozen .mat-backed names, and so
+%   are all their field spellings, so neither is renamed here (see the plan's
+%   renaming zone 3). Hardcoding 4 levels in the loops below is bug B3.18.
+%
+%   See also GENERAL.SIMULATE_DISCRIMINATION.
 
-% load exp_settings and subject_file
+err_mat_all = nan(exp_settings.nTex, exp_settings.nTex, exp_settings.nLevels);
 
-errmat_all=nan(exp_settings.nTex,exp_settings.nTex,exp_settings.nLevels);
+for i_level = 1:4  % set eccentricity level
 
-for iLevel=1:4 % set eccentricity level
+    err_mat = nan(exp_settings.nTex);
+    err_mat(logical(eye(size(err_mat)))) = 0;
 
-    errmat=nan(exp_settings.nTex);
-    errmat(logical(eye(size(errmat))))=0;
+    % concatenate all sessions
+    idx = reshape(permute(subject_file.idx, [2 1 3]), exp_settings.nLevels, ...
+        exp_settings.nTrials*exp_settings.nSessions)';
+    correct = reshape(permute(subject_file.correct, [2 1 3]), exp_settings.nLevels, ...
+        exp_settings.nTrials*exp_settings.nSessions)';
 
-    % concatenate all sessions:
-    idx=reshape(permute(subject_file.idx, [2 1 3]),exp_settings.nLevels,exp_settings.nTrials*exp_settings.nSessions)';
-    correct=reshape(permute(subject_file.correct, [2 1 3]),exp_settings.nLevels,exp_settings.nTrials*exp_settings.nSessions)';
+    % textures presented in the experiment
+    tex_nums = exp_settings.tex(idx(:, i_level));
 
-    % textures presented in the experiment:
-    texnums=exp_settings.tex(idx(:,iLevel));
-
-    for iTrial=1:numel(texnums)
-        tex=sort(texnums{iTrial});
-        if numel(tex)==1 % if same pair
-            errmat(tex,tex)=errmat(tex,tex)+correct(iTrial,iLevel);
-        else % if different pair
-            errmat(tex(1),tex(2))=correct(iTrial,iLevel);
+    for i_trial = 1:numel(tex_nums)
+        tex_pair = sort(tex_nums{i_trial});
+        if numel(tex_pair) == 1  % same pair
+            err_mat(tex_pair, tex_pair) = err_mat(tex_pair, tex_pair) + ...
+                correct(i_trial, i_level);
+        else  % different pair
+            err_mat(tex_pair(1), tex_pair(2)) = correct(i_trial, i_level);
         end
     end
 
-    % change diagonals from counts to percentage
-    errmat(logical(eye(size(errmat))))=diag(errmat)/(exp_settings.nTrials*exp_settings.nSessions/(2*exp_settings.nTex));
+    % change diagonals from counts to proportion correct
+    err_mat(logical(eye(size(err_mat)))) = diag(err_mat) / ...
+        (exp_settings.nTrials*exp_settings.nSessions/(2*exp_settings.nTex));
 
-    % symmetrize the matrix:
-    errmat=triu(errmat)+triu(errmat,1)';
+    % symmetrize the matrix
+    err_mat = triu(err_mat) + triu(err_mat, 1)';
 
-    errmat_all(:,:,iLevel)=errmat;
+    err_mat_all(:, :, i_level) = err_mat;
 end
 
 % sort by diagonal errors of the last eccentricity level, and plot
-[~,sortedIndices]=sort(diag(errmat_all(:,:,exp_settings.nLevels)),'descend');
+[~, sort_idx] = sort(diag(err_mat_all(:, :, exp_settings.nLevels)), 'descend');
 
-for iLevel=1:4
-    errmat=errmat_all(:,:,iLevel);
-    errmat=errmat(sortedIndices,sortedIndices);
-    errmat_all(:,:,iLevel)=errmat;
+for i_level = 1:4
+    err_mat = err_mat_all(:, :, i_level);
+    err_mat = err_mat(sort_idx, sort_idx);
+    err_mat_all(:, :, i_level) = err_mat;
 
     figure;
-    h=pcolor(errmat_all(:,:,iLevel)); set(h,'edgecolor','none');
+    h_pcolor = pcolor(err_mat_all(:, :, i_level));
+    set(h_pcolor, 'edgecolor', 'none');
     axis image
-    colormap winter; colorbar
-    set(gca,'YDir','reverse')
-    set(gca,'xtick',[1 60])
-    set(gca,'ytick',[1 60])
-    set(gca,'fontsize',13)
+    colormap winter;
+    colorbar
+    set(gca, 'YDir', 'reverse')
+    set(gca, 'xtick', [1 60])
+    set(gca, 'ytick', [1 60])
+    set(gca, 'fontsize', 13)
     xlabel 'texture #'
     ylabel 'texture #'
-    title(sprintf('eccentricity: %.1f',exp_settings.ecc(iLevel)))
+    title(sprintf('eccentricity: %.1f', exp_settings.ecc(i_level)))
 end
 
 %% plot accuracy vs eccentricity
-acc_subj=squeeze(mean(subject_file.correct,1))';
+subject_accuracy = squeeze(mean(subject_file.correct, 1))';
 
-figure; hold on
-errorbar(exp_settings.ecc,mean(acc_subj),std(acc_subj),'-ok','markerfacecolor','k')
+figure;
+hold on
+errorbar(exp_settings.ecc, mean(subject_accuracy), std(subject_accuracy), '-ok', ...
+    'markerfacecolor', 'k')
 xlabel 'eccentricity (deg)'
 ylabel 'accuracy'
