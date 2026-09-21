@@ -9,14 +9,15 @@
 %
 %   Broken as written, on two independent counts, neither fixed here - see
 %   bugs B2.6 and B2.7 in docs/repo-cleanup.md. (1) Every call below to
-%   mk_texs, mk_masks, shape_cue, mk_dist, mk_mecc, mk_decc, mk_bindex,
-%   find_bin, find_xy and check_xy is unqualified; none of those names resolve
-%   to the package functions of the same name (confirmed empirically - see
-%   B2.6), so the very first call errors. (2) Independent of that, the
-%   contrast-block loop's middle bound is missing its block-start offset
-%   (i_subblock runs from i_group to contrast_block_size-1 instead of
-%   i_group+contrast_block_size-1), so every contrast block after the first is
-%   empty and only the first block_size*n_contrasts trials would ever render.
+%   mk_texs, mk_masks, shape_cue, mk_pair_geometry, find_bin, find_xy and
+%   check_xy is unqualified; none of those names resolve to the package
+%   functions of the same name (confirmed empirically - see B2.6), so the
+%   very first call errors. (2) Independent of that, the contrast-block
+%   loop's middle bound is missing its block-start offset (i_subblock runs
+%   from i_group to contrast_block_size-1 instead of
+%   i_group+contrast_block_size-1), so every contrast block after the first
+%   is empty and only the first block_size*n_contrasts trials would ever
+%   render.
 %
 %   Inputs
 %     none (every parameter is hardcoded below).
@@ -64,13 +65,11 @@ tex_nums = mk_texs(n_tex, n_tex_regions, n_trials);  % tex_nums(1:n_trials,1:n_t
 
 cue = shape_cue(maps(1:grid_size, 1:grid_size, 1), grid_size, 3);
 
-% make geometry matrices for patch pairs, size if each = grid_size^2 x grid_size^2
-dist = mk_dist(grid_size);
-min_ecc = mk_mecc(grid_size);
-delta_ecc = mk_decc(grid_size);
-
-% make array of index values to patch geometry bins
-bin_index = mk_bindex(bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
+% make geometry matrices for patch pairs, size of each = grid_size^2 x
+% grid_size^2, and the array of index values to patch geometry bins
+% (left unqualified, like every other helper call in this script - see B2.6)
+[dist, min_ecc, delta_ecc, bin_index] = mk_pair_geometry(grid_size, ...
+    bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
 
 % load the bin table counts and the specific pairs of patches in each bin
 % (ii, jj are the patch pair's two linear indices here; reused below with a

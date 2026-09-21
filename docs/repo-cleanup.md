@@ -1630,6 +1630,90 @@ Re-located each of the eight abbreviated parameter strings by name (`'patch_sz'`
 
 </details>
 
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">S2.6 — one shared setup call for the patch-pair geometry</h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-09-21, **MATLAB R2024b**. Re-located the item by name, not by line number, as instructed: the recorded lines had drifted again (`mk_texseg_session.m:75-80`, `mk_texseg_stim_points.m:68-73`, `mk_texseg_stim_shape_old.m:57-62`), but the finding itself was still exactly as recorded.
+
+**The premise was re-checked before anything was changed, and the three sites really are identical.** All three set `grid_size = 16`, `bin_bounds_dist = [1, 2, 4, 8, 16, 32]`, `bin_bounds_min_ecc = [0, 1, 2, 4, 8, 12]`, `bin_bounds_delta_ecc = [0, 2, 4, 6, 8, 12]` — the same literals, in the same order — and then make the same four calls, in the same order, with those arguments and nothing else. No extra argument, no differing `grid_size`, so there is no discrepancy to report and nothing that a merge could silently change.
+
+**What was built: `+grouping/mk_pair_geometry.m`, a four-output function.**
+
+```matlab
+[dist, min_ecc, delta_ecc, bin_index] = grouping.mk_pair_geometry(grid_size, ...
+    bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc)
+```
+
+Its whole body is the four calls the three consumers used to make, in their original order. Each consumer's seven-line block (four calls, a blank line and two comments) becomes one call plus its comment. `+grouping/Contents.m` gained the matching entry, so `help grouping` still lists every file in the package.
+
+**Why this shape, over the alternatives.**
+
+1. **Four outputs, not a struct.** A struct would have been the tidier-looking return, but every consumer immediately passes these four into `grouping.find_bin(patch_index1, patch_index2, dist, min_ecc, delta_ecc, ...)` positionally — so a struct either forces `geom.dist`-style spelling into the nine-argument `find_bin` calls, or forces four unpacking lines at each site, which would re-add exactly the lines this item exists to remove. Four outputs keeps every downstream variable name and every `find_bin` call byte-identical, which is also what makes the diff reviewable. `grouping.mk_masks` already returns `[masks, maps]`, so multiple outputs are the local idiom.
+2. **A new shared helper, not one consumer made canonical.** Option (b) — have the other two call `mk_texseg_session` — cannot work here: the two consumers are scripts that are *known broken* (B2.6), they need the four matrices in their own workspace rather than the session struct `mk_texseg_session` returns, and routing them through it would change what they do, not just where the setup lives.
+3. **No signature change to anything that already had callers.** `mk_dist`, `mk_mecc`, `mk_decc` and `mk_bindex` are untouched — same files, same signatures, same golden-harness coverage. The only new call-site surface is the one new name.
+4. **The name.** `mk_pair_geometry` follows the package's `mk_*` convention and tranche 3's rule C-3 (spell the vocabulary out rather than half-abbreviate); everything it returns is indexed by patch pair or by pair-geometry bin. `which('mk_pair_geometry', '-all')` and `which('grouping.mk_pair_geometry', '-all')` were both empty before the file was created, so it shadows nothing in this repo, a sibling repo, or MATLAB itself.
+
+**Call sites found, and how the search was made exhaustive.** `grep -rn "mk_dist\|mk_mecc\|mk_decc\|mk_bindex"` over the *whole* repo, not just `.m` files and not just `+grouping/` (there are no excluded ancestral-code directories inside this repo). That found **five** places, not three, and two of them were deliberately left alone:
+
+- The three the item names — all three converted.
+- `run_demo.m:226-229` — the same four calls with the same values, **left as they are, deliberately.** `run_demo.m` is the repo's teaching script: its section 4 narrates the binning pipeline helper by helper, names all four in its own header and in `README.md:84`, and its value is precisely that a reader sees the four separate calls. Collapsing it into one call would make the demo worse at the only job it has. Recorded here rather than silently skipped.
+- `tools/golden_harness.m:86-103` — **must not be converted.** It calls each of the four separately in order to checksum each one's output separately; routing it through the new helper would fold four independent reference fields into one code path and weaken exactly the coverage those fields exist to give.
+
+`mk_texseg_session` itself has one caller (`+experiment/+grouping/+prep/setup_experiment.m:62`), unaffected — its signature did not change. The two scripts have no callers at all. Grepped for dynamic references too (`feval`/`str2func`/`exist`/`which` with any of the four names quoted): none anywhere.
+
+**B2.6 and B2.7 are still present and unchanged — this was an explicit constraint, and here is how it was kept.**
+
+- **B2.6.** The two scripts' calls to the new helper are written **unqualified**, exactly like every other helper call in those files: `[dist, min_ecc, delta_ecc, bin_index] = mk_pair_geometry(grid_size, ...)`, with no `grouping.` prefix, and a comment at the site saying so. Verified empirically the same way B2.6 originally was: in R2024b from the repo root, `which('mk_pair_geometry')` is **empty** and `which('mk_dist')` is **empty**, while `which('grouping.mk_pair_geometry')` resolves — so the new call fails to resolve for precisely the same reason the four old ones did. Both scripts still error on their *first* helper call (`mk_texs`, several lines above the geometry block), so the geometry block is unreachable either way and the observable behaviour of running either script is byte-identical to before: the same error, on the same line. B2.6's entry in section 0.4 was updated to name `mk_pair_geometry` in place of the four, so the bug's record stays accurate; the bug itself is untouched and still open.
+- **B2.7.** Lives in `mk_texseg_stim_points.m`'s contrast-block loop (`for i_subblock = i_group:block_size:contrast_block_size-1`), ~130 lines below the geometry block. Not touched, not adjacent to anything touched, and re-read after the edit to confirm the missing `i_group+` offset is still missing.
+
+**Verification — four checks, since none of the three consumers is golden-covered.**
+
+1. **Side-by-side `isequal`, old block vs new call**, run before the call sites were converted, on the real `grid_size = 16` case and on a synthetic `grid_size = 7` with different bin bounds. Verbatim:
+
+```
+grid_size=16 : dist 1  min_ecc 1  delta_ecc 1  bin_index 1  (1 = isequal)
+  classes: double double double double ; sizes [256 256] [256 256] [256 256] [5 5 5]
+grid_size=7 : dist 1  min_ecc 1  delta_ecc 1  bin_index 1  (1 = isequal)
+  classes: double double double double ; sizes [49 49] [49 49] [49 49] [3 2 3]
+RNG state unchanged: 1
+S2.6 SIDE-BY-SIDE PASSED
+```
+
+2. **End-to-end on the one consumer that actually runs.** The pre-edit `mk_texseg_session.m` was taken from HEAD, renamed to `mk_texseg_session_before`, and run beside the edited one in the same session (both seed `rng(0)` internally, so the comparison is deterministic). Every field of the returned struct — including `cuelocs` and `tperm`, which depend on the whole RNG draw order — came back `isequal`:
+
+```
+before 1.4 s, after 0.9 s
+same field names in same order: 1
+  cntrst   isequal=1
+  cuelocs  isequal=1
+  m0       isequal=1
+  maps     isequal=1
+  pw       isequal=1
+  sz       isequal=1
+  texs     isequal=1
+  tex_set  isequal=1
+  tperm    isequal=1
+S2.6 END-TO-END mk_texseg_session PASSED (isequal on the whole struct)
+```
+
+This is the strongest evidence available for this item: the four pure calls are made in the same order and draw no random numbers, so the session's RNG stream is untouched, and the struct equality confirms it rather than assuming it. (The timing difference is run-to-run noise on a first-call JIT, not a speed claim — S2.6 is not a Speed item.)
+
+3. **Golden-harness replay: passes, unchanged.** `golden_harness('replay', 'tools/golden_ref.mat')` returned with no assertion thrown, exit status 0. Expected: the harness covers `mk_dist`/`mk_mecc`/`mk_decc`/`mk_bindex` individually and none of their signatures changed, so a pass confirms this item did not disturb the coverage it inherits. The reference was **not** recaptured; `golden_harness('capture', ...)` was not run.
+
+```
+golden_harness replay: PASSED (isequal assert did not throw)
+```
+
+4. **`checkcode` clean** on all five touched files (`mk_pair_geometry.m`, `mk_texseg_session.m`, `mk_texseg_stim_points.m`, `mk_texseg_stim_shape_old.m`, `Contents.m`) — zero messages, same as before the edit — and `canon` parses all four `.m` files without error. No new line exceeds 100 characters (longest new line: 80, the new file's `function` line) and no trailing whitespace was introduced. `mk_texseg_stim_shape_old.m:213`'s pre-existing 111-character commented line is untouched, as recorded in section 3.3's S2.4 entry.
+
+**Items touched in the plan, other than this one.** **O3.1** and **O3.2** both said they were "tangled with S2.6, since the same rebuild happens at three call sites"; both write-ups were corrected to the current state without acting on either — O3.1's loops now have one driver instead of three, while O3.2 is unaffected, because S2.6 merged only the *setup* calls and each consumer still calls `find_bin` from its own bin-table loop. The vectorization those two items describe was deliberately left alone for Stage 5. **S3.1** (whether `mk_texseg_stim_shape_old.m` should be deleted at all) is unchanged and still open; if it is later deleted, one of this item's three call sites goes with it, which costs nothing.
+
+</div>
+
+</details>
+
 </div>
 
 </details>

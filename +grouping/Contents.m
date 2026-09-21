@@ -7,6 +7,7 @@
 %   mk_mecc            - Smaller of the two eccentricities of every patch pair on the grid.
 %   mk_decc            - Eccentricity difference of every patch pair on the patch grid.
 %   mk_bindex          - Number the geometry bins formed by three sets of bin bounds.
+%   mk_pair_geometry   - Build the patch-pair geometry matrices and the bin index.
 %   find_bin           - Geometry bin of one pair of patch locations on the patch grid.
 %
 % Region growing and patch tests

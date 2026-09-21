@@ -38,8 +38,8 @@ function session = mk_texseg_session(tex_set, n_tex)
 %       tperm   - randperm(n_trials), the session's trial presentation order.
 %
 %   See also GROUPING.MK_TRL_POINTS, GROUPING.MK_TEXS, GROUPING.MK_MASKS,
-%   GROUPING.MK_DIST, GROUPING.MK_MECC, GROUPING.MK_DECC, GROUPING.MK_BINDEX,
-%   GROUPING.FIND_BIN, GROUPING.FIND_XY, GROUPING.CHECK_XY.
+%   GROUPING.MK_PAIR_GEOMETRY, GROUPING.FIND_BIN, GROUPING.FIND_XY,
+%   GROUPING.CHECK_XY.
 
     seed = 0;
     rng(seed);
@@ -71,13 +71,10 @@ function session = mk_texseg_session(tex_set, n_tex)
     [~, maps] = grouping.mk_masks(grid_size, n_tex_regions, n_trials, ...
         seed_radius_frac, fill_fraction);
 
-    % make geometry matrices for patch pairs, size of each = grid_size^2 x grid_size^2
-    dist = grouping.mk_dist(grid_size);
-    min_ecc = grouping.mk_mecc(grid_size);
-    delta_ecc = grouping.mk_decc(grid_size);
-
-    % make array of index values to patch geometry bins
-    bin_index = grouping.mk_bindex(bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
+    % make geometry matrices for patch pairs, size of each = grid_size^2 x
+    % grid_size^2, and the array of index values to patch geometry bins
+    [dist, min_ecc, delta_ecc, bin_index] = grouping.mk_pair_geometry(grid_size, ...
+        bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
 
     % load the bin table counts and the specific pairs of patches in each bin
     for patch_index1 = 1:grid_size^2

@@ -10,10 +10,10 @@
 %   still kept alongside its two siblings - see S3.1 in docs/repo-cleanup.md.
 %
 %   Broken as written - see bug B2.6 in docs/repo-cleanup.md: every call below
-%   to mk_texs, mk_masks, mk_dist, mk_mecc, mk_decc, mk_bindex, find_bin,
-%   find_xy, check_xy and shape_cue is unqualified, and none of those names
-%   resolve to the package functions of the same name (confirmed empirically
-%   - see B2.6), so the first call errors.
+%   to mk_texs, mk_masks, mk_pair_geometry, find_bin, find_xy, check_xy and
+%   shape_cue is unqualified, and none of those names resolve to the package
+%   functions of the same name (confirmed empirically - see B2.6), so the
+%   first call errors.
 %
 %   Inputs
 %     none (every parameter is hardcoded below).
@@ -53,13 +53,11 @@ tex_nums = mk_texs(n_tex, n_tex_regions, n_trials);  % tex_nums(1:n_trials,1:n_t
 % generate masks and maps for all trials in a session
 [masks, maps] = mk_masks(grid_size, n_tex_regions, n_trials, seed_radius_frac, fill_fraction);
 
-% make geometry matrices for patch pairs, size if each = grid_size^2 x grid_size^2
-dist = mk_dist(grid_size);
-min_ecc = mk_mecc(grid_size);
-delta_ecc = mk_decc(grid_size);
-
-% make array of index values to patch geometry bins
-bin_index = mk_bindex(bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
+% make geometry matrices for patch pairs, size of each = grid_size^2 x
+% grid_size^2, and the array of index values to patch geometry bins
+% (left unqualified, like every other helper call in this script - see B2.6)
+[dist, min_ecc, delta_ecc, bin_index] = mk_pair_geometry(grid_size, ...
+    bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
 
 % load the bin table counts and the specific pairs of patches in each bin
 % (ii, jj are the patch pair's two linear indices here; reused below with a
