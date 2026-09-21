@@ -1,123 +1,154 @@
+% TEX_REGIONS  Build and display one texture-region-grouping stimulus.
+%   grouping.tex_regions
 %
-% texture-regions stimuli
+%   Script, not a function. Grows n_regions contiguous texture regions over
+%   the patch grid the same way GROUPING.MK_MASKS does (one seed patch per
+%   region, then random-order neighbour claiming via GROUPING.CHECK_TLST
+%   until the grid is full), but for a single image rather than a whole
+%   session, and with a fixed list of eight Brodatz textures rather than
+%   random draws.
 %
-clearvars; close all;
-pw = 64;        % 64 patch width (pixels)
-np = 16;        % 16 number of patches per row and per column (pixels)
-imw = pw*np;    % image width (pixels)
-ntr = 5;       % number of texture regions
-map = zeros(np,np); % texture label map
-tlst = zeros(ntr,round(3*np^2/ntr) + 1); % list of patches for each region
+%   Broken as written - see bug B2.6 in docs/repo-cleanup.md: the call below
+%   to check_tlst is unqualified, and that name does not resolve to
+%   GROUPING.CHECK_TLST (confirmed empirically - see B2.6), so that call
+%   errors on the first pass through the region-growing loop.
 %
+%   Inputs
+%     none (every parameter is hardcoded below).
+%
+%   Output
+%     none (displays two figures: the region map, and the finished stimulus).
+%
+%   See also GROUPING.MK_MASKS, GROUPING.CHECK_TLST, GROUPING.S_GTR_IMG.
+
+clearvars;
+close all;
+patch_width = 64;      % 64 patch width (pixels)
+grid_size = 16;        % 16 number of patches per row and per column (pixels)
+image_width = patch_width*grid_size;  % image width (pixels)
+n_regions = 5;          % number of texture regions
+map = zeros(grid_size, grid_size);  % texture label map
+patch_list = zeros(n_regions, round(3*grid_size^2/n_regions) + 1);  % list of patches per region
+
 % seed the texture label map
-seeds = zeros(ntr,2);
-for i = 1:ntr
-  sflg = 1;
-  while sflg == 1
-    sflg = 0;
-    x = randi(np);
-    y = randi(np);
-    for j = 1:ntr
-      if seeds(j,1) == x && seeds(j,2) == y
-        sflg = 1;
-      end
+seeds = zeros(n_regions, 2);
+for i_region = 1:n_regions
+    seed_repeat = 1;
+    while seed_repeat == 1
+        seed_repeat = 0;
+        x = randi(grid_size);
+        y = randi(grid_size);
+        for jj = 1:n_regions
+            if seeds(jj, 1) == x && seeds(jj, 2) == y
+                seed_repeat = 1;
+            end
+        end
     end
-  end
-  seeds(i,1) = x; seeds(i,2) = y;
-  map(x,y) = i;  % write first patch label to map
-  tlst(i,1) = 1; tlst(i,2) = x; tlst(i,3) = y; % save coorinates of first patch label
+    seeds(i_region, 1) = x;
+    seeds(i_region, 2) = y;
+    map(x, y) = i_region;  % write first patch label to map
+    % save coordinates of first patch label
+    patch_list(i_region, 1) = 1;
+    patch_list(i_region, 2) = x;
+    patch_list(i_region, 3) = y;
 end
-%
+
 % grow the texture regions
-while min(min(map)) == 0 % fill the image (no background pixels)
-% while sum(tlst(:,1)) < np^2/6 % some percentage of background pixels
-  iprm = randperm(ntr); % add to regions in a random order on each pass
-  for i = 1:ntr
-    j = iprm(i);
-    n = tlst(j,1);
-    nprm = randperm(n); % check patches in region for a free side in random order 
-    k = 1; chkflg = 0;
-    while n == tlst(j,1) && k <= n
-      x = tlst(j,2*nprm(k)); y = tlst(j,2*nprm(k)+1);
-      dprm = randperm(4); % check four sides of patch in random order
-      l = 0;
-      while l < 4 && chkflg == 0
-        l = l+1;
-        [chkflg,xout,yout] = check_tlst(dprm(l),x,y,map,np);
-      end
-      if chkflg == 1
-        tlst(j,1) = tlst(j,1) + 1; % when 1 is added move on to next region
-        tlst(j,2*(n+1)) = xout; tlst(j,2*(n+1)+1) = yout;
-        map(xout,yout) = j;
-      end
-      k = k+1; % if k exceeds n then move on to next region
+while min(min(map)) == 0  % fill the image (no background pixels)
+    % while sum(patch_list(:,1)) < grid_size^2/6 % some percentage of background pixels
+    region_order = randperm(n_regions);  % add to regions in a random order on each pass
+    for i_region = 1:n_regions
+        jj = region_order(i_region);
+        n_in_region = patch_list(jj, 1);
+        % check patches in region for a free side in random order
+        patch_order = randperm(n_in_region);
+        kk = 1;
+        is_free = 0;
+        while n_in_region == patch_list(jj, 1) && kk <= n_in_region
+            x = patch_list(jj, 2*patch_order(kk));
+            y = patch_list(jj, 2*patch_order(kk)+1);
+            side_order = randperm(4);  % check four sides of patch in random order
+            i_side = 0;
+            while i_side < 4 && is_free == 0
+                i_side = i_side+1;
+                [is_free, x_out, y_out] = check_tlst(side_order(i_side), x, y, map, grid_size);
+            end
+            if is_free == 1
+                patch_list(jj, 1) = patch_list(jj, 1) + 1;  % move on to next region
+                patch_list(jj, 2*(n_in_region+1)) = x_out;
+                patch_list(jj, 2*(n_in_region+1)+1) = y_out;
+                map(x_out, y_out) = jj;
+            end
+            kk = kk+1;  % if kk exceeds n_in_region then move on to next region
+        end
     end
-  end
 end
-%
+
 figure;
-image(map*256/ntr-1);
+image(map*256/n_regions-1);
 axis off;
 axis square;
 axis equal;
-%
+
 % make masks
-msks = zeros(imw,imw,ntr);
-for i = 1:ntr
-  for j = 1:np
-    x = (j-1)*pw+1; 
-    for k = 1:np
-      if map(j,k) == i
-        y = (k-1)*pw+1; 
-        msks(x:x+pw-1,y:y+pw-1,i) = 1;
-      end
+trial_masks = zeros(image_width, image_width, n_regions);
+for i_region = 1:n_regions
+    for jj = 1:grid_size
+        x = (jj-1)*patch_width+1;
+        for kk = 1:grid_size
+            if map(jj, kk) == i_region
+                y = (kk-1)*patch_width+1;
+                trial_masks(x:x+patch_width-1, y:y+patch_width-1, i_region) = 1;
+            end
+        end
     end
-  end
 end
-%
-% to save compactly: lmsks = cast(msks,'logical');
+
+% to save compactly: logical_masks = cast(trial_masks,'logical');
 %
 % figure;
-% image(255*msks(:,:,1));
+% image(255*trial_masks(:,:,1));
 % axis off;
 % axis square;
 % axis equal;
 % figure;
-% image(255*msks(:,:,ntr));
+% image(255*trial_masks(:,:,n_regions));
 % axis off;
 % axis square;
 % axis equal;
-%
+
 % create texture region image
-m0 = 128; c0 = 0.25; npix = imw*imw;
-texnums = [2,7,11,24,31,33,37,42];
-% texnums = [2,4,10,24,37,44,55,56];
-pimg = zeros(imw,imw,3);
-for i = 1:ntr %8
-  k = texnums(i);
-  num = num2str(k);
-  namein = append('B',num,'.gif');
-  imgin0 = double(imread(namein));
-  imgin = imresize(imgin0,[imw,imw],"bilinear");
-  % normalize  
-  m = mean(mean(imgin));
-  sd = sqrt(sum(sum((imgin-m).^2))/npix);  % standard deviation
-  imgin = c0*m*(imgin-m)/sd + m;           % normalize to contrast of c0
-  imgin = max(imgin,0)*m0/m;      % normalized to mean of m0
-  %
-  % img = zeros(640,640,3);
-  img = zeros(imw,imw,3);
-  img(:,:,1) = imgin;
-  img(:,:,2) = imgin;
-  img(:,:,3) = imgin;
-  img = 255^(1/2.1)*lin2rgb(img,ColorSpace='adobe-rgb-1998');
-  pimg(:,:,1) = pimg(:,:,1) + img(:,:,1).*msks(:,:,i);
-  pimg(:,:,2) = pimg(:,:,2) + img(:,:,2).*msks(:,:,i);
-  pimg(:,:,3) = pimg(:,:,3) + img(:,:,3).*msks(:,:,i);
+mean_lum = 128;
+contrast = 0.25;
+n_pixels = image_width*image_width;
+tex_nums = [2, 7, 11, 24, 31, 33, 37, 42];
+% tex_nums = [2,4,10,24,37,44,55,56];
+patch_img = zeros(image_width, image_width, 3);
+for i_region = 1:n_regions  % 8
+    kk = tex_nums(i_region);
+    num_str = num2str(kk);
+    img_file = append('B', num_str, '.gif');
+    img_in0 = double(imread(img_file));
+    img_in = imresize(img_in0, [image_width, image_width], "bilinear");
+    % normalize
+    img_mean = mean(mean(img_in));
+    img_sd = sqrt(sum(sum((img_in-img_mean).^2))/n_pixels);
+    img_in = contrast*img_mean*(img_in-img_mean)/img_sd + img_mean;  % normalize to contrast
+    img_in = max(img_in, 0)*mean_lum/img_mean;  % normalized to mean of mean_lum
+    %
+    % img = zeros(640,640,3);
+    img = zeros(image_width, image_width, 3);
+    img(:,:,1) = img_in;
+    img(:,:,2) = img_in;
+    img(:,:,3) = img_in;
+    img = 255^(1/2.1)*lin2rgb(img, ColorSpace='adobe-rgb-1998');
+    patch_img(:,:,1) = patch_img(:,:,1) + img(:,:,1).*trial_masks(:,:,i_region);
+    patch_img(:,:,2) = patch_img(:,:,2) + img(:,:,2).*trial_masks(:,:,i_region);
+    patch_img(:,:,3) = patch_img(:,:,3) + img(:,:,3).*trial_masks(:,:,i_region);
 end
 figure;
-image(pimg/255); axis('square');
+image(patch_img/255); axis('square');
 axis off;
-%
+
 % segment GRT image
 % [simg] = s_pimg(pimg,pw,np,ncc);

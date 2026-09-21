@@ -1,33 +1,54 @@
-function [simg] = s_gtr_img(pimg,pw,np,ncc)
+function [simg] = s_gtr_img(patch_img, patch_width, grid_size, n_channels)
+% S_GTR_IMG  Segment a GTR (grouping) stimulus image into patch pairs.
+%   [simg] = grouping.s_gtr_img(patch_img, patch_width, grid_size, n_channels)
 %
-% segment GTR image
-% pimg = GTR image to to segment
-% pw = patch width (pixels)
-% np = number of patches per row and per column (pixels)
-% ncc = number of color channels
-imw = pw*np;    % image width (pixels)
-npt = np^2;     % total number of patches
+%   Numbers the patches of the grid, then lists every unordered pair of
+%   distinct patches together with the distance between them - the same
+%   enumeration GROUPING.FIND_TEX_REGIONS builds. Declares simg as its output
+%   but never assigns it, so a call requesting that output errors; see bug
+%   B3.11 in docs/repo-cleanup.md. patch_img and n_channels are accepted but
+%   not used by the body. No caller exists anywhere in the repo.
 %
-% load patch locations
-xp = zeros(npt,1); yp = zeros(npt,1);
-cpt = 0;
-for j = 1:np
-  for i = 1:np
-    cpt = cpt + 1;  
-    xp(cpt) = j; yp(cpt) = i;
-  end
-end
+%   Inputs
+%     patch_img   - image to segment (unused).
+%     patch_width - patch width, in pixels.
+%     grid_size   - side length of the square patch grid, as an integer count
+%                   of patches (not pixels).
+%     n_channels  - number of color channels (unused).
 %
-% initialize patch pair array
-npp = npt*(npt-1)/2;
-pp = zeros(npp,5); % patch pair array
+%   Output
+%     simg - never assigned; see B3.11.
 %
-% load patch pair indices and distances
-cpp = 0; % initialize patch pair counter
-for j = 1:npt
-  for i = j+1:npt
-    cpp = cpp+1;
-    pp(cpp,1) = j; pp(cpp,2) = i; % patch numbers
-    pp(cpp,3) = sqrt((xp(j)-xp(i))^2 + (yp(j)-yp(i))^2); % distances
-  end
+%   See also GROUPING.FIND_TEX_REGIONS, GROUPING.MK_DIST, GROUPING.TEX_REGIONS.
+
+    image_width = patch_width*grid_size;  % image width (pixels)
+    n_patches = grid_size^2;  % total number of patches
+
+    % load patch locations
+    patch_x = zeros(n_patches, 1);
+    patch_y = zeros(n_patches, 1);
+    i_patch = 0;
+    for index1 = 1:grid_size
+        for index2 = 1:grid_size
+            i_patch = i_patch + 1;
+            patch_x(i_patch) = index1;
+            patch_y(i_patch) = index2;
+        end
+    end
+
+    % initialize patch pair array
+    n_pairs = n_patches*(n_patches-1)/2;
+    pairs = zeros(n_pairs, 5);  % patch pair array
+
+    % load patch pair indices and distances
+    i_pair = 0;  % initialize patch pair counter
+    for index1 = 1:n_patches
+        for index2 = index1+1:n_patches
+            i_pair = i_pair+1;
+            pairs(i_pair, 1) = index1;
+            pairs(i_pair, 2) = index2;  % patch numbers
+            pairs(i_pair, 3) = sqrt((patch_x(index1)-patch_x(index2))^2 + ...
+                (patch_y(index1)-patch_y(index2))^2);  % distances
+        end
+    end
 end

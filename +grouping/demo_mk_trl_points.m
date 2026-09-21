@@ -1,21 +1,38 @@
+% DEMO_MK_TRL_POINTS  Demonstrate one call to GROUPING.MK_TRL_POINTS.
+%   grouping.demo_mk_trl_points
 %
-% demo_mk_trl_points
-% demonstrates one call to mk_trial_points during a session
+%   Script, not a function. Builds a session with GROUPING.MK_TEXSEG_SESSION,
+%   picks the trial at a fixed position in the randomized presentation order,
+%   and displays that trial's cue, texture and feedback images.
 %
-% experiment set up:
-% (1) make and save the session with mk_texseg_session_points
-% (2) make each trial in a session with a call to mk_trial_points
+%   Broken as written, on two independent counts - see bug B2.6 in
+%   docs/repo-cleanup.md: GROUPING.MK_TEXSEG_SESSION is called with no
+%   arguments below, but its signature requires tex_set and n_tex; and even
+%   past that, session.texset (used here) is never a field of the session
+%   struct GROUPING.MK_TEXSEG_SESSION returns - that struct's field is
+%   session.tex_set. Both are left exactly as written; the mismatched field
+%   name in particular is a frozen cross-file name, not a Stage 1 rename
+%   target - see this tranche's findings-log note on session struct fields.
 %
-session=grouping.mk_texseg_session();
-trl = 10;
-t = session.tperm(trl);
-c0 = session.cntrst(trl);
-[cond,cimg,timg,fimg] = ...
-    grouping.mk_trl_points(t,session.sz,session.pw,session.m0,session.texset,c0,session.cuelocs,session.texs,session.maps);
+%   Inputs
+%     none.
+%
+%   Output
+%     none (displays three figures).
+%
+%   See also GROUPING.MK_TEXSEG_SESSION, GROUPING.MK_TRL_POINTS.
+
+session = grouping.mk_texseg_session();
+order_index = 10;
+trial = session.tperm(order_index);
+contrast = session.cntrst(order_index);
+[condition, cue_img, tex_img, feedback_img] = ...
+    grouping.mk_trl_points(trial, session.sz, session.pw, session.m0, ...
+    session.texset, contrast, session.cuelocs, session.texs, session.maps);
 
 figure;
-imshow(cast(cimg,"uint8"));
+imshow(cast(cue_img, "uint8"));
 figure;
-imshow(cast(timg,"uint8"));
+imshow(cast(tex_img, "uint8"));
 figure;
-imshow(cast(fimg,"uint8"));
+imshow(cast(feedback_img, "uint8"));
