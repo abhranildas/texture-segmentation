@@ -15,8 +15,10 @@ function golden = golden_harness(mode, golden_file)
 %     2 (+lib)               steerable_filter, steerable_grad, local_sd,
 %                            texture_patch, edge_props_stim (error identity
 %                            only -- see below)
-%     5 (root cluster C)     mk_win, mk_contour, thresh, nlsame, re, rs, rp,
+%     5 (root cluster C)     mk_win, mk_contour, thresh, nlsame, re, rs,
 %                            rs_new (error identity only -- see below)
+%     vislab-common          vislab.nat_stat_bayes.dv_power, on windowed
+%                            patches, in place of rp (item S2.3)
 %
 %   The first three groups run on small synthetic inputs; texture_patch and
 %   everything from re onward run on real, small, git-tracked Brodatz patches
@@ -258,7 +260,7 @@ has_brodatz = isfolder(brodatz_dir) && isfile(fullfile(brodatz_dir, 'B1.gif'));
 if ~has_brodatz
     warning('golden_harness:noTextures', ...
         ['Brodatz sheets not found at %s -- every real-data entry point ', ...
-         '(texture_patch, re, rs, rs_new, rp, edge_props_stim) skipped.'], ...
+         '(texture_patch, re, rs, rs_new, dv_power, edge_props_stim) skipped.'], ...
         brodatz_dir);
 end
 
@@ -317,12 +319,16 @@ if has_brodatz
     patch_b1 = sheet_b(1:patch_size_px, 1:patch_size_px);
 end
 
-% rp and rs -- pure, no toolbox, no RNG.
+% Windowed power DV and rs -- pure, no toolbox, no RNG. The power DV is
+% vislab.nat_stat_bayes.dv_power on pre-windowed patches, which is what rp.m
+% computes; the field names keep rp's name (Stage 3 item S2.3).
 if has_brodatz
     rng(cfg.seed);
     win_rp = mk_win(patch_size_px, patch_size_px/4, 1);
-    golden.rp_diff = rp(patch_a1, patch_b1, 10, patch_size_px, win_rp);
-    golden.rp_same = rp(patch_a1, patch_a2, 10, patch_size_px, win_rp);
+    golden.rp_diff = vislab.nat_stat_bayes.dv_power(patch_a1.*win_rp, ...
+        patch_b1.*win_rp, 10, patch_size_px);
+    golden.rp_same = vislab.nat_stat_bayes.dv_power(patch_a1.*win_rp, ...
+        patch_a2.*win_rp, 10, patch_size_px);
 
     rng(cfg.seed);
     golden.rs_diff = rs(patch_a1, patch_b1, patch_size_px);

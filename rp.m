@@ -12,10 +12,10 @@ function dv = rp(patch1, patch2, noise_const, patch_size, win)
     %
     %   The math is exactly dv_power(patch1.*win, patch2.*win, noise_const,
     %   patch_size); only the order of the mean and sum reductions differs,
-    %   which moves the result by about 1e-15 relative. Kept because
-    %   tools/golden_harness.m checksums this function's exact output, and
-    %   RS_NEW's error (Stage 4 item B3.13) is raised in here. Stage 3 item
-    %   S2.3 (docs/repo-cleanup.md).
+    %   which moves the result by about 1e-15 relative. Its only remaining
+    %   caller is RS_NEW, whose error (Stage 4 item B3.13) is raised in here,
+    %   so it is kept until B3.13 is settled. Stage 3 item S2.3
+    %   (docs/repo-cleanup.md).
     %
     %   Inputs
     %     patch1      - first image patch, square, in gray levels.
