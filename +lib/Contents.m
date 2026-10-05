@@ -14,7 +14,6 @@
 %
 % Decision variables
 %   hist_dv                - Same/different decision variable from two gray-level histograms.
-%   power_dv               - Same/different decision variable from two patches' power spectra.
 %   edge_props_stim        - Same/different evidence from a stimulus's edge statistics.
 %
 % Display and image utilities

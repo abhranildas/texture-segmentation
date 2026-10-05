@@ -73,10 +73,11 @@ It walks through four things:
 
 1. **Texture patches.** Pairs of 64×64 Brodatz patches drawn by `lib.texture_patch` — some pairs from
    the same sheet, some from two different sheets.
-2. **Decision variables.** Two of the model's same/different decision variables, `lib.power_dv` (Fourier
-   power spectrum) and `lib.hist_dv` (gray-level histogram log-likelihood ratio), scored on those pairs.
-   It prints each one's mean for same- and different-texture pairs plus the area under the ROC curve, and
-   plots the two distributions — so you can see the model actually discriminating.
+2. **Decision variables.** Two of the model's same/different decision variables,
+   `vislab.nat_stat_bayes.dv_power` (Fourier power spectrum) and `lib.hist_dv` (gray-level histogram
+   log-likelihood ratio), scored on those pairs. It prints each one's mean for same- and
+   different-texture pairs plus the area under the ROC curve, and plots the two distributions — so you
+   can see the model actually discriminating.
 3. **A grouping stimulus.** A patch grid grown into contiguous texture regions with `grouping.mk_masks`,
    textured by `grouping.mk_texs`, and filled patch by patch: the ground-truth region map next to the
    image a subject (or the model) actually sees.
@@ -95,8 +96,8 @@ analyses (those need the ~19 GB image set).
 texture-segmentation/
 ├── setup.m, config.m     path bootstrap + central configuration
 ├── run_demo.m            the quick demo above
-├── +lib/                 decision variables and patch tools (power_dv, hist_dv,
-│                           edge_props_stim, steerable_grad/filter, texture_patch, ...)
+├── +lib/                 decision variables and patch tools (hist_dv, edge_props_stim,
+│                           steerable_grad/filter, texture_patch, ...)
 ├── +grouping/            texture-region stimulus generation + grouping geometry
 ├── +experiment/          Psychtoolbox experiments: +discriminate and +grouping,
 │                           each with +prep (session setup) and +run (trial loop),

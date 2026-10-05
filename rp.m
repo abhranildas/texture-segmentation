@@ -2,13 +2,20 @@ function dv = rp(patch1, patch2, noise_const, patch_size, win)
     %RP  Power difference decision variable from two windowed patches.
     %   dv = rp(patch1, patch2, noise_const, patch_size, win)
     %
-    %   Windowed, root-level counterpart of LIB.POWER_DV: each patch is
+    %   Windowed counterpart of VISLAB.NAT_STAT_BAYES.DV_POWER: each patch is
     %   multiplied by win before being mean-subtracted, Fourier transformed,
     %   and its power spectrum normalized to unit mean; noise_const is then
     %   added to suppress the contribution of near-zero spectral components.
     %   The returned measure is the mean over spatial frequencies of
     %   log((P1 + P2)^2 / (4 P1 P2)), which is zero when the two spectra agree
     %   and positive otherwise.
+    %
+    %   The math is exactly dv_power(patch1.*win, patch2.*win, noise_const,
+    %   patch_size); only the order of the mean and sum reductions differs,
+    %   which moves the result by about 1e-15 relative. Kept because
+    %   tools/golden_harness.m checksums this function's exact output, and
+    %   RS_NEW's error (Stage 4 item B3.13) is raised in here. Stage 3 item
+    %   S2.3 (docs/repo-cleanup.md).
     %
     %   Inputs
     %     patch1      - first image patch, square, in gray levels.
@@ -26,7 +33,7 @@ function dv = rp(patch1, patch2, noise_const, patch_size, win)
     %     dv - the power difference measure, in nats per pixel. Larger means
     %          more evidence the two patches differ.
     %
-    %   See also LIB.POWER_DV, MK_WIN, RS_NEW.
+    %   See also VISLAB.NAT_STAT_BAYES.DV_POWER, MK_WIN, RS_NEW.
 
     % patch1
     patch1 = patch1.*win;

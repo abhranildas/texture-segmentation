@@ -32,7 +32,7 @@ function [num_edges, edge_dens, edge_length_dv, edge_or, edge_curv, edge_power1,
     %     edge_power2    - per-contour power at scale 2, same concatenation.
     %     edge_power4    - per-contour power at scale 4, same concatenation.
     %
-    %   See also LIB.HIST_DV, LIB.POWER_DV.
+    %   See also LIB.HIST_DV, VISLAB.NAT_STAT_BAYES.DV_POWER.
 
     [contour_props_a, mean_contour_props_a] = lib.edge_contour_props(patch_a);
     [contour_props_b, mean_contour_props_b] = lib.edge_contour_props(patch_b);

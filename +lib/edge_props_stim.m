@@ -62,7 +62,8 @@ function [grad_m_llr_1, grad_m_llr_2, grad_m_llr_4, grad_m_llr_8, grad_m_llr_16,
 %         Never assigned: the code computing them is the disabled block at the
 %         end of this file.
 %
-%   See also LIB.STEERABLE_GRAD, LIB.TARGET_MASK, LIB.HIST_DV, LIB.POWER_DV.
+%   See also LIB.STEERABLE_GRAD, LIB.TARGET_MASK, LIB.HIST_DV,
+%   VISLAB.NAT_STAT_BAYES.DV_POWER.
 
     %% parse inputs
     parser = inputParser;

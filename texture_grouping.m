@@ -5,7 +5,8 @@
 %   cut at a random position out of a different Brodatz sheet, then splits the
 %   scene into a 16x16 grid of 64x64 patches and computes two same/different
 %   decision variables for every ordered pair of patches: a windowed
-%   power-spectrum difference (RP) and a gray-level histogram difference (Rh).
+%   power-spectrum difference (VISLAB.NAT_STAT_BAYES.DV_POWER on the windowed
+%   patches) and a gray-level histogram difference (Rh).
 %   A hardcoded 2-cue quadratic combines the two logs into one decision
 %   variable per pair, which is thresholded into links; links are then pruned
 %   and merged into groups by how many links each linked pair shares. Displays
@@ -44,14 +45,15 @@
 %   Note: broken as written. The Rh call below names no function that exists in
 %   this repo -- Rh is only an output-variable name inside LIB.HIST_DV, whose
 %   signature (patch1, patch2, edges) is the one used here. Stage 4 item B2.2.
-%   RP resolves.
+%   The power call resolves once SETUP has put vislab-common on the path.
 %
 %   Note: seeds with the literal rng(2) where CONFIG exposes cfg.seed = 0, and
 %   hardcodes a 2-cue quadratic boundary of the same shape as the repo's
 %   shipped fabric_bd.mat (q2 2x2, q1 2x1, q0 scalar) but with different
 %   values, from an unrecorded fit. Stage 3 items S3.7 and S3.8.
 %
-%   See also RP, LIB.HIST_DV, MK_WIN, THRESH, NLSAME, CONFIG, SETUP.
+%   See also VISLAB.NAT_STAT_BAYES.DV_POWER, LIB.HIST_DV, MK_WIN, THRESH,
+%   NLSAME, CONFIG, SETUP.
 
 clear all;
 close all;
@@ -143,7 +145,8 @@ for ii = 1:n_patches
         patch_row_lo = (row2-1)*patch_size+1;  patch_row_hi = patch_row_lo+patch_size-1;
         patch_col_lo = (col2-1)*patch_size+1;  patch_col_hi = patch_col_lo+patch_size-1;
         patch2 = scene(patch_row_lo:patch_row_hi, patch_col_lo:patch_col_hi);
-        responses(ii, jj, 1) = rp(patch1, patch2, noise_const, patch_size, win);
+        responses(ii, jj, 1) = vislab.nat_stat_bayes.dv_power(patch1.*win, ...
+            patch2.*win, noise_const, patch_size);
         responses(ii, jj, 2) = Rh(patch1, patch2, edges);
     end
 end

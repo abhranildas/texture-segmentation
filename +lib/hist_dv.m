@@ -17,7 +17,7 @@ function dv = hist_dv(patch1, patch2, edges)
 %     dv - the log-likelihood ratio, in nats. Larger means more evidence the
 %          two patches differ.
 %
-%   See also LIB.POWER_DV, LIB.EDGE_PROPS_STIM.
+%   See also VISLAB.NAT_STAT_BAYES.DV_POWER, LIB.EDGE_PROPS_STIM.
 
     counts1 = histcounts(patch1, edges);
     counts2 = histcounts(patch2, edges);

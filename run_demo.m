@@ -14,8 +14,9 @@
 %   1. Texture patches. Draws pairs of 64x64 Brodatz patches -- some pairs from
 %      the SAME sheet, some from two DIFFERENT sheets -- with lib.texture_patch.
 %   2. Decision variables. Runs two of the model's same/different decision
-%      variables over those pairs: lib.power_dv (Fourier power spectrum) and
-%      lib.hist_dv (gray-level histogram log-likelihood ratio). Both should
+%      variables over those pairs: vislab.nat_stat_bayes.dv_power (Fourier
+%      power spectrum) and lib.hist_dv (gray-level histogram log-likelihood
+%      ratio). Both should
 %      read near zero for same-texture pairs and clearly higher for
 %      different-texture pairs; the demo prints the two means and the area
 %      under the ROC curve, and plots the two distributions.
@@ -36,8 +37,8 @@
 %   lib.texture_patch is given an explicit seed, so repeated runs give
 %   identical numbers and identical images.
 %
-% See also SETUP, CONFIG, LIB.TEXTURE_PATCH, LIB.POWER_DV, LIB.HIST_DV,
-%   GROUPING.MK_MASKS, GROUPING.MK_TEXS, GROUPING.FIND_BIN
+% See also SETUP, CONFIG, LIB.TEXTURE_PATCH, VISLAB.NAT_STAT_BAYES.DV_POWER,
+%   LIB.HIST_DV, GROUPING.MK_MASKS, GROUPING.MK_TEXS, GROUPING.FIND_BIN
 
 % --- locate the repo and set up the path ---
 repo_root = fileparts(mfilename('fullpath'));
@@ -109,7 +110,7 @@ drawnow;
 %% --- 2. decision variables over those pairs --------------------------------
 % Both decision variables are "evidence that the two patches differ": near zero
 % for a same-texture pair, larger for a different-texture pair.
-noise_const = 10;                % power_dv's spectral noise-suppression constant
+noise_const = 10;                % dv_power's spectral noise-suppression constant
 n_hist_bins = 32;                % gray-level bins for hist_dv
 
 fprintf('--- 2. Computing the power and histogram decision variables ---\n');
@@ -119,10 +120,10 @@ power_diff = zeros(n_pairs, 1);
 hist_same = zeros(n_pairs, 1);
 hist_diff = zeros(n_pairs, 1);
 for i_pair = 1:n_pairs
-    power_same(i_pair) = lib.power_dv(same_patches{i_pair, 1}, ...
-        same_patches{i_pair, 2}, noise_const);
-    power_diff(i_pair) = lib.power_dv(diff_patches{i_pair, 1}, ...
-        diff_patches{i_pair, 2}, noise_const);
+    power_same(i_pair) = vislab.nat_stat_bayes.dv_power(same_patches{i_pair, 1}, ...
+        same_patches{i_pair, 2}, noise_const, size(same_patches{i_pair, 1}, 1));
+    power_diff(i_pair) = vislab.nat_stat_bayes.dv_power(diff_patches{i_pair, 1}, ...
+        diff_patches{i_pair, 2}, noise_const, size(diff_patches{i_pair, 1}, 1));
     % hist_dv needs explicit bin edges; span whichever pair is being compared,
     % since texture_patch returns normalized luminance rather than gray levels.
     hist_same(i_pair) = lib.hist_dv(same_patches{i_pair, 1}, ...
@@ -134,7 +135,7 @@ for i_pair = 1:n_pairs
 end
 
 fprintf('\n    decision variable    same-texture      different-texture    AUC\n');
-fprintf('    %-18s  %7.3f +- %5.3f   %7.3f +- %5.3f   %.3f\n', 'power_dv', ...
+fprintf('    %-18s  %7.3f +- %5.3f   %7.3f +- %5.3f   %.3f\n', 'dv_power', ...
     mean(power_same), std(power_same), mean(power_diff), std(power_diff), ...
     roc_area(power_same, power_diff));
 fprintf('    %-18s  %7.1f +- %5.1f   %7.1f +- %5.1f   %.3f\n', 'hist_dv', ...
@@ -150,7 +151,7 @@ nexttile;
 histogram(power_same, 15, 'FaceAlpha', 0.5); hold on;
 histogram(power_diff, 15, 'FaceAlpha', 0.5);
 xlabel('power DV (nats/pixel)'); ylabel('pairs');
-title('lib.power_dv'); legend('same texture', 'different textures', ...
+title('vislab.nat\_stat\_bayes.dv\_power'); legend('same texture', 'different textures', ...
     'Location', 'best'); box off;
 nexttile;
 histogram(hist_same, 15, 'FaceAlpha', 0.5); hold on;
