@@ -62,8 +62,8 @@ function dv = rs_new(patch1, patch2, patch_size, n_subpatches)
             p12c = max(p12c, threshold)-threshold;
             p21c = max(p21c, threshold)-threshold;
 
-            r1 = rp(p11c, p21c, noise_const, pszc);
-            r2 = rp(p22c, p12c, noise_const, pszc);
+            r1 = vislab.nat_stat_bayes.dv_power(p11c, p21c, noise_const, pszc);
+            r2 = vislab.nat_stat_bayes.dv_power(p22c, p12c, noise_const, pszc);
             dv = dv + r1 + r2;
             %
             %    s11 = s11 + sum(sum(p11c));
