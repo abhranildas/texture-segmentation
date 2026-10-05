@@ -1,14 +1,16 @@
 function stimulus_onset_ms = stimulus_interval(session_settings, trial_number)
 %STIMULUS_INTERVAL  Draw both stimuli, hold, then blank them.
-%   stimulus_onset_ms = experiment.grouping.run.stimulus_interval(session_settings, ...
-%       trial_number)
+%   stimulus_onset_ms = experiment.run.stimulus_interval(session_settings, trial_number)
 %
 %   Draws stimulus 1 and 2 at their screen positions, holds for
 %   stimulusIntervalS seconds, then fills both rects with the gamma-
-%   corrected background. Called once per trial, from RUN_EXPERIMENT's
-%   stimulus hook. Byte-identical to the discriminate tree's copy, so it
-%   still reads stim1PosPix/stim2PosPix — fields this tree's own
-%   LOAD_STIMULI never sets (see B2.9; it sets a single stimPosPix instead).
+%   corrected background. Called once per trial, from either experiment's
+%   RUN_EXPERIMENT stimulus hook.
+%
+%   Shared by both experiment trees (S1.1): their two copies were the same
+%   code. The grouping tree's LOAD_STIMULI sets a single stimPosPix rather
+%   than stim1PosPix/stim2PosPix, so a live call from that tree errors
+%   (B2.9).
 %
 %   Inputs
 %     session_settings  Struct from LOAD_STIMULI. Fields read: window;
@@ -22,8 +24,7 @@ function stimulus_onset_ms = stimulus_interval(session_settings, trial_number)
 %     stimulus_onset_ms  Flip timestamp (seconds, from Screen('Flip'))
 %                         of the blanking flip, despite the "Ms" in its name.
 %
-%   See also EXPERIMENT.GROUPING.RUN.FIXATION_INTERVAL,
-%   EXPERIMENT.GROUPING.RUN.RESPONSE_INTERVAL.
+%   See also EXPERIMENT.RUN.FIXATION_INTERVAL, EXPERIMENT.RUN.RESPONSE_INTERVAL.
 %
 % v1.0, 1/20/2016, R. C. Walshe <calen.walshe@utexas.edu>
 

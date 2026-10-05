@@ -4,6 +4,5 @@
 % has put the repo on the path.
 %
 %   +prep - One-time stimulus generation and file setup (run before any subject).
-%   +run    - Trial-loop hooks, wired together by RUN_EXPERIMENT (which also
-%             wires the two hooks shared with the grouping tree, in
-%             experiment.run).
+%   +run    - Session loading, and RUN_EXPERIMENT, which wires the trial-loop
+%             hooks shared with the grouping tree (experiment.run).

@@ -5,10 +5,9 @@ function session_data = run_experiment(exp_type, subject_name, condition, ...
 %       [, condition, session_number, level_number])
 %
 %   Delegates the level/trial loop and screen setup to the shared vislab
-%   harness (vislab.psychframework.run_experiment), wiring this package's own interval
-%   functions (stimulus_interval / give_feedback / display_level_start) and the two
-%   shared with the discriminate tree (experiment.run.fixation_interval /
-%   experiment.run.response_interval) as hooks. Runs the single current level (as the old
+%   harness (vislab.psychframework.run_experiment), wiring the trial-loop
+%   hooks shared with the discriminate tree (experiment.run.*) plus two
+%   local ones, load_session and level_end. Runs the single current level (as the old
 %   runExperiment/runLevel did) and prints per-level percent-correct. Foveal, so
 %   no EyeLink hooks. The old runExperiment + runLevel + runTrial were retired in
 %   favour of this shared harness (which also fixes their latent experiment.run.*
@@ -39,12 +38,12 @@ function session_data = run_experiment(exp_type, subject_name, condition, ...
     exp_settings.screenNumber = 1;    % original forced screen 1
 
     hooks.load_session = @load_session;
-    hooks.level_start  = @(s, l)       experiment.grouping.run.display_level_start(s);
+    hooks.level_start  = @(s, l)       experiment.run.display_level_start(s);
     hooks.fixation     = @(s, t, l)    experiment.run.fixation_interval(s, false);  % no blank
-    hooks.stimulus     = @(s, t, l)    experiment.grouping.run.stimulus_interval(s, t);
+    hooks.stimulus     = @(s, t, l)    experiment.run.stimulus_interval(s, t);
     hooks.response     = @(s, t, l)    experiment.run.response_interval(s, false);  % no ESC (B3.15)
-    hooks.feedback     = @(s, r, t, l) experiment.grouping.run.give_feedback(s, r, t);
-    hooks.save_level   = @(s, resp, l) experiment.grouping.run.save_current_level(s, resp, l);
+    hooks.feedback     = @(s, r, t, l) experiment.run.give_feedback(s, r, t);
+    hooks.save_level   = @(s, resp, l) experiment.run.save_current_level(s, resp, l);
     hooks.level_end    = @level_end;
 
     session_data = vislab.psychframework.run_experiment(exp_settings, hooks);

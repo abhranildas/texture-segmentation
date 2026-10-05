@@ -1,13 +1,15 @@
 function give_feedback(session_settings, response, trial_number)
 %GIVE_FEEDBACK  Beep to indicate a correct, incorrect, or missed response.
-%   experiment.grouping.run.give_feedback(session_settings, response, trial_number)
+%   experiment.run.give_feedback(session_settings, response, trial_number)
 %
 %   response == -1 (no response made) beeps errorFreqHz; a response that
 %   matches session_settings.diffpair(trial_number) beeps correctFreqHz;
 %   any other response beeps incorrectFreqHz. Called once per trial, from
-%   RUN_EXPERIMENT's feedback hook. session_settings.diffpair is never set
-%   in this tree (see B2.9), so the elseif on line below errors on every
-%   live call.
+%   either experiment's RUN_EXPERIMENT feedback hook.
+%
+%   Shared by both experiment trees (S1.1): their two copies were the same
+%   code. The grouping tree's loaders never set diffpair, so any response
+%   other than -1 errors there on a live call (B2.9).
 %
 %   Inputs
 %     session_settings  Struct from LOAD_CURRENT_SESSION/LOAD_STIMULI. Field
@@ -16,8 +18,7 @@ function give_feedback(session_settings, response, trial_number)
 %                         response), 0, or 1.
 %     trial_number        Index into session_settings.diffpair (integer count).
 %
-%   See also EXPERIMENT.GROUPING.RUN.RESPONSE_INTERVAL,
-%   EXPERIMENT.GROUPING.RUN.SAVE_CURRENT_LEVEL.
+%   See also EXPERIMENT.RUN.RESPONSE_INTERVAL, EXPERIMENT.RUN.SAVE_CURRENT_LEVEL.
 
 %% Sound parameters
 correct_freq_hz = 900;

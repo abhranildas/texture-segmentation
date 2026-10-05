@@ -1,13 +1,16 @@
 function save_current_level(session_settings, response, level_number)
 %SAVE_CURRENT_LEVEL  Save one level's responses into the subject's progress file.
-%   experiment.grouping.run.save_current_level(session_settings, response, level_number)
+%   experiment.run.save_current_level(session_settings, response, level_number)
 %
 %   Loads the subject's progress file, marks this session's levelCompleted
 %   counter one higher, records the per-trial diffpair/response/correct
 %   columns for this level, prints the level's percent correct, and saves
-%   the file back. Called once per level, from RUN_EXPERIMENT's save_level
-%   hook. session_settings.diffpair is never set in this tree (see B2.9),
-%   so every line below that reads it errors on a live call.
+%   the file back. Called once per level, from either experiment's
+%   RUN_EXPERIMENT save_level hook.
+%
+%   Shared by both experiment trees (S1.1): their two copies were the same
+%   code. The grouping tree's loaders never set diffpair, so a live call
+%   from that tree errors at its first read (B2.9).
 %
 %   Inputs
 %     session_settings  Struct from LOAD_STIMULI. Fields read: subjectStr,
@@ -15,8 +18,8 @@ function save_current_level(session_settings, response, level_number)
 %     response            Per-trial response vector for this level.
 %     level_number         1-based level index within the current session.
 %
-%   See also EXPERIMENT.GROUPING.RUN.LOAD_CURRENT_SESSION,
-%   EXPERIMENT.GROUPING.RUN.RUN_EXPERIMENT.
+%   See also EXPERIMENT.DISCRIMINATE.RUN.LOAD_CURRENT_SESSION,
+%   EXPERIMENT.GROUPING.RUN.LOAD_CURRENT_SESSION, EXPERIMENT.RUN.GIVE_FEEDBACK.
 %
 % v1.0, 1/26/2016, Steve Sebastian <sebastian@utexas.edu>
 

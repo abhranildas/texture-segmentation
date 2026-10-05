@@ -5,7 +5,7 @@
 % own +prep (one-time stimulus/file setup) and +run (trial-loop hooks)
 % sub-packages, near-duplicate trees that share most of their structure.
 % The hooks whose two copies were the same code live once, in the shared
-% +run package below (S2.1). The two trees' session-loading and
+% +run package below (S2.1, S1.1). The two trees' session-loading and
 % subject-setup files stay separate: LOAD_STIMULI builds a different
 % display struct per experiment, and LOAD_CURRENT_SESSION/SETUP_SUBJECT
 % differ by whether the subject file carries a randomized stimulus index,
