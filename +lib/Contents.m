@@ -21,5 +21,3 @@
 %   gamma_correct          - Gamma-compress an image and scale it to integer pixel values.
 %   monitor_degrees_to_pixels - Convert a screen position from degrees to pixels.
 %   compute_p_clipped      - Fraction of an image's pixels that fall outside [0, 1].
-%   downsample             - Blur and downsample an image by successive factors of two.
-%   downsample_old         - Optically filter and downsample an image, channel by channel.
