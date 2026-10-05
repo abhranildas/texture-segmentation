@@ -4,8 +4,8 @@ function [x, y] = find_xy(trial, maps, grid_size)
 %
 %   Samples locations uniformly over the grid and rejects any whose eight
 %   neighbours are not all in the same texture region, so the returned patch
-%   sits in the interior of one region. The rejection test is the same one
-%   GROUPING.CHECK_XY applies, written out inline here.
+%   sits in the interior of one region. The rejection test is delegated to
+%   GROUPING.CHECK_XY.
 %
 %   Inputs
 %     trial     - trial number, indexing the third dimension of maps.
@@ -23,47 +23,6 @@ function [x, y] = find_xy(trial, maps, grid_size)
     while is_boundary == 1
         x = randi(grid_size);
         y = randi(grid_size);
-        region = maps(x, y, trial);
-        is_boundary = 0;
-        if x < grid_size
-            if maps(x+1, y, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if y < grid_size
-            if maps(x, y+1, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if x < grid_size && y < grid_size
-            if maps(x+1, y+1, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if x > 1
-            if maps(x-1, y, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if y > 1
-            if maps(x, y-1, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if x > 1 && y > 1
-            if maps(x-1, y-1, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if x > 1 && y < grid_size
-            if maps(x-1, y+1, trial) ~= region
-                is_boundary = 1;
-            end
-        end
-        if x < grid_size && y > 1
-            if maps(x+1, y-1, trial) ~= region
-                is_boundary = 1;
-            end
-        end
+        is_boundary = grouping.check_xy(x, y, trial, maps, grid_size);
     end
 end

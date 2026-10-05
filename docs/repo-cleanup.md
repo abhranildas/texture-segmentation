@@ -66,7 +66,7 @@
 **To-do.**
 
 - [ ] 🔴 **S1.1.** Merge the byte-identical duplicate files across `+experiment/+discriminate/+run/` and `+experiment/+grouping/+run/` (`display_level_start.m`/`give_feedback.m`/`save_current_level.m`/`stimulus_interval.m`) into one shared implementation.
-- [ ] 🔴 **S1.2.** `+grouping/find_xy.m:25-65` inlines `check_xy.m`'s eight-neighbour boundary test verbatim — same comparisons, same order, same variable roles. The whole `while` body reduces to `is_boundary = grouping.check_xy(x, y, trial, maps, grid_size);`, which draws the same random numbers in the same order, so it is output-identical. Clear win, low risk, one call site.
+- [x] 🔴 **S1.2.** `+grouping/find_xy.m:25-65` inlines `check_xy.m`'s eight-neighbour boundary test verbatim — same comparisons, same order, same variable roles. The whole `while` body reduces to `is_boundary = grouping.check_xy(x, y, trial, maps, grid_size);`, which draws the same random numbers in the same order, so it is output-identical. Clear win, low risk, one call site. **Done 2026-10-05** — exactly that one-line replacement, plus the header sentence that described the inline copy. See section 3.3.
 - [ ] 🟠 **S2.1.** Merge the near-duplicate files in the same two trees that differ by a handful of lines (`response_interval.m`, `load_current_session.m`, `fixation_interval.m`, `+prep/setup_subject.m`, `run_experiment.m`, `load_stimuli.m`), deciding how to parametrize the discriminate-vs-grouping difference.
 - [ ] 🟠 **S2.2.** Repoint `+lib/downsample.m`/`downsample_old.m` to `vislab.lib.downsample` and delete the local copies (both also currently shadow the Signal Processing Toolbox's `downsample` builtin).
 - [ ] 🟠 **S2.3.** Repoint `+lib/power_dv.m` and `rp.m` (formerly `Rp_win.m`) to `vislab.nat_stat_bayes.dv_power`, which `simulate_discrimination.m` already calls directly; update the remaining callers (`texture_grouping.m:72`, `rs_new.m:49-50`).
@@ -1709,6 +1709,31 @@ golden_harness replay: PASSED (isequal assert did not throw)
 4. **`checkcode` clean** on all five touched files (`mk_pair_geometry.m`, `mk_texseg_session.m`, `mk_texseg_stim_points.m`, `mk_texseg_stim_shape_old.m`, `Contents.m`) — zero messages, same as before the edit — and `canon` parses all four `.m` files without error. No new line exceeds 100 characters (longest new line: 80, the new file's `function` line) and no trailing whitespace was introduced. `mk_texseg_stim_shape_old.m:213`'s pre-existing 111-character commented line is untouched, as recorded in section 3.3's S2.4 entry.
 
 **Items touched in the plan, other than this one.** **O3.1** and **O3.2** both said they were "tangled with S2.6, since the same rebuild happens at three call sites"; both write-ups were corrected to the current state without acting on either — O3.1's loops now have one driver instead of three, while O3.2 is unaffected, because S2.6 merged only the *setup* calls and each consumer still calls `find_bin` from its own bin-table loop. The vectorization those two items describe was deliberately left alone for Stage 5. **S3.1** (whether `mk_texseg_stim_shape_old.m` should be deleted at all) is unchanged and still open; if it is later deleted, one of this item's three call sites goes with it, which costs nothing.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">S1.2 — <code>find_xy</code> calls <code>check_xy</code> instead of inlining it</h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-10-05, **MATLAB R2024b**. Baseline: HEAD for `+grouping/find_xy.m`. The edit itself was made by an earlier, interrupted session and left uncommitted; this entry re-verifies it rather than taking it on trust. The rest of the working tree carried unrelated S2.1 work-in-progress, which is not part of this commit.
+
+**The change.** The 40-line inline boundary test inside `find_xy`'s `while` loop became one line, `is_boundary = grouping.check_xy(x, y, trial, maps, grid_size);`. The header sentence that said the test was "written out inline here" now says it is delegated to `GROUPING.CHECK_XY`. Nothing else in the file changed; the signature is the same.
+
+**Why it is output-identical.** The removed block was compared line by line against `+grouping/check_xy.m`'s body: the same `region = maps(x, y, trial)` read, the same `is_boundary = 0` reset, and the same eight neighbour tests in the same order with the same edge guards. The only difference is indentation. `check_xy` draws no random numbers, and the two `randi(grid_size)` calls stay in the loop exactly where they were, so the RNG stream is untouched. The inline copy's `region` local is gone from `find_xy`'s workspace, but it was never returned or read after the test.
+
+**Call sites.** `grep -rn "find_xy"` over the whole repo (there are no excluded ancestral-code directories inside it): `+grouping/mk_texseg_session.m:106,112` (package-qualified, the one live path), and the unqualified calls in `mk_texseg_stim_points.m` and `mk_texseg_stim_shape_old.m` (still broken by B2.6, unchanged). None needed editing, since the signature did not change.
+
+**Golden-harness replay: passes.** The harness does not cover `find_xy` (its header says so), but it does cover `check_xy`, which is untouched. Verbatim tail of the run:
+
+```
+golden_harness replay: PASSED (isequal assert did not throw)
+```
+
+The reference was **not** recaptured. `checkcode` on `find_xy.m`: 0 messages, and `mtree` parses it.
 
 </div>
 
