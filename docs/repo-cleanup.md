@@ -1,4 +1,4 @@
-# Repo-wide cleanup plan
+# Repo-wide cleanup plan: texture-segmentation
 
 ✅ done · 🚧 in progress · ⬜ not started
 
