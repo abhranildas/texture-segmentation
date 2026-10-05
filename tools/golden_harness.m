@@ -16,19 +16,20 @@ function golden = golden_harness(mode, golden_file)
 %                            texture_patch, edge_props_stim (error identity
 %                            only -- see below)
 %     5 (root cluster C)     mk_win, mk_contour, thresh, nlsame, re, rs,
-%                            rs_new (error identity only -- see below)
+%                            rs_new
 %     vislab-common          vislab.nat_stat_bayes.dv_power, on windowed
-%                            patches, in place of rp (item S2.3)
+%                            patches, in place of the deleted rp (item S2.3)
 %
 %   The first three groups run on small synthetic inputs; texture_patch and
 %   everything from re onward run on real, small, git-tracked Brodatz patches
 %   read through cfg.paths.textures, never on the ~19 GB natural-image set.
 %
-%   Three entry points have no runnable path at all and are covered by the
-%   IDENTITY OF THE ERROR THEY RAISE rather than by an output checksum:
-%   edge_props_stim's 'tex' path (bug B2.15), its 'camo' default (B3.6) and
-%   rs_new (B3.13). That pins where each one dies, so a Stage 2 edit cannot
-%   move it; their numeric outputs stay unverified until Stage 4 fixes them.
+%   Two calls have no runnable path at all and are covered by the IDENTITY
+%   OF THE ERROR THEY RAISE rather than by an output checksum:
+%   edge_props_stim's 'tex' path (bug B2.15) and its 'camo' default (B3.6).
+%   That pins where each one dies, so a Stage 2 edit cannot move it; their
+%   numeric outputs stay unverified until Stage 4 fixes them. rs_new was
+%   covered the same way until its fix (B3.13) made it run.
 %
 %   Not covered, and pattern-check-only for Stage 2: all of +experiment
 %   (needs Psychtoolbox and a live display), all of +general (see bugs
@@ -320,8 +321,9 @@ if has_brodatz
 end
 
 % Windowed power DV and rs -- pure, no toolbox, no RNG. The power DV is
-% vislab.nat_stat_bayes.dv_power on pre-windowed patches, which is what rp.m
-% computes; the field names keep rp's name (Stage 3 item S2.3).
+% vislab.nat_stat_bayes.dv_power on pre-windowed patches, which is what the
+% now-deleted rp.m computed; the field names keep rp's name (Stage 3 item
+% S2.3).
 if has_brodatz
     rng(cfg.seed);
     win_rp = mk_win(patch_size_px, patch_size_px/4, 1);
@@ -357,20 +359,24 @@ else
     golden.re_same = [];
 end
 
-% rs_new and edge_props_stim have no runnable path: each one errors before
-% returning anything (B3.13, B2.15, B3.6 -- see this file's header). What is
-% captured is therefore the identity of the error, which pins where each one
-% dies so that a Stage 2 edit cannot silently move it.
-if has_brodatz
+% rs_new needs xcorr2 from the Signal Processing Toolbox, so it is gated.
+% 8 sub-blocks per side of the 64-pixel patch.
+if has_brodatz && exist('xcorr2', 'file')
     rng(cfg.seed);
-    golden.rs_new_error_id = error_id(@() rs_new(patch_a1, patch_b1, ...
-        patch_size_px, 8));
+    golden.rs_new_diff = rs_new(patch_a1, patch_b1, patch_size_px, 8);
+    golden.rs_new_same = rs_new(patch_a1, patch_a2, patch_size_px, 8);
 else
-    golden.rs_new_error_id = [];
+    golden.rs_new_diff = [];
+    golden.rs_new_same = [];
 end
 
-% edge_props_stim additionally needs the efficient-coding histogram bins and
-% (through steerable_grad/local_sd/imshow) the Image Processing Toolbox. It
+% edge_props_stim has no runnable path: each call errors before returning
+% anything (B2.15, B3.6 -- see this file's header). What is captured is
+% therefore the identity of the error, which pins where each one dies so
+% that a Stage 2 edit cannot silently move it.
+%
+% It also needs the efficient-coding histogram bins and (through
+% steerable_grad/local_sd/imshow) the Image Processing Toolbox. It
 % is called exactly as +general/simulate_discrimination.m:171-174 calls it,
 % minus the OTF prefilter, which would pull in vislab.lib.otf_filter without
 % changing what is being pinned here. Its four figures are closed afterwards,

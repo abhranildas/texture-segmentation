@@ -16,7 +16,7 @@ function dv = rs(patch1, patch2, patch_size)
     %     dv - reciprocal of the best-aligned normalized similarity.
     %          Smaller means more evidence the two patches are similar.
     %
-    %   See also RE, RS_NEW, RP.
+    %   See also RE, RS_NEW, VISLAB.NAT_STAT_BAYES.DV_POWER.
 
     % normalize patches
     p1 = patch1-mean(mean(patch1));

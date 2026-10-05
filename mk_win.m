@@ -15,7 +15,7 @@ function win = mk_win(patch_size, radius, shape)
     %   Output
     %     win - patch_size-by-patch_size window, values in [0, 1].
     %
-    %   See also RP.
+    %   See also VISLAB.NAT_STAT_BAYES.DV_POWER.
 
     win = zeros(patch_size, patch_size); win_1d = zeros(patch_size, 1);
     center = patch_size/2+0.5;

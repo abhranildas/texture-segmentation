@@ -112,7 +112,7 @@ texture-segmentation/
 └── tools/                repo-maintenance checks (style check, golden-output harness)
 ```
 
-A handful of older analysis scripts also sit at the root (`re.m`, `rp.m`, `rs.m`, `edge_dv.m`,
+A handful of older analysis scripts also sit at the root (`re.m`, `rs.m`, `edge_dv.m`,
 `mk_win.m`, `mk_contour.m`, `thresh.m`, `nlsame.m`, `texture_grouping.m`).
 
 Shared low-level code lives in `vislab` (not here), so it isn't duplicated across the lab's repos.

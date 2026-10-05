@@ -6,8 +6,8 @@ function dv = rs_new(patch1, patch2, patch_size, n_subpatches)
     %   normalized to unit energy, then tiled into an n_subpatches-by-
     %   n_subpatches grid of sub-blocks. Each sub-block is cross-correlated
     %   against both patches, and the four resulting correlation surfaces are
-    %   combined through RP's power-difference measure and summed over all
-    %   sub-blocks.
+    %   combined through VISLAB.NAT_STAT_BAYES.DV_POWER's power-difference
+    %   measure and summed over all sub-blocks.
     %
     %   Inputs
     %     patch1       - first image patch, square, in gray levels.
@@ -18,9 +18,9 @@ function dv = rs_new(patch1, patch2, patch_size, n_subpatches)
     %                    be evenly divisible by n_subpatches).
     %
     %   Output
-    %     dv - summed RP power-difference measure over all sub-blocks.
+    %     dv - summed DV_POWER power-difference measure over all sub-blocks.
     %
-    %   See also RS, RE, RP.
+    %   See also RS, RE, VISLAB.NAT_STAT_BAYES.DV_POWER.
 
     % normalize patches
     p1 = patch1-mean(mean(patch1));

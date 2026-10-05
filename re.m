@@ -28,7 +28,7 @@ function dv = re(patch1, patch2, patch_size, log_sigma, n_kernels, threshold)
     %          patch1), in degrees. Larger means more evidence the two
     %          patches' contours differ in local curvature/orientation.
     %
-    %   See also RS, RS_NEW, RP, MK_CONTOUR.
+    %   See also RS, RS_NEW, VISLAB.NAT_STAT_BAYES.DV_POWER, MK_CONTOUR.
 
     % normalize patches to have same mean and standard deviation
     patch1 = patch1*128/mean(mean(patch1)) - 128;
