@@ -2,7 +2,9 @@
 %
 % Call these as experiment.discriminate.run.<name>(...) once setup.m has put
 % the repo on the path. RUN_EXPERIMENT wires the rest as hooks for the
-% shared vislab.psychframework.run_experiment harness.
+% shared vislab.psychframework.run_experiment harness. Two of those hooks —
+% fixation_interval and response_interval — now live in the shared
+% +experiment/+run package, which both experiment trees call (S2.1).
 %
 % Session and level
 %   load_current_session - Load the stimuli and settings for the next session.
@@ -12,7 +14,5 @@
 %
 % Per-trial display and response
 %   display_level_start   - Show the target outline and start-of-block prompt.
-%   fixation_interval      - Draw a fixation cross, then a blank, at the fixation position.
 %   stimulus_interval      - Draw both stimuli, hold, then blank them.
-%   response_interval      - Wait for a left/right-arrow response, or ESC to abort (B3.16).
 %   give_feedback          - Beep to indicate a correct, incorrect, or missed response.

@@ -99,7 +99,8 @@ texture-segmentation/
 │                           edge_props_stim, steerable_grad/filter, texture_patch, ...)
 ├── +grouping/            texture-region stimulus generation + grouping geometry
 ├── +experiment/          Psychtoolbox experiments: +discriminate and +grouping,
-│                           each with +prep (session setup) and +run (trial loop)
+│                           each with +prep (session setup) and +run (trial loop),
+│                           plus a shared +run for the hooks both experiments use
 ├── +general/             patch-pair generators, simulations, analysis scripts
 │                           (these are the parts that need the natural-image set)
 ├── data/                 model/ (fitted discrimination boundaries)
