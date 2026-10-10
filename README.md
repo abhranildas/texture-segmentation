@@ -102,7 +102,7 @@ texture-segmentation/
 ├── +experiment/          Psychtoolbox experiments: +discriminate and +grouping,
 │                           each with +prep (session setup) and +run (trial loop),
 │                           plus a shared +run for the hooks both experiments use
-├── +general/             patch-pair generators, simulations, analysis scripts
+├── +general/             patch-pair generators, simulations, analysis functions
 │                           (these are the parts that need the natural-image set)
 ├── data/                 model/ (fitted discrimination boundaries)
 │                           + stimuli/ (derived patch sets, git-ignored where large)
@@ -126,7 +126,7 @@ register). Two things a new user will notice:
   `exp_settings.monitorSizePix` field that nothing in the repo ever assigns (bug B2.10), and the
   `+grouping` tree has several further gaps behind it (B2.8, B2.9, B2.11). The stimulus generation and
   analysis code around them is fine; it is the session-setup plumbing that is incomplete.
-- **Several higher-level `+grouping` stimulus scripts are broken as written** — `mk_texseg_stim_points`,
+- **Several higher-level `+grouping` stimulus functions are broken as written** — `mk_texseg_stim_points`,
   `mk_texseg_stim_shape`, `tex_regions`, `demo_mk_trl_points`, `s_gtr_img` (bugs B2.5–B2.7, B3.11).
   Most call their own package's helpers unqualified (`mk_texs(...)` instead of `grouping.mk_texs(...)`),
   which does not resolve. The **low-level** `+grouping` helpers they build on are verified working and

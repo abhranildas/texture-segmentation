@@ -21,7 +21,7 @@
 % Session and trial stimulus scripts
 %   mk_texseg_session       - Build and return all trial information for one session.
 %   mk_trl_points           - Build the cue, stimulus and feedback images for one trial.
-%   demo_mk_trl_points      - Demonstrate one call to GROUPING.MK_TRL_POINTS. Broken - see B2.6.
+%   demo_mk_trl_points      - Demonstrate one call to GROUPING.MK_TRL_POINTS. Broken - see B2.5.
 %   mk_texseg_stim_points   - Build and display a full session of point-cue stimuli.
 %                             Broken - see B2.6/B2.7.
 %   mk_texseg_stim_shape    - Build and display a session of shape-cue stimuli. Broken - see B2.6.
@@ -33,4 +33,5 @@
 %
 % Unfinished, callerless (see docs/repo-cleanup.md S3.3)
 %   effective_distance - Shortest indirect path length between patch pairs. Does not run - see B3.9.
+%                        A script, not a function: run('+grouping/effective_distance.m').
 %   find_tex_regions    - Enumerate the patch grid and every unordered patch pair.

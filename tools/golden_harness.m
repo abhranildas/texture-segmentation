@@ -33,12 +33,14 @@ function golden = golden_harness(mode, golden_file)
 %
 %   Not covered, and pattern-check-only for Stage 2: all of +experiment
 %   (needs Psychtoolbox and a live display), all of +general (see bugs
-%   B2.12/B2.13 and item S2.5 -- not a data problem), edge_dv.m (B2.1: calls
+%   B2.12/B2.13/B2.15/B3.1 -- not a data problem; compute_exp_error_mat
+%   runs, but has no reference captured yet), edge_dv.m (B2.1: calls
 %   a function that does not exist), contour_blur_estimation.m (a figure
 %   script with no callable entry point), texture_grouping.m and setup.m
 %   (driver / path-modifying scripts). Also not covered: +grouping/mk_texs.m,
-%   find_xy.m, effective_distance.m, find_tex_regions.m and the +grouping
-%   stimulus scripts, which are scripts or need real texture sheets.
+%   find_xy.m, effective_distance.m (a script), find_tex_regions.m and the
+%   +grouping stimulus functions, which need real texture sheets or do not
+%   run (B2.5/B2.6).
 %
 % Inputs
 %   mode         'capture' or 'replay', char

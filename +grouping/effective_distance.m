@@ -1,7 +1,9 @@
 % EFFECTIVE_DISTANCE  Shortest indirect path length between patch pairs.
-%   grouping.effective_distance
+%   run('+grouping/effective_distance.m')
 %
-%   Script, not a function. For each connected patch pair it walks the other
+%   Script, not a function, so it cannot be called as
+%   grouping.effective_distance; whether to finish it as a function or
+%   delete it is item S3.3 in docs/repo-cleanup.md. For each connected patch pair it walks the other
 %   pairs looking for a shorter route, and keeps the smallest distance found -
 %   an "effective" rather than straight-line separation.
 %
