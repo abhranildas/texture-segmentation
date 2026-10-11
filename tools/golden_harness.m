@@ -77,8 +77,6 @@ bb_decc = [0, 2, 4, 6, 8, 12];      % eccentricity-difference bin bounds
 golden.config_path_fields = sort(fieldnames(cfg.paths));
 golden.config_optics = [cfg.optics.ppd, cfg.optics.pupil_diameter, ...
     cfg.optics.wavelength];
-golden.config_rgb_to_lms_checksum = sum(cfg.color.rgb_to_lms, 'all');
-golden.config_rgb_to_lms_size = size(cfg.color.rgb_to_lms);
 golden.config_norm = [cfg.norm.target_mean, cfg.norm.target_contrast];
 golden.config_seed = cfg.seed;
 
