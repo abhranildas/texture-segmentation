@@ -38,9 +38,8 @@ function golden = golden_harness(mode, golden_file)
 %   a function that does not exist), contour_blur_estimation.m (a figure
 %   script with no callable entry point), texture_grouping.m and setup.m
 %   (driver / path-modifying scripts). Also not covered: +grouping/mk_texs.m,
-%   find_xy.m, effective_distance.m (a script), find_tex_regions.m and the
-%   +grouping stimulus functions, which need real texture sheets or do not
-%   run (B2.5/B2.6).
+%   find_xy.m, find_tex_regions.m and the +grouping stimulus functions, which
+%   need real texture sheets or do not run (B2.5/B2.6).
 %
 % Inputs
 %   mode         'capture' or 'replay', char

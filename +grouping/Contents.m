@@ -25,13 +25,10 @@
 %   mk_texseg_stim_points   - Build and display a full session of point-cue stimuli.
 %                             Broken - see B2.6/B2.7.
 %   mk_texseg_stim_shape    - Build and display a session of shape-cue stimuli. Broken - see B2.6.
-%   mk_texseg_stim_shape_old - Earlier variant of MK_TEXSEG_STIM_SHAPE. Broken - see B2.6.
 %   tex_regions             - Build and display one texture-region-grouping stimulus.
 %                             Broken - see B2.6.
 %   s_gtr_img               - Segment a GTR (grouping) stimulus image into patch pairs.
 %                             Never assigns its output - see B3.11.
 %
 % Unfinished, callerless (see docs/repo-cleanup.md S3.3)
-%   effective_distance - Shortest indirect path length between patch pairs. Does not run - see B3.9.
-%                        A script, not a function: run('+grouping/effective_distance.m').
 %   find_tex_regions    - Enumerate the patch grid and every unordered patch pair.
