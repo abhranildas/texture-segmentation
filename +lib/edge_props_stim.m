@@ -87,8 +87,6 @@ function [grad_m_llr_1, grad_m_llr_2, grad_m_llr_4, grad_m_llr_8, grad_m_llr_16,
     stim_type = parser.Results.stim_type;
     otf_ppd = parser.Results.otf_ppd;
 
-    randi(10)
-
     % tiny offset number to get avoid log(LLR)=-inf when LLR=0 (equally likely
     % that same/diff), or to set 0*log(0)=0, instead of nan (when there are no
     % texture contours in camo):

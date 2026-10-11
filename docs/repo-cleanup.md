@@ -103,7 +103,7 @@
 
 **To-do.**
 
-- [ ] 🔴 **B1.1.** `+lib/edge_props_stim.m:30` — a bare `randi(10)` with no semicolon, on the per-trial call path from `simulate_discrimination.m` (called `nchoosek(n_tex,2)*n_samp` times), prints to the console and silently consumes an extra draw from the RNG stream on every call, shifting every later random draw in the simulation.
+- [x] 🔴 **B1.1.** **Fixed 2026-10-10, see section 3.4:** the line is deleted, not given a semicolon. Nothing read its value, and nothing in the code or its history says what it was for. A call to `edge_props_stim` now makes no RNG draw at all. `+lib/edge_props_stim.m:30` — a bare `randi(10)` with no semicolon, on the per-trial call path from `simulate_discrimination.m` (called `nchoosek(n_tex,2)*n_samp` times), prints to the console and silently consumes an extra draw from the RNG stream on every call, shifting every later random draw in the simulation.
 - [ ] 🔴 **B1.2.** `re.m:103` — `for k = 1:nc1` inside the "patch 2" block (lines 85-119, mirroring "patch 1" at 48-82) almost certainly should be `for k = 1:nc2`; as written it iterates the wrong count for patch 2's labelled regions whenever `nc1 ≠ nc2`, on a live decision-variable function actually used in analysis.
 - [x] 🔴 **B1.3.** **Closed 2026-10-10 — fixed by construction as part of Stage 3's S2.8, see section 3.3.** That is why it is ticked here without a Stage 4 entry of its own. Each image set now has its own arrays and its own count, so there is no shared offset left to get wrong. On a stubbed replica of both versions, the new `ptchn12`/`ptchf12` equal the old ones minus their leading slices, and `pcnt12` is 3940. One correction to the text below: the old set-12 file carries **2080** extra leading pairs, not 2140. They are set 9's last 280 plus all 1800 of set 10, as the replica confirmed. The ancestral `texture-learning/Bill's old code - revised/nat_near_far_patches.m` already has the same fix, marked `% this was miscounted`. Any `patch_pairs_12<level>.mat` the old code ever wrote is still wrong. A filename search of this repo, `vislab-common` and `texture-learning` on 2026-10-10 found none; the only `patch_pairs_*` file is `texture-learning/data/stimuli/patch_pairs_ecc1.mat`, a different artifact. `+general/nat_near_far_patches_bayes.m` reuses a *count* as a cumulative *offset* when slicing out image set 12's patch pairs. Set 10's block (`:260-262`) is correct (`patches_near(..., pcnt9+1:patch_count)`, where `pcnt9` is a cumulative index), but set 12's block (`:340-342`) reads `patches_near(..., pcnt10+1:patch_count)` where `pcnt10 = patch_count - pcnt9` is the *number* of set-10 pairs, not the index the set ends at. With the file's own constants (104/90/197 images × 10 samples × 2 orientations) the set-12 slice should be `3881:7820` but is written as `1801:7820`, so `ptchn12`/`ptchf12` are saved 6020 slices deep instead of 3940 and their first 2140 entries are set-9/set-10 data; `pcnt12 = patch_count - pcnt10` is likewise 6020 instead of 3940. Silent — no error, just a wrong `.mat` on disk. Filed 🔴 because it is the script's whole product and the fix is one term, even though no in-repo evidence proves this script has been run since the constants changed; it is currently masked by B2.12/B2.13 throwing earlier (same masking relationship as B2.8/B2.9, which per tranche 6's precedent does not lower the tier).
 - [ ] 🟠 **B2.1.** `edge_dv.m:2-3` calls `lib.edge_contour_props(...)`, which does not exist anywhere in `+lib` — errors if reached.
@@ -166,9 +166,9 @@
 - [ ] 🔴 **O1.2.** `+experiment/+discriminate/+prep/generate_stimuli.m` → `+lib/texture_patch.m:31` re-`imread`s a Brodatz `.gif` on every patch draw — roughly 2400 calls over only 60 distinct files, each also rebuilding a fresh `inputParser`. Unprofiled.
 - [ ] 🔴 **O1.3.** The `+grouping` texture-region pipeline (`mk_trl_points.m:37,40,43`, `mk_texseg_stim_points.m:202`, `mk_texseg_stim_shape.m:77`, `mk_texseg_stim_shape_old.m:205`, `tex_regions.m:100`) re-`imread`s the same Brodatz files every trial instead of once — same pattern as O1.2, different call path. Unprofiled. **Corrected in tranche 9: `texture_grouping.m` is not an instance of this and has been struck from the site list.** Its `imread` sits in a 4x4 region loop that advances a running counter, so it reads 16 *distinct* sheets exactly once each — there is no repetition to hoist. **Corrected again with S3.1 (2026-10-10):** `mk_texseg_stim_shape_old.m` is deleted (see section 3.3), so its site is struck too. The remaining four sites are unaffected.
 - [ ] 🔴 **O1.4.** `+lib/edge_props_stim.m:80` calls `lib.target_mask()` unconditionally, at parse-argument time, on every single call — just to supply the *default* value of the `'target_normal'` parameter. That call builds a 256x256 mask with a double loop of 65536 `norm` evaluations, a second such loop for the normals, and a full `lib.steerable_grad` pass for the boundary ribbon. On the live `'tex'` path none of it is used: `bd_strip` is read only in the `'camo'` branch and `target_normal` only in the disabled contour block. Making the default lazy is a large expected win at low risk on a per-trial path (`simulate_discrimination.m` calls this `nchoosek(n_tex,2)*n_samp` times). Unprofiled.
-- [ ] 🟠 **O2.1.** `+lib/edge_props_stim.m:152-153,188-249` unconditionally opens/redraws figures and plots on every call (1 `figure`/`imshow` + 15 `subplot`/`bar` calls across 5 scales); removing this, along with B1.1's stray `randi(10)`, changes the RNG draw sequence for the rest of the run, so it needs an explicit tolerance decision before it can be verified. Unprofiled.
+- [ ] 🟠 **O2.1.** `+lib/edge_props_stim.m:152-153,188-249` unconditionally opens/redraws figures and plots on every call (1 `figure`/`imshow` + 15 `subplot`/`bar` calls across 5 scales); removing this, along with B1.1's stray `randi(10)`, changes the RNG draw sequence for the rest of the run, so it needs an explicit tolerance decision before it can be verified. Unprofiled. **Since B1.1's fix (2026-10-10)** the RNG part no longer holds: `edge_props_stim` makes no RNG draw, and a probe in R2024b shows `figure`/`imshow`/`subplot`/`bar`/`title` make none either. So removing the plots should leave the RNG sequence alone; Stage 5 should re-check this item's status.
 - [ ] 🟠 **O2.2.** `+grouping/mk_texseg_stim_points.m:213-226,263-276,277-290` (line numbers as of tranche 4, up from `:169-178,219-228,233-242` before that tranche's headers and renames; re-verify again before acting) calls `figure; image; set(gcf); pause; close all` three times inside the triple trial loop, blocking on `pause` every trial; gating behind a debug flag changes interactive behaviour, not a pure no-behaviour-change win. Unprofiled.
-- [ ] 🟠 **O2.3.** `+general/simulate_discrimination.m`'s different-texture rejection loop (`while true`, current lines 184-231) calls the expensive `lib.edge_props_stim` *before* testing whether the trial is accepted — but the accept test at `:223` reads only `pow_diff_this` and `hist_diff_this`, which are computed at `:203-205`, 15 lines earlier and cost a tiny fraction as much. Every rejected draw therefore pays a full `edge_props_stim` pass (which per O1.1/O1.4 is itself the repo's most expensive per-trial call) for a result that is immediately overwritten. Moving the `edge_props_stim` call below the accept test is a pure reorder with identical numerical output — **but** while B1.1's stray `randi(10)` is still in `edge_props_stim`, skipping the call on rejected draws changes the RNG draw sequence for the rest of the run, so this is Perturbing and needs a tolerance decision. Fix B1.1 first and it likely becomes Proven. How large the win is depends entirely on the rejection rate, which nobody has measured. Unprofiled.
+- [ ] 🟠 **O2.3.** `+general/simulate_discrimination.m`'s different-texture rejection loop (`while true`, current lines 184-231) calls the expensive `lib.edge_props_stim` *before* testing whether the trial is accepted — but the accept test at `:223` reads only `pow_diff_this` and `hist_diff_this`, which are computed at `:203-205`, 15 lines earlier and cost a tiny fraction as much. Every rejected draw therefore pays a full `edge_props_stim` pass (which per O1.1/O1.4 is itself the repo's most expensive per-trial call) for a result that is immediately overwritten. Moving the `edge_props_stim` call below the accept test is a pure reorder with identical numerical output — **but** while B1.1's stray `randi(10)` is still in `edge_props_stim`, skipping the call on rejected draws changes the RNG draw sequence for the rest of the run, so this is Perturbing and needs a tolerance decision. Fix B1.1 first and it likely becomes Proven. How large the win is depends entirely on the rejection rate, which nobody has measured. Unprofiled. **B1.1 was fixed 2026-10-10:** `edge_props_stim` now makes no RNG draw, so skipping it on rejected draws no longer changes the RNG sequence.
 - [ ] 🟡 **O3.1.** `+grouping/mk_dist.m:6-16`, `mk_decc.m:6-18`, `mk_mecc.m:6-18` are 4-deep loops over `sz²×sz²` of pure arithmetic on `x1,y1,x2,y2` (vectorizable via `meshgrid`), and `mk_bindex.m:12-19`'s 3-deep loop is exactly `reshape(1:N,...)` with a permute — was tangled with S2.6, which landed 2026-09-21: the three consumers now reach all four through `grouping.mk_pair_geometry`, so the loops are unchanged but there is now one place that drives them. Unprofiled.
 - [ ] 🟡 **O3.2.** `+grouping/find_bin.m:11-25` does three linear-scan loops to find one bin, called `sz⁴` times from three call sites — replacing the whole pattern with one `discretize` call over the full matrices at once is a large potential win, entirely unmeasured. Was also tangled with S2.6, which landed 2026-09-21 — but note S2.6 only merged the *setup* calls: `find_bin` itself is still called separately from each of the three consumers' own bin-table loops, so this item's three call sites are unchanged. Unprofiled.
 - [ ] 🟡 **O3.3.** Remaining small vectorizable loops: `thresh.m:20-28`, `nlsame.m:17-23`, `mk_win.m:23-32,34-47`, `re.m:54-67,77-86,116-125` (tangled with B1.2 — fix the bug first), `mk_contour.m:32-38` (its pairwise 8-connectivity test over all `n_pixels^2` pairs, vectorizable via `pdist2`/thresholding; the traversal walk below it is inherently sequential), `+grouping/mk_masks.m:75-88`, `tex_regions.m:66-76`, `mk_trl_points.m:18-28`'s block-mask construction, and (added in tranche 3) `+grouping/mk_texs.m`'s two double loops — the first is `tex_pool(ii:ii+n_tex-1) = randperm(n_tex)`, the second a `reshape`/transpose of the pool. Line numbers for `thresh.m`/`nlsame.m`/`mk_win.m`/`re.m` as of tranche 5 (up from `:3-12`/`:5-11`/`:6-15,25-30`/`:32-45,55-64,92-101` before that tranche's headers and renames). Unprofiled.
@@ -2428,6 +2428,78 @@ ecc anywhere in canon(new): 0
 *Still broken after this, as expected.* `load_stimuli` still errors first on B2.10 (`monitorSizePix`, line 38), then on B2.16 (`fixationIntervalMs`). Past those, the hooks still error on B2.9's missing fields.
 
 *Found while doing this.* 🟠 **B2.16**, above. Nothing new for sections 0.3 or 0.5.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">B1.1 — <code>edge_props_stim</code> makes a stray <code>randi(10)</code> draw on every call</h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-10-10, **MATLAB R2024b**. Baseline: HEAD (`06b342076`) for the code. The plan carried the user's uncommitted stage relabel, which is not part of this commit.
+
+*Still real?* Yes. The line had moved from 30 to 90. It read `randi(10)` on its own, with no semicolon and no assignment, right after the `inputParser` block. Before the fix, every golden replay printed `ans = 9` twice.
+
+*What was it for?* Nothing I could find, so the fix deletes it. Adding a semicolon would have stopped the print but kept the stray draw.
+
+1. Its value is never used. It is not assigned, and nothing in the file reads `ans`.
+2. There is no comment beside it.
+3. The history explains nothing. The line came into this repo with `4177ff543`, which copied the file from the lab-root `+lib`. The retired copy in `../retired_root_lib_backup.zip` (file dated 2025-05-23) has the same line at 30, also with no comment. I found no git history for the lab-root `+lib`. `camouflage_detection` copied the same file from the same place (`535ca9d`) and has the same line; its own plan files it as S3.13. I did not touch that repo.
+4. Nothing else in the function uses the RNG, so the draw cannot be pairing with anything. `lib.target_mask()` with no arguments takes the circular branch, which draws nothing. The only RNG call under it, `normrnd` in `create_pink_noise_line`, is on the blob branch. The plotting draws nothing either; a probe of `figure`/`imshow`/`subplot`/`bar`/`title` left the RNG state unchanged.
+
+My guess is that it was a debug check of the RNG state, left behind. That is a guess.
+
+*Same pattern elsewhere?* No. `git grep` over every `.m` file for a statement that is only a `rand`/`randi`/`randn`/`randperm` call finds only this line. The same search over `texture-learning`, `camouflage_detection` and `vislab-common` finds camouflage_detection's copy and two `randn('state', ...)` calls in vendored textureSynth code. Those two set a seed; they are not stray draws.
+
+*Call sites.* The signature is unchanged. The callers are `+general/simulate_discrimination.m` (three calls) and `tools/golden_harness.m` (two probes). A search of the whole lab tree for `edge_props_stim` finds no other caller, apart from camouflage_detection's own copy.
+
+*The change.* The `randi(10)` line and the blank line after it are deleted. Nothing else changed.
+
+*Verification.* `checkcode` and `canon` compare the HEAD copy (saved in the scratchpad) with the new file. The RNG probe calls each copy once after `rng(0)` with the `'tex'` options `simulate_discrimination` uses, then checks whether the next `rand` matches a fresh `rng(0)`. Both copies still die at B2.15's `imshow`. Verbatim:
+
+```
+checkcode messages: 18 -> 18
+canon lines: 143 -> 142
+only in old: randi( 10 )
+only in new: 0 lines
+canon(old) minus the randi line == canon(new): 1
+randi anywhere in canon(new): 0
+new copy (lib.edge_props_stim): next rand after call == rand from rng(0): 1   [error images:imageDisplayValidateParams:unsupportedDimension]
+ans =
+     9
+old copy (lib_old.edge_props_stim): next rand after call == rand from rng(0): 0   [error images:imageDisplayValidateParams:unsupportedDimension]
+rand after figure/imshow/subplot/bar/title == ref: 1
+REPLAY PASSED
+```
+
+*Golden harness.* Replay passed both before and after the edit, and the `ans = 9` lines are gone. That is expected, not luck. The harness reseeds before every entry point. For `edge_props_stim` it records only the error identifier, because the function has no runnable path (B2.15, B3.6). And those two probes are the last RNG use in the harness. So no reference field could move, and no recapture is needed.
+
+*Would this fix change any result in the biorxiv paper?* I found no path from this code to any number in the paper.
+
+1. `simulate_discrimination` does call `edge_props_stim` on the path that makes its numbers. The calls are at lines 173 and 223: once per same-texture trial, and once per different-texture draw, including rejected draws. That is 17,700 same trials plus at least 17,700 different ones, so at least 35,400 calls per run. Each call shifted every later patch position (the `randi` calls at 138, 148, 191 and 200) by one draw. The function never seeds the RNG: its `rng(0)` at line 62 is commented out.
+2. Its output goes nowhere. It returns nothing, and its `save` of `tx_discrim_bd` is commented out (line 337). A search of the whole lab tree finds no caller of `simulate_discrimination`. It also finds no reader of `tx_discrim_bd` or `texture discrimination boundaries.mat` outside this function.
+3. The paper's discrimination model comes from a different pipeline (paper pp. 7-12 and 33-37):
+
+   | | paper | `simulate_discrimination` |
+   |---|---|---|
+   | textures | 60 Brodatz + 60 Fabric | 60 Brodatz only |
+   | training pairs | 36,000 per class | 17,700 per class |
+   | eccentricity | four, by downsampling | fovea only |
+   | edge features | 1st- and 2nd-derivative steerable filters, $3\times3$ px, SD 1 px | 1st-derivative gradients at SDs of 1, 2, 4, 8 and 16 px |
+   | other cues | pixel histogram, two centre-surround filters, power spectrum, two border cues | power spectrum, pixel histogram, edge-contour count/length/curvature |
+
+   The paper never mentions edge-contour cues. `notes/Texture code documentation.pdf` names the scripts that trained the paper's model: `tex_disc_h/e/c/b/bc.m`, built on `Rp.m`, `Rh.m`, `Re.m` and `Rb.m`. Those four helpers are in `../texture-learning/Bill's old code/`. The `tex_disc_*.m` scripts are not anywhere on this machine. None of this code calls `edge_props_stim`.
+4. `simulate_discrimination` cannot run today at all: its first `edge_props_stim` call dies at B2.15. So no current number depends on it either.
+5. One possible exposure, outside the paper (a guess). `notes/2024 5 VSS poster.pdf` describes a model built on power spectrum, grey levels and edge-pixel properties, with "93% correct". That matches this function's cue set. If that number came from a copy with the stray draw, a rerun would give slightly different numbers. I cannot tell when the line was added: the oldest copy I found is dated 2025-05-23, a year after the poster.
+6. Even where this code was run, the effect is sampling noise, not bias. The extra value is thrown away, and every patch position after it is still an independent uniform draw. Removing it gives a different random sample of patches, not a skewed one, like rerunning with another seed. Since the function never seeded the RNG, no earlier run was reproducible anyway. A rough size estimate, also a guess: for accuracy near 93% over 35,400 pairs, the binomial standard error is $\sqrt{0.93 \cdot 0.07 / 35400} \approx 0.14$ percentage points. A rerun would differ by about that much, and the conclusions would not change. Only a rerun could confirm this, and none can happen until B2.15 and B2.4 are fixed.
+
+So the 🔴 rating, "published numbers may be affected", was a precaution. The evidence does not support it for the biorxiv paper. The bug is fixed, so I have not re-filed it.
+
+*Cross-references.* O2.1 and O2.3 (section 0.5) each made an RNG caveat that depended on this line, and both now say it no longer holds. Their status is left for Stage 5 to decide. `docs/repo-cleanup-texture-segmentation.html` is a rendered snapshot of this plan and was not regenerated.
+
+*Found while doing this.* Nothing new for sections 0.3, 0.4 or 0.5.
 
 </div>
 
