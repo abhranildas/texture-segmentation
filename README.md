@@ -126,10 +126,10 @@ register). Two things a new user will notice:
   `exp_settings.monitorSizePix` field that nothing in the repo ever assigns (bug B2.10), and the
   `+grouping` tree has several further gaps behind it (B2.8, B2.9, B2.11). The stimulus generation and
   analysis code around them is fine; it is the session-setup plumbing that is incomplete.
-- **Several higher-level `+grouping` stimulus functions are broken as written** — `mk_texseg_stim_points`,
-  `mk_texseg_stim_shape`, `tex_regions`, `demo_mk_trl_points`, `s_gtr_img` (bugs B2.5–B2.7, B3.11).
-  Most call their own package's helpers unqualified (`mk_texs(...)` instead of `grouping.mk_texs(...)`),
-  which does not resolve. The **low-level** `+grouping` helpers they build on are verified working and
+- **Three higher-level `+grouping` stimulus functions are still broken** — `demo_mk_trl_points` errors
+  on its first line (bug B2.5), `s_gtr_img` never assigns its output (B3.11), and `mk_texseg_stim_points`
+  renders only the first contrast block of a session (B2.7). The **low-level** `+grouping` helpers they
+  build on are verified working and
   covered by the golden-output harness in `tools/` — `run_demo.m` composes a texture-region stimulus out
   of them directly.
 

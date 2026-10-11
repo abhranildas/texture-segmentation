@@ -9,11 +9,6 @@ function mk_texseg_stim_shape()
 %   patches. A white or black square in the corner of the feedback image
 %   marks the correct answer.
 %
-%   Broken as written - see bug B2.6 in docs/repo-cleanup.md: every call below
-%   to mk_texs, mk_masks and shape_cue is unqualified. A function inside a
-%   package cannot call its siblings unqualified, so none of those names
-%   resolve (confirmed empirically - see B2.6), and the first call errors.
-%
 %   Inputs
 %     none (every parameter is hardcoded below).
 %
@@ -40,10 +35,12 @@ function mk_texseg_stim_shape()
     fill_fraction = 0.5;      % proportion of pixels taken up by texture regions
 
     % generate random texture numbers for all trials in a session
-    tex_nums = mk_texs(n_tex, n_tex_regions, n_trials);  % tex_nums(1:n_trials,1:n_tex_regions)
+    % (tex_nums is n_trials x n_tex_regions)
+    tex_nums = grouping.mk_texs(n_tex, n_tex_regions, n_trials);
 
     % generate masks and maps for all trials in a session
-    [masks, maps] = mk_masks(grid_size, n_tex_regions, n_trials, seed_radius_frac, fill_fraction);
+    [masks, maps] = grouping.mk_masks(grid_size, n_tex_regions, n_trials, ...
+        seed_radius_frac, fill_fraction);
 
     % make all images for the trials
     image_width = patch_width*grid_size;
@@ -66,9 +63,10 @@ function mk_texseg_stim_shape()
             is_diff = 1;
         end
         if is_diff == 0
-            [cue, cue_map] = shape_cue(maps(1:grid_size, 1:grid_size, t), grid_size, region);
+            [cue, cue_map] = grouping.shape_cue(maps(1:grid_size, 1:grid_size, t), ...
+                grid_size, region);
         else
-            [cue, cue_map] = shape_cue(maps(1:grid_size, 1:grid_size, randi(n_trials)), ...
+            [cue, cue_map] = grouping.shape_cue(maps(1:grid_size, 1:grid_size, randi(n_trials)), ...
                 grid_size, region);
         end
         figure;

@@ -23,10 +23,9 @@
 %   mk_trl_points           - Build the cue, stimulus and feedback images for one trial.
 %   demo_mk_trl_points      - Demonstrate one call to GROUPING.MK_TRL_POINTS. Broken - see B2.5.
 %   mk_texseg_stim_points   - Build and display a full session of point-cue stimuli.
-%                             Broken - see B2.6/B2.7.
-%   mk_texseg_stim_shape    - Build and display a session of shape-cue stimuli. Broken - see B2.6.
+%                             Renders only the first contrast block - see B2.7.
+%   mk_texseg_stim_shape    - Build and display a session of shape-cue stimuli.
 %   tex_regions             - Build and display one texture-region-grouping stimulus.
-%                             Broken - see B2.6.
 %   s_gtr_img               - Segment a GTR (grouping) stimulus image into patch pairs.
 %                             Never assigns its output - see B3.11.
 %

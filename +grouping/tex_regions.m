@@ -8,12 +8,6 @@ function tex_regions()
 %   for a single image rather than a whole session, and with a fixed list of
 %   eight Brodatz textures rather than random draws.
 %
-%   Broken as written - see bug B2.6 in docs/repo-cleanup.md: the call below
-%   to check_tlst is unqualified. A function inside a package cannot call its
-%   siblings unqualified, so that name does not resolve to
-%   GROUPING.CHECK_TLST (confirmed empirically - see B2.6), and that call
-%   errors on the first pass through the region-growing loop.
-%
 %   Inputs
 %     none (every parameter is hardcoded below).
 %
@@ -77,7 +71,8 @@ function tex_regions()
                 i_side = 0;
                 while i_side < 4 && is_free == 0
                     i_side = i_side+1;
-                    [is_free, x_out, y_out] = check_tlst(side_order(i_side), x, y, map, grid_size);
+                    [is_free, x_out, y_out] = grouping.check_tlst(side_order(i_side), ...
+                        x, y, map, grid_size);
                 end
                 if is_free == 1
                     patch_list(jj, 1) = patch_list(jj, 1) + 1;  % move on to next region

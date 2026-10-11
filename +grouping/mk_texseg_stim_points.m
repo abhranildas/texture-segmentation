@@ -8,15 +8,9 @@ function mk_texseg_stim_points()
 %   does, then renders and displays every trial in one pass, pausing on each
 %   of the three images (cue, stimulus, feedback).
 %
-%   Broken as written, on two independent counts, neither fixed here - see
-%   bugs B2.6 and B2.7 in docs/repo-cleanup.md. (1) Every call below to
-%   mk_texs, mk_masks, shape_cue, mk_pair_geometry, find_bin, find_xy and
-%   check_xy is unqualified. A function inside a package cannot call its
-%   siblings unqualified, so none of those names resolve (confirmed
-%   empirically - see B2.6), and the very first call errors. (2) Independent
-%   of that, the contrast-block
-%   loop's middle bound is missing its block-start offset (i_subblock runs
-%   from i_group to contrast_block_size-1 instead of
+%   Known bug, not fixed here - see B2.7 in docs/repo-cleanup.md: the
+%   contrast-block loop's middle bound is missing its block-start offset
+%   (i_subblock runs from i_group to contrast_block_size-1 instead of
 %   i_group+contrast_block_size-1), so every contrast block after the first
 %   is empty and only the first block_size*n_contrasts trials would ever
 %   render.
@@ -61,17 +55,18 @@ function mk_texseg_stim_points()
     img_stack = zeros(img8b_width, img8b_width, n_trials, 'uint8');
 
     % generate random texture numbers for all trials in a session
-    tex_nums = mk_texs(n_tex, n_tex_regions, n_trials);  % tex_nums(1:n_trials,1:n_tex_regions)
+    % (tex_nums is n_trials x n_tex_regions)
+    tex_nums = grouping.mk_texs(n_tex, n_tex_regions, n_trials);
 
     % generate masks and maps for all trials in a session
-    [masks, maps] = mk_masks(grid_size, n_tex_regions, n_trials, seed_radius_frac, fill_fraction);
+    [masks, maps] = grouping.mk_masks(grid_size, n_tex_regions, n_trials, ...
+        seed_radius_frac, fill_fraction);
 
-    cue = shape_cue(maps(1:grid_size, 1:grid_size, 1), grid_size, 3);
+    cue = grouping.shape_cue(maps(1:grid_size, 1:grid_size, 1), grid_size, 3);
 
     % make geometry matrices for patch pairs, size of each = grid_size^2 x
     % grid_size^2, and the array of index values to patch geometry bins
-    % (left unqualified, like every other helper call in this script - see B2.6)
-    [dist, min_ecc, delta_ecc, bin_index] = mk_pair_geometry(grid_size, ...
+    [dist, min_ecc, delta_ecc, bin_index] = grouping.mk_pair_geometry(grid_size, ...
         bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc);
 
     % load the bin table counts and the specific pairs of patches in each bin
@@ -82,7 +77,7 @@ function mk_texseg_stim_points()
     for ii = 1:grid_size^2
         for jj = 1:grid_size^2
             if ii ~= jj
-                bin = find_bin(ii, jj, dist, min_ecc, delta_ecc, ...
+                bin = grouping.find_bin(ii, jj, dist, min_ecc, delta_ecc, ...
                     bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc, bin_index);
                 bin_table(1, bin) = bin_table(1, bin) + 1;
                 bin_row = 2*bin_table(1, bin);
@@ -104,13 +99,13 @@ function mk_texseg_stim_points()
         end
 
         % randomly sample a patch location and determine its region number
-        [x1, y1] = find_xy(trial, maps, grid_size);
+        [x1, y1] = grouping.find_xy(trial, maps, grid_size);
         region1 = maps(x1, y1, trial);
 
         % random sample a second patch location and determine its region
         done = 0;
         while done == 0
-            [x2, y2] = find_xy(trial, maps, grid_size);
+            [x2, y2] = grouping.find_xy(trial, maps, grid_size);
             region2 = maps(x2, y2, trial);
             if (region1 == region2) && (cond == 0)
                 done = 1;
@@ -135,7 +130,7 @@ function mk_texseg_stim_points()
         end
         lookup_index1 = (x1-1)*grid_size + y1;
         lookup_index2 = (x2-1)*grid_size + y2;
-        bin = find_bin(lookup_index1, lookup_index2, dist, min_ecc, delta_ecc, ...
+        bin = grouping.find_bin(lookup_index1, lookup_index2, dist, min_ecc, delta_ecc, ...
             bin_bounds_dist, bin_bounds_min_ecc, bin_bounds_delta_ecc, bin_index);
         n_pairs = bin_table(1, bin);
         done = 0;
@@ -155,8 +150,8 @@ function mk_texseg_stim_points()
                 y2 = grid_size;
             end
             x2 = 1 + (jj-y2)/grid_size;
-            is_boundary1 = check_xy(x1, y1, trial+1, maps, grid_size);
-            is_boundary2 = check_xy(x2, y2, trial+1, maps, grid_size);
+            is_boundary1 = grouping.check_xy(x1, y1, trial+1, maps, grid_size);
+            is_boundary2 = grouping.check_xy(x2, y2, trial+1, maps, grid_size);
             if (is_boundary1 == 0) && (is_boundary2 == 0)
                 region1 = maps(x1, y1, trial+1);
                 region2 = maps(x2, y2, trial+1);
