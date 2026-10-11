@@ -4,14 +4,13 @@ function session_settings = load_stimuli(exp_settings)
 %
 %   Converts exp_settings (as returned by LOAD_CURRENT_SESSION) into the
 %   session_settings struct the trial-loop hooks read. Unlike the
-%   discriminate tree's copy of this file, this version never gamma-corrects
-%   session_settings.stimuli or builds a targetOutline, and it references
-%   bit_depth_out (old bitDepthOut) below without ever assigning it — it
-%   errors immediately on every call (B2.8). It also references
-%   exp_settings.diffpair, which this tree's LOAD_CURRENT_SESSION never
-%   sets (B2.9), and builds a single stimPosPix rather than the
-%   stim1PosPix/stim2PosPix that DISPLAY_LEVEL_START and STIMULUS_INTERVAL
-%   (byte-identical to the discriminate tree's copies) both read.
+%   discriminate tree's copy of this file, this version does not
+%   gamma-correct session_settings.stimuli: this tree's SETUP_EXPERIMENT
+%   already stores them gamma-corrected, as uint8. It also builds no
+%   targetOutline, references exp_settings.diffpair, which this tree's
+%   LOAD_CURRENT_SESSION never sets (B2.9), and builds a single stimPosPix
+%   rather than the stim1PosPix/stim2PosPix that DISPLAY_LEVEL_START and
+%   STIMULUS_INTERVAL (shared with the discriminate tree) both read.
 %
 %   Inputs
 %     exp_settings  Struct from LOAD_CURRENT_SESSION. Fields read: currentLevel,
@@ -30,6 +29,7 @@ function session_settings = load_stimuli(exp_settings)
 %% Set up
 
 gamma_value = 2.059;
+bit_depth_out = 8;
 
 current_level = exp_settings.currentLevel;
 
