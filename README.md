@@ -124,7 +124,7 @@ register). Two things a new user will notice:
 
 - **The Psychtoolbox experiments do not currently launch.** Both `+experiment` trees read an
   `exp_settings.monitorSizePix` field that nothing in the repo ever assigns (bug B2.10), and the
-  `+grouping` tree has several further gaps behind it (B2.8, B2.9, B2.11). The stimulus generation and
+  `+grouping` tree has several further gaps behind it (B2.8, B2.9, B2.16). The stimulus generation and
   analysis code around them is fine; it is the session-setup plumbing that is incomplete.
 - **Three higher-level `+grouping` stimulus functions are still broken** — `demo_mk_trl_points` errors
   on its first line (bug B2.5), `s_gtr_img` never assigns its output (B3.11), and `mk_texseg_stim_points`

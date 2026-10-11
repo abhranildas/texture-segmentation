@@ -10,14 +10,17 @@ function session_settings = load_stimuli(exp_settings)
 %   targetOutline, references exp_settings.diffpair, which this tree's
 %   LOAD_CURRENT_SESSION never sets (B2.9), and builds a single stimPosPix
 %   rather than the stim1PosPix/stim2PosPix that DISPLAY_LEVEL_START and
-%   STIMULUS_INTERVAL (shared with the discriminate tree) both read.
+%   STIMULUS_INTERVAL (shared with the discriminate tree) both read. It
+%   reads exp_settings.fixationIntervalMs, which this tree's SETUP_EXPERIMENT
+%   never sets either (B2.16). The fixation point is at the screen centre on
+%   every level, the same place as the stimulus.
 %
 %   Inputs
 %     exp_settings  Struct from LOAD_CURRENT_SESSION. Fields read: currentLevel,
 %                    currentSession, monitorSizePix (pixels), stimuli, bgPixVal
-%                    (0-255), ppd (pixels per degree), ecc (degrees, per
-%                    level), *IntervalMs (ms), bgPixValGamma, subjectStr,
-%                    expTypeStr, nTrials, nLevels, diffpair.
+%                    (0-255), ppd (pixels per degree), *IntervalMs (ms),
+%                    bgPixValGamma, subjectStr, expTypeStr, nTrials, nLevels,
+%                    diffpair.
 %
 %   Output
 %     session_settings  Struct intended to be read by every trial-loop
@@ -44,7 +47,10 @@ pixels_per_deg = exp_settings.ppd;
 stim_pos_deg = [0 0];
 stim_pos_pix = lib.monitor_degrees_to_pixels(stim_pos_deg, monitor_size_pix, pixels_per_deg);
 
-fix_pos_deg = [exp_settings.ecc(current_level) 0];
+% fixation is centred on every level, where the stimulus is drawn: this
+% tree's levels are contrast levels, not the discriminate tree's
+% eccentricities, so there is no per-level ecc to read
+fix_pos_deg = [0 0];
 fix_pos_pix = lib.monitor_degrees_to_pixels(fix_pos_deg, monitor_size_pix, pixels_per_deg);
 
 response_interval_s = exp_settings.responseIntervalMs/1000;
