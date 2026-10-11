@@ -2148,6 +2148,29 @@ Run 2026-10-10, **MATLAB R2024b**. Baseline: HEAD (`93d06082d`, the S2.5+S2.8 co
 </details>
 
 <details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">S3.1 — delete <code>+grouping/mk_texseg_stim_shape_old.m</code></h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-10-10, **MATLAB R2024b**. Baseline: HEAD (`93d06082d`, the S2.5+S2.8 commit) for the two files this item itself edits. Other sessions were working the same checkout at the same time; this entry's own hunks were staged and committed separately from theirs.
+
+**The decision.** The item asked whether this third, unexplained variant of `mk_texseg_stim_shape.m`/`mk_texseg_stim_points.m` should be deleted, deferred until S2.5/S2.6 landed. Both landed (S2.5 2026-10-10, S2.6 2026-09-21). The user decided directly: delete.
+
+**Call sites, and how the search was made exhaustive.** A whole-tree grep for `mk_texseg_stim_shape_old`, all file types, outside `docs/` and `.git/`: the only hits were the file itself and its one-line entry in `+grouping/Contents.m`. No call site anywhere, package-qualified or not. Dynamic references: grepped `feval`, `str2func`, `which(`, `exist(` lines for the name separately — none. A byte scan (`grep -a`) of every tracked `.mat`/`.fig`/`.mlx`/`.pptx` file: no hits. `README.md` never named this file specifically (only the sibling `mk_texseg_stim_shape.m`, in its B2.5-B2.7/B3.11 summary line, which is unaffected). `tools/golden_harness.m` does not mention it either. The four sibling repos under `Geisler Lab` (`gx2`, `IntClassNorm`, `texture-learning`, `camouflage_detection`) were grepped too, for `.m` files containing the name: no hits, confirmed by two independent runs (a targeted `--include=*.m` grep and a full unrestricted grep across all file types, the latter run in the background since it crosses `vislab-common`'s and `texture-learning`'s larger data trees).
+
+**Commented-out code carried by the file, and why nothing is lost.** Section 3.1.4 recorded three verdicts against this file's blocks. (1) *scaffolding*, the disabled display loop at `:164-183` — verdict said delete in Stage 3; deleting the whole file does that. (2) *alternative*, the leftover point-cue rendering at `:209-215` — verdict said keep, since it is "exactly what `+grouping/mk_texseg_stim_points.m`'s live cue image does"; that sibling file is untouched by this item, so the idea survives live, not just in a comment, elsewhere in the package. (3) *alternative*, the masked corner marker (`:~232`) — verdict named this as the same commented block also present at `+grouping/mk_texseg_stim_shape.m:143`, which this item does not touch; the identical commented alternative is still on record there. So no *alternative*-verdict content is uniquely lost by this deletion — each survives either live or commented in a sibling file this item leaves alone. No *unknown*-verdict block was recorded against this file, so that default-keep case does not arise here.
+
+**The change.** `git rm +grouping/mk_texseg_stim_shape_old.m` (299 lines at HEAD). `+grouping/Contents.m` drops its one-line entry (plus the continuation line). `README.md` needed no change — it never named this file. Section 0.3's B2.6, B3.3, and O1.3 entries, which each listed this file among several call sites or instances, were updated in place to say so and drop it from their site counts; none of the three bugs/optimizations themselves changed.
+
+**Verification.** `checkcode` on `+grouping/Contents.m`, before → after: 0 → 0. `canon`/`check_stage1` do not apply — the file is gone, not edited. The harness has never covered this file (S2.5's entry already recorded it has no callable entry point reachable from the harness), so `golden_harness('replay', ...)` cannot regress on this change specifically; it was nonetheless confirmed passing against this exact edit before any other session's concurrent, unrelated work landed on top of it. No line in either edited file is over 100 characters; no trailing whitespace.
+
+**A shared working tree.** Multiple sessions were completing separate Stage 3/4 items in this same checkout concurrently. This item's own two file edits (`+grouping/Contents.m`, `+grouping/mk_texseg_stim_shape_old.m`'s deletion) and its checklist tick landed in a joint commit with S3.3's (`a62fddf30`) when another session found both verified and sitting uncommitted together and committed them in one step. This findings-log entry — the one piece of S3.1 not yet written at that point — is added now, in its own commit, so the record is complete under this item's own id. No code changes accompany it.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
 <summary><h5 style="display:inline; margin:0; font-size:0.92em">S2.9 — drop <code>cfg.color.rgb_to_lms</code>; <code>vislab.lib.rgb2lms</code> is the one home of the matrix</h5></summary>
 
 <div style="margin-left:1.5em">
