@@ -12,6 +12,7 @@ function golden = golden_harness(mode, golden_file)
 %     9 (config/driver)      config
 %     3 (+grouping helpers)  mk_dist, mk_mecc, mk_decc, mk_bindex, mk_masks,
 %                            find_bin, check_xy, check_tlst
+%     3 (+grouping)          find_tex_regions, no inputs (S2.5/S3.3)
 %     2 (+lib)               steerable_filter, steerable_grad, local_sd,
 %                            texture_patch, edge_props_stim (error identity
 %                            only -- see below)
@@ -19,6 +20,8 @@ function golden = golden_harness(mode, golden_file)
 %                            rs_new
 %     vislab-common          vislab.nat_stat_bayes.dv_power, on windowed
 %                            patches, in place of the deleted rp (item S2.3)
+%     8 (+general)           compute_exp_error_mat(exp_settings, subject_file),
+%                            on a made-up subject (item S2.5)
 %
 %   The first three groups run on small synthetic inputs; texture_patch and
 %   everything from re onward run on real, small, git-tracked Brodatz patches
@@ -32,14 +35,15 @@ function golden = golden_harness(mode, golden_file)
 %   covered the same way until its fix (B3.13) made it run.
 %
 %   Not covered, and pattern-check-only for Stage 2: all of +experiment
-%   (needs Psychtoolbox and a live display), all of +general (see bugs
-%   B2.12/B2.13/B2.15/B3.1 -- not a data problem; compute_exp_error_mat
-%   runs, but has no reference captured yet), edge_dv.m (B2.1: calls
-%   a function that does not exist), contour_blur_estimation.m (a figure
-%   script with no callable entry point), texture_grouping.m and setup.m
-%   (driver / path-modifying scripts). Also not covered: +grouping/mk_texs.m,
-%   find_xy.m, find_tex_regions.m and the +grouping stimulus functions, which
-%   need real texture sheets or do not run (B2.5/B2.6).
+%   (needs Psychtoolbox and a live display); the rest of +general (see bugs
+%   B2.12/B2.13/B2.15/B3.1 -- not a data problem, just no runnable path
+%   through nat_near_far_patches_bayes/simulate_discrimination yet);
+%   edge_dv.m (B2.1: calls a function that does not exist);
+%   contour_blur_estimation.m (a figure script with no callable entry
+%   point); texture_grouping.m and setup.m (driver / path-modifying
+%   scripts). Also not covered: +grouping/mk_texs.m, find_xy.m and the
+%   +grouping stimulus functions, which need real texture sheets or do not
+%   run (B2.5/B2.6).
 %
 % Inputs
 %   mode         'capture' or 'replay', char
@@ -172,6 +176,17 @@ golden.check_tlst_flag_sum = sum(tlst_out(:, :, :, 1), 'all');
 golden.check_tlst_size = size(tlst_out);
 
 % -------------------------------------------------------------------------
+% find_tex_regions -- no inputs, hardcoded 16x16 patch grid, deterministic,
+% no RNG draws, no disk reads. Builds every unordered patch pair and its
+% distance; S3.3 decided to keep it as is, despite the overlap with mk_dist.
+% -------------------------------------------------------------------------
+
+rng(cfg.seed);
+pairs = grouping.find_tex_regions();
+golden.find_tex_regions_checksum = sum(pairs, 'all');
+golden.find_tex_regions_size = size(pairs);
+
+% -------------------------------------------------------------------------
 % +lib filters. steerable_filter is pure; steerable_grad and local_sd need
 % stdfilt/padarray from the Image Processing Toolbox, so they are gated.
 % -------------------------------------------------------------------------
@@ -248,6 +263,62 @@ rng(cfg.seed);
 lnk_a = [1, 3, 5, 7, 9];
 lnk_b = [2, 3, 5, 8];
 golden.nlsame_value = nlsame(lnk_a, numel(lnk_a), lnk_b, numel(lnk_b));
+
+% -------------------------------------------------------------------------
+% general.compute_exp_error_mat -- on a made-up subject (small, fully
+% synthetic, no disk reads). nLevels is hardcoded to 4 inside the function
+% (bug B3.18), so exp_settings.nLevels must also be 4 here, to match.
+% exp_settings.tex indexes into itself: entries 1-3 are same-pair trials
+% (one texture number each), entries 4-6 are different-pair trials (two
+% distinct texture numbers). idx/correct are built from a fixed formula
+% rather than drawn from the RNG, but seeded anyway to match every other
+% entry point's convention. Four per-level pcolor figures plus one
+% accuracy-vs-eccentricity figure open and are closed afterwards, same
+% pattern as edge_props_stim below.
+% -------------------------------------------------------------------------
+
+n_tex = 3;
+n_levels = 4;
+n_trials = 2;
+n_sessions = 2;
+
+exp_settings_synth.nTex = n_tex;
+exp_settings_synth.nLevels = n_levels;
+exp_settings_synth.nTrials = n_trials;
+exp_settings_synth.nSessions = n_sessions;
+exp_settings_synth.tex = {1, 2, 3, [1, 2], [1, 3], [2, 3]};
+exp_settings_synth.ecc = [2, 4, 8, 16];
+
+rng(cfg.seed);
+idx_synth = zeros(n_trials, n_levels, n_sessions);
+correct_synth = zeros(n_trials, n_levels, n_sessions);
+for i_trial = 1:n_trials
+    for i_level = 1:n_levels
+        for i_session = 1:n_sessions
+            idx_synth(i_trial, i_level, i_session) = mod((i_trial - 1) + ...
+                (i_level - 1)*2 + (i_session - 1)*8, 6) + 1;
+            correct_synth(i_trial, i_level, i_session) = mod(i_trial + ...
+                i_level + i_session, 2);
+        end
+    end
+end
+subject_file_synth.idx = idx_synth;
+subject_file_synth.correct = correct_synth;
+
+figs_before_cexm = findobj(0, 'Type', 'figure');
+rng(cfg.seed);
+[err_mat_all, subject_accuracy] = general.compute_exp_error_mat( ...
+    exp_settings_synth, subject_file_synth);
+golden.compute_exp_error_mat_checksum = sum(err_mat_all, 'all', 'omitnan');
+golden.compute_exp_error_mat_size = size(err_mat_all);
+golden.compute_exp_error_mat_accuracy_checksum = sum(subject_accuracy, 'all');
+golden.compute_exp_error_mat_accuracy_size = size(subject_accuracy);
+figs_after_cexm = findobj(0, 'Type', 'figure');
+for i_fig = 1:numel(figs_after_cexm)
+    if ~any(figs_after_cexm(i_fig) == figs_before_cexm)
+        close(figs_after_cexm(i_fig));
+    end
+end
 
 % -------------------------------------------------------------------------
 % Real-data entry points. Everything below reads the small, git-tracked
