@@ -241,9 +241,8 @@ win_separable = mk_win(16, 4, 2);
 golden.mk_win_separable_checksum = sum(win_separable, 'all');
 golden.mk_win_separable_size = size(win_separable);
 
-% mk_contour needs an open chain of 8-connected pixels: it scans for the first
-% row of the link map with exactly one link and uses it as the chain's start,
-% so a closed loop would make that scan run off the end.
+% mk_contour on an open chain of 8-connected pixels: a straight 10-pixel line,
+% walked from its first endpoint. (re's real patches exercise closed loops.)
 rng(cfg.seed);
 n_px = 10;
 px_x = 1:n_px;
@@ -413,11 +412,9 @@ else
 end
 
 % re needs edge/imgradient/bwconncomp/labelmatrix from the Image Processing
-% Toolbox, so it is gated. The gradient-magnitude threshold is 50 rather than
-% anything lower on purpose: below about 30 these patches yield more contours
-% in patch 1 than in patch 2, and re.m's patch-2 loop runs to patch 1's
-% contour count (bug B1.2), so the call dies on an out-of-range index. Same
-% precaution as the find_bin sweep above, which is sized to stay inside B3.2.
+% Toolbox, so it is gated. The gradient-magnitude threshold is 50 because the
+% reference was first captured at 50, when lower thresholds crashed in
+% mk_contour on closed contours (bug B2.17, since fixed).
 has_ipt_edges = exist('edge', 'file') && exist('imgradient', 'file') && ...
     exist('bwconncomp', 'file') && exist('labelmatrix', 'file');
 if has_brodatz && has_ipt_edges

@@ -3,10 +3,12 @@ function [contour_pts, links, n_contour_pts] = mk_contour(n_pixels, row, col)
     %   [contour_pts, links, n_contour_pts] = mk_contour(n_pixels, row, col)
     %
     %   Builds an adjacency ("links") map between every pair of pixels that
-    %   are 8-connected, then starts from a pixel with exactly one link (an
+    %   are 8-connected, then starts from a pixel with at most one link (an
     %   endpoint) and walks the chain, consuming each link as it is traversed.
-    %   Requires an open chain: a closed loop has no single-link starting
-    %   pixel, and the search for one runs past the end of the pixel list.
+    %   A closed loop has no endpoint, so the walk starts at its first
+    %   least-linked pixel, goes round, and ends back on that pixel: the start
+    %   pixel appears both first and last, so the closing step is part of the
+    %   walk.
     %
     %   Inputs
     %     n_pixels - number of pixels in the list.
@@ -14,15 +16,17 @@ function [contour_pts, links, n_contour_pts] = mk_contour(n_pixels, row, col)
     %     col      - horizontal coordinates of the pixels (1-by-n_pixels).
     %
     %   Output
-    %     contour_pts   - pixel indices (into row/col) in walk order
-    %                     (n_pixels-by-1; trailing entries beyond
-    %                     n_contour_pts are unused).
+    %     contour_pts   - pixel indices (into row/col) in walk order (a column,
+    %                     at least n_pixels long; entries beyond n_contour_pts
+    %                     are unused).
     %     links         - the adjacency map, left with every traversed link
     %                     zeroed out (n_pixels-by-n_pixels; all zero once the
     %                     chain has been fully traversed).
-    %     n_contour_pts - number of pixels actually included in the walk; less
-    %                     than n_pixels if some pixels were unreachable from
-    %                     the starting pixel.
+    %     n_contour_pts - number of entries in the walk, counting a pixel each
+    %                     time it is visited (n_pixels + 1 for a simple loop).
+    %                     The walk always takes the lowest-numbered unused
+    %                     link, so at a junction it can dead-end before
+    %                     visiting every pixel.
     %
     %   See also RE.
 
@@ -37,12 +41,13 @@ function [contour_pts, links, n_contour_pts] = mk_contour(n_pixels, row, col)
         end
     end
 
-    % find first row with only one link
-    i_point = 0;
-    n_links = 2;
-    while n_links > 1
-        i_point = i_point+1;
-        n_links = sum(links(i_point, :));
+    % start at the first pixel with at most one link (an endpoint). A closed
+    % contour has none, so start at its first least-linked pixel instead; the
+    % walk then goes round the loop and ends back on that pixel.
+    n_links = sum(links, 2);
+    i_point = find(n_links <= 1, 1);
+    if isempty(i_point)
+        [~, i_point] = min(n_links);
     end
 
     % make contour
