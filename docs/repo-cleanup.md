@@ -107,7 +107,7 @@
 - [ ] 🔴 **B1.2.** `re.m:103` — `for k = 1:nc1` inside the "patch 2" block (lines 85-119, mirroring "patch 1" at 48-82) almost certainly should be `for k = 1:nc2`; as written it iterates the wrong count for patch 2's labelled regions whenever `nc1 ≠ nc2`, on a live decision-variable function actually used in analysis.
 - [x] 🔴 **B1.3.** **Closed 2026-10-10 — fixed by construction as part of Stage 3's S2.8, see section 3.3.** That is why it is ticked here without a Stage 4 entry of its own. Each image set now has its own arrays and its own count, so there is no shared offset left to get wrong. On a stubbed replica of both versions, the new `ptchn12`/`ptchf12` equal the old ones minus their leading slices, and `pcnt12` is 3940. One correction to the text below: the old set-12 file carries **2080** extra leading pairs, not 2140. They are set 9's last 280 plus all 1800 of set 10, as the replica confirmed. The ancestral `texture-learning/Bill's old code - revised/nat_near_far_patches.m` already has the same fix, marked `% this was miscounted`. Any `patch_pairs_12<level>.mat` the old code ever wrote is still wrong. A filename search of this repo, `vislab-common` and `texture-learning` on 2026-10-10 found none; the only `patch_pairs_*` file is `texture-learning/data/stimuli/patch_pairs_ecc1.mat`, a different artifact. `+general/nat_near_far_patches_bayes.m` reuses a *count* as a cumulative *offset* when slicing out image set 12's patch pairs. Set 10's block (`:260-262`) is correct (`patches_near(..., pcnt9+1:patch_count)`, where `pcnt9` is a cumulative index), but set 12's block (`:340-342`) reads `patches_near(..., pcnt10+1:patch_count)` where `pcnt10 = patch_count - pcnt9` is the *number* of set-10 pairs, not the index the set ends at. With the file's own constants (104/90/197 images × 10 samples × 2 orientations) the set-12 slice should be `3881:7820` but is written as `1801:7820`, so `ptchn12`/`ptchf12` are saved 6020 slices deep instead of 3940 and their first 2140 entries are set-9/set-10 data; `pcnt12 = patch_count - pcnt10` is likewise 6020 instead of 3940. Silent — no error, just a wrong `.mat` on disk. Filed 🔴 because it is the script's whole product and the fix is one term, even though no in-repo evidence proves this script has been run since the constants changed; it is currently masked by B2.12/B2.13 throwing earlier (same masking relationship as B2.8/B2.9, which per tranche 6's precedent does not lower the tier).
 - [ ] 🟠 **B2.1.** `edge_dv.m:2-3` calls `lib.edge_contour_props(...)`, which does not exist anywhere in `+lib` — errors if reached.
-- [ ] 🟠 **B2.2.** `texture_grouping.m:72-73` calls bare `Rp(...)` and `Rh(...)`; `Rp` will resolve once the Stage 1 rename below lands (`rp.m`), but `Rh` is not defined as a callable function anywhere — it only exists as an output-variable name inside `+lib/hist_dv.m`. Since S2.3 (2026-10-05) the power call is `vislab.nat_stat_bayes.dv_power` on the windowed patches. The `Rh` call is unchanged, now around line 150.
+- [x] 🟠 **B2.2.** **Fixed 2026-10-10, see section 3.4:** the call is now `lib.hist_dv(patch1, patch2, edges)`, the function whose output used to be named `Rh`. `texture_grouping.m:72-73` calls bare `Rp(...)` and `Rh(...)`; `Rp` will resolve once the Stage 1 rename below lands (`rp.m`), but `Rh` is not defined as a callable function anywhere — it only exists as an output-variable name inside `+lib/hist_dv.m`. Since S2.3 (2026-10-05) the power call is `vislab.nat_stat_bayes.dv_power` on the windowed patches. The `Rh` call is unchanged, now around line 150.
 - [x] 🟠 **B2.3.** `+general/nat_near_far_patches_bayes.m:9,11` hardcodes `addpath('C:\Users\Bill Geisler\Documents\...')` — breaks on any machine other than the original author's. **Fixed 2026-09-21 as part of Stage 3's S2.4** (section 3.3), which is why it is ticked here without a Stage 4 entry of its own. Both `addpath` calls are gone: the image one is replaced by `fullfile(cfg.paths.natural_images, ...)` at the three `imread` sites, and the `Texture Discrimination Code` one by a comment naming the three functions it was reaching for — repointing *those* is still B2.12's, unchanged.
 - [ ] 🟠 **B2.4.** `+lib/edge_props_stim.m` declares 29 outputs but only assigns the first 15; outputs 16-29 (`npix_llr`, `ncon_llr`, `len_llr`, `len_sum`, `pos_llr`, `pos_sum`, `or_llr`, `or_sum`, `curv_llr`, `curv_sum`, `ep1_llr`-`ep16_llr`) are computed only inside the commented-out contour block at the end of the file. `+general/simulate_discrimination.m:96-101,146,335-340` asks for them by position, so the call errors with "Output argument not assigned". This is the source of the 15 `STOUT` lint messages that make this the repo's worst-linting file. Found in tranche 2 while reading the file; the fix is entangled with the block's *unfinished* triage verdict (section 3.1.4), so Stage 3 has to land before Stage 4 can close this.
 - [ ] 🟠 **B2.5.** `+grouping/demo_mk_trl_points.m:9,14` — `session = grouping.mk_texseg_session();` is called with no arguments, but the function's signature requires `(tex_set, n_tex)`, so this errors immediately with "Not enough input arguments" on the very first line. Independent of that, line 14 reads `session.texset`, but `GROUPING.MK_TEXSEG_SESSION` never sets a field of that name — its field is `session.tex_set` — so the script would error a second, independent way even past the first fix. Neither touched: the missing arguments are a real bug, and the field-name mismatch is a frozen cross-file name (see this tranche's findings-log note), not a Stage 1 rename target.
@@ -2347,6 +2347,48 @@ canon(new) minus added line == canon(old): 1
 ```
 
 *Still broken after this, as expected.* `load_stimuli` still errors before reaching line 60, on B2.10 (`monitorSizePix`, line 38) and then B2.11 (`ecc`, line 47). Past those, the hooks still error on B2.9's missing fields. B2.9's "masked by B2.8" sentence now says B2.10/B2.11 mask it. Not filed, just noting: B2.9's entry in section 0.4 has a stray fragment pasted onto its end (from "(`for i_group = 1:contrast_block_size:n_trials ...`") that seems to belong to another bug's write-up. I left it alone.
+
+</div>
+
+</details>
+
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h5 style="display:inline; margin:0; font-size:0.92em">B2.2 — <code>texture_grouping</code> calls a histogram measure named <code>Rh</code> that does not exist</h5></summary>
+
+<div style="margin-left:1.5em">
+
+Run 2026-10-10, **MATLAB R2024b**. Baseline: HEAD (`55b6489cf`). The worktree started 6 commits behind `main` and was fast-forwarded to it before any edit.
+
+*Still real?* Yes. `texture_grouping.m:150` read `responses(ii, jj, 2) = Rh(patch1, patch2, edges);`, and `which('Rh', '-all')` is empty. The `Rp` half of the item was already gone: S2.3 made that line `vislab.nat_stat_bayes.dv_power(patch1.*win, patch2.*win, noise_const, patch_size)`.
+
+*Which function?* `lib.hist_dv`, and there is no other candidate. The evidence is the repo's first commit (`1533d496f`). There, `+lib/hist_dv.m` was `function Rh = hist_dv(ptch1,ptch2,edges)`: the same three arguments, in the same order, that `texture_grouping.m` passed (`Rh(ptchi,ptchj,edges)`), and the output was named `Rh`. Stage 1 renamed that output to `dv`. The only file actually named `Rh.m` lived in the ancestral `Texture Discrimination Brodatz/` and `Texture Discrimination Fabrics/` folders, which are no longer in the repo. Its signature was `Rh(ptch1,ptch2,b1,b2,b3,usecolor,abr)`. A three-argument call would fail there at `if usecolor == 1`, because `usecolor` would be undefined. So the three-argument call was written against `hist_dv`.
+
+The two formulas differ in one place. The ancestral `Rh.m` divides each count by the patch's total count, as a multinomial likelihood ratio should. `hist_dv` divides by `n_bins` instead. For counts $c_1, c_2$ with totals $n_1, n_2$, the terms that do not cancel are $-n_1\log n_1 - n_2\log n_2 + (n_1+n_2)\log(n_1+n_2)$ for the ancestral form and $(n_1+n_2)\log 2$ for `hist_dv`. These are equal when $n_1 = n_2$. That holds here, because both patches are $64\times64$ and the edges `0:4:256` cover every gray level. Probe 5 below confirms it numerically. `hist_dv`'s header already says `n_bins` cancels.
+
+*Call sites.* A grep of the whole repo, including non-`.m` files, for `\bRh\b` finds only `texture_grouping.m` (the call and two places in the header) and this plan. `lib.hist_dv` is already called the same way in `run_demo.m:129,132` and in `+general/simulate_discrimination.m`, four times. There is no local variable named `lib` in `texture_grouping.m` that could shadow the package. No `README.md` or `Contents.m` entry describes the `Rh` call, so no other file changes.
+
+*The change.* In `texture_grouping.m`, line 150 now calls `lib.hist_dv(patch1, patch2, edges)`. The header's summary says `(LIB.HIST_DV)` where it said `(Rh)`. The "broken as written … Stage 4 item B2.2" note is cut down to its last sentence, about the power call needing `SETUP`. `See also` already listed `LIB.HIST_DV`.
+
+*Verification.* This ran in an isolated copy (`git archive HEAD` plus the edited file, in the scratchpad), with a sibling `vislab-common` junction, because `config.m` resolves `../vislab-common` and a worktree has no such sibling. The script itself was **not** run: it reads 16 Brodatz sheets and makes 65536 calls, which the standing authorization does not cover. Probe 4 runs the exact edited call on synthetic $64\times64$ patches and on the `edges` vector built exactly as the script builds it. Probe 5 is the ancestral `Rh.m` grayscale formula, run on the same pair. Verbatim:
+
+```
+CHECKCODE texture_grouping: 1 -> 1
+  line 55: Using 'clear' with the 'all' option usually decreases code performance and is often unnecessary.
+CANON parses texture_grouping.m: 5320 chars
+which Rh: []
+which lib.hist_dv: [...\b22\texture-segmentation\+lib\hist_dv.m]
+hist_dv  diff=1839.9495071839003  same-dist=22.902298413532954  self=2.1316282072803006e-14
+ancestral Rh formula diff=1839.9495071838974  rel.err vs hist_dv=1.61e-15  counts 4096 4096
+REPLAY PASSED
+```
+
+The one lint message is the existing `CLALL` (O3.7). It moved from line 58 to line 55 because the header lost three lines. The `which` path is shortened here.
+
+*Golden harness.* The harness does not call `texture_grouping.m` (`tools/golden_harness.m:6,43`), and it does not call `hist_dv` at all. So no reference field can depend on this edit. Replay passed, as expected, and no recapture is needed.
+
+*Is the script runnable now?* Not proven. This was its last known dangling name: `mk_win`, `thresh`, `nlsame` and `config` resolve at the root, and S2.3 already fixed the power call. Past this line, it still has the issues already filed: O3.7 (`clear all`), S3.7 (the literal `rng(2)`) and S3.8 (the unrecorded quadratic constants). One observation, not filed: `log(responses(ii, jj, 2))` would be `-Inf` if two different patches ever had identical histograms. `hist_dv` of a patch with itself gives about $2\times10^{-14}$ rather than 0, but the diagonal is skipped (`if ii ~= jj`). Two different $64\times64$ patches of real texture with identical 64-bin histograms seem very unlikely, so I am only noting it.
+
+*Found while doing this.* Nothing new for sections 0.3, 0.4 or 0.5.
 
 </div>
 

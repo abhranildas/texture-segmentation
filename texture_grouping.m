@@ -6,7 +6,7 @@
 %   scene into a 16x16 grid of 64x64 patches and computes two same/different
 %   decision variables for every ordered pair of patches: a windowed
 %   power-spectrum difference (VISLAB.NAT_STAT_BAYES.DV_POWER on the windowed
-%   patches) and a gray-level histogram difference (Rh).
+%   patches) and a gray-level histogram difference (LIB.HIST_DV).
 %   A hardcoded 2-cue quadratic combines the two logs into one decision
 %   variable per pair, which is thresholded into links; links are then pruned
 %   and merged into groups by how many links each linked pair shares. Displays
@@ -42,10 +42,7 @@
 %                  variable (page 2).
 %     group_img  - scene_size x scene_size map of each patch's group number.
 %
-%   Note: broken as written. The Rh call below names no function that exists in
-%   this repo -- Rh is only an output-variable name inside LIB.HIST_DV, whose
-%   signature (patch1, patch2, edges) is the one used here. Stage 4 item B2.2.
-%   The power call resolves once SETUP has put vislab-common on the path.
+%   Note: the power call resolves once SETUP has put vislab-common on the path.
 %
 %   Note: seeds with the literal rng(2) where CONFIG exposes cfg.seed = 0, and
 %   hardcodes a 2-cue quadratic boundary of the same shape as the repo's
@@ -147,7 +144,7 @@ for ii = 1:n_patches
         patch2 = scene(patch_row_lo:patch_row_hi, patch_col_lo:patch_col_hi);
         responses(ii, jj, 1) = vislab.nat_stat_bayes.dv_power(patch1.*win, ...
             patch2.*win, noise_const, patch_size);
-        responses(ii, jj, 2) = Rh(patch1, patch2, edges);
+        responses(ii, jj, 2) = lib.hist_dv(patch1, patch2, edges);
     end
 end
 
