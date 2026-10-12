@@ -8,7 +8,7 @@ function [masks, maps] = mk_masks(grid_size, n_regions, n_trials, seed_radius_fr
 %   inside a disc about the grid center, and the regions then take turns
 %   claiming a free neighbouring patch - in a fresh random region order on
 %   every pass, so no region gets a systematic head start - until the
-%   requested fraction of the grid is claimed. GROUPING.CHECK_TLST does the
+%   requested fraction of the grid is claimed. GROUPING.CHECK_SIDE does the
 %   per-side "is this neighbour still free" test.
 %
 %   Inputs
@@ -33,7 +33,7 @@ function [masks, maps] = mk_masks(grid_size, n_regions, n_trials, seed_radius_fr
 %             patch holding its region number in 1:n_regions, or 0 if growing
 %             stopped before it was claimed.
 %
-%   See also GROUPING.CHECK_TLST, GROUPING.CHECK_XY, GROUPING.FIND_XY.
+%   See also GROUPING.CHECK_SIDE, GROUPING.CHECK_XY, GROUPING.FIND_XY.
 
     seed_radius = seed_radius_frac*grid_size/2;
     masks = zeros(grid_size, grid_size, grid_size*n_regions);
@@ -92,7 +92,7 @@ function [masks, maps] = mk_masks(grid_size, n_regions, n_trials, seed_radius_fr
                     while i_side < 4 && is_free == 0
                         i_side = i_side + 1;
                         [is_free, x_out, y_out] = ...
-                            grouping.check_tlst(side_order(i_side), x, y, map, grid_size);
+                            grouping.check_side(side_order(i_side), x, y, map, grid_size);
                     end
                     if is_free == 1
                         % when 1 is added move on to the next region

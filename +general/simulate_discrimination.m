@@ -16,6 +16,10 @@ function simulate_discrimination()
 %        boundaries, and title the figure green or red by whether it was
 %        right.
 %
+%   Seeds the RNG once, with cfg.seed from CONFIG, so a run is reproducible.
+%   An earlier version left that seed commented out, so each run drew a
+%   fresh stream.
+%
 %   Inputs: none. The parameters are the constants at the top of each section --
 %     n_tex       - number of texture sheets (count)
 %     image_size  - texture sheet side length (pixels)
@@ -59,10 +63,11 @@ function simulate_discrimination()
 %   GENERAL.COMPUTE_EXP_ERROR_MAT.
 
     %% simulate texture discrimination from patches
-    % rng(0);
 
-    % every data path below comes from config(), never from the current folder
+    % every data path below, and the RNG seed, comes from config(), never from
+    % the current folder
     cfg = config();
+    rng(cfg.seed);
 
     % constants and parameters
     n_tex = 60;  % # of textures

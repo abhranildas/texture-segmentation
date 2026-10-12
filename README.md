@@ -104,7 +104,7 @@ texture-segmentation/
 │                           plus a shared +run for the hooks both experiments use
 ├── +general/             patch-pair generators, simulations, analysis functions
 │                           (these are the parts that need the natural-image set)
-├── data/                 model/ (fitted discrimination boundaries)
+├── data/                 model/ (fitted discrimination boundaries, model results)
 │                           + stimuli/ (derived patch sets, git-ignored where large)
 ├── exp_files/            human-subject experiment settings and output
 ├── docs/                 repo-cleanup.md — the cleanup/refactor plan and bug register
@@ -112,8 +112,22 @@ texture-segmentation/
 └── tools/                repo-maintenance checks (style check, golden-output harness)
 ```
 
-A handful of older analysis scripts also sit at the root (`re.m`, `rs.m`, `edge_dv.m`,
-`mk_win.m`, `mk_contour.m`, `thresh.m`, `nlsame.m`, `texture_grouping.m`).
+The full-scene grouping demo (part 9 of `run_demo.m`) and the older analysis functions use decision
+variables that live in `+lib` (`re`, `rs`, `rs_new`, `edge_dv`, `mk_contour`) and `+grouping`
+(`mk_win`, `thresh`, `nlsame`).
+
+`data/model/` holds fitted decision boundaries and model-evaluation results, none of them
+reproducible from the code in this repo (the fits predate it):
+- `brodatz_boundary.mat` — the 2-cue (power, histogram) quadratic boundary `run_demo.m`'s part 9
+  loads, fitted on Brodatz scenes like the one it builds.
+- `fabric_bd.mat` — the same shape of boundary, fitted on fabric textures instead; nothing in the
+  repo loads it.
+- `texture discrimination boundaries.mat` — the 4- and 9-cue boundaries `+general/simulate_discrimination.m`
+  compares a simulated observer against.
+- `all_cues.mat` — power/histogram/edge cue values and same/different labels for 17,700 Brodatz
+  patch pairs, the data `brodatz_boundary.mat` was checked against.
+- `acc_mod.mat` — two 6x4 model-accuracy tables (`acc_mod_train`, `acc_mod_gen`); not loaded by
+  any code here.
 
 Shared low-level code lives in `vislab` (not here), so it isn't duplicated across the lab's repos.
 

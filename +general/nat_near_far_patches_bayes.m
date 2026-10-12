@@ -9,7 +9,9 @@ function nat_near_far_patches_bayes()
 %   dist_min pixels away. Both orientations (right and down) are produced, the
 %   down pair by transposing, so each reference patch yields two near pairs and
 %   two far pairs. Results are written as three .mat files, one per image set.
-%   The sets are processed in order, 9 then 10 then 12, from one RNG stream.
+%   The sets are processed in order, 9 then 10 then 12, from one RNG stream
+%   seeded with cfg.seed. An earlier version had rng(0) here with
+%   rng('shuffle') commented out beside it; CONFIG now holds that switch.
 %
 %   Every path it reads or writes is built from CONFIG -- with one exception,
 %   the two cdfs files of B2.13, which are not in the shared data store and so
@@ -63,8 +65,7 @@ function nat_near_far_patches_bayes()
     % repointing those three calls is B2.12's job, not a path-routing fix.
     cfg = config();
 
-    rng(0);  % random number generator seed
-    % rng('shuffle');
+    rng(cfg.seed);  % the repo-wide seed; see CONFIG for a fresh stream per run
 
     % normalization parameters
     cnorm = 1;

@@ -13,10 +13,15 @@
 % Region growing and patch tests
 %   mk_masks           - Grow random texture-region maps and masks for a whole session.
 %   mk_texs            - Assign a texture to every region of every trial in a session.
-%   check_tlst         - Test whether the patch on one side of a given patch is unfilled.
+%   check_side         - Test whether the patch on one side of a given patch is unfilled.
 %   check_xy           - Test whether a patch lies on a texture-region boundary.
 %   find_xy            - Draw a random patch location that is not on a region boundary.
 %   shape_cue          - Crop one texture region's outline into a small cue thumbnail.
+%
+% Scene grouping (used by run_demo.m, part 9)
+%   mk_win             - Raised-cosine-boundary window.
+%   thresh             - Threshold a patch-pair response matrix, forcing the diagonal true.
+%   nlsame             - Count the links two patches have in common.
 %
 % Session and trial stimulus scripts
 %   mk_texseg_session       - Build and return all trial information for one session.

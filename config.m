@@ -34,7 +34,11 @@ function cfg = config()
 %       optics.wavelength     - wavelength, in nm.
 %       norm.target_mean      - target patch mean, in gray levels (0-255).
 %       norm.target_contrast  - target RMS contrast, dimensionless fraction.
-%       seed                  - RNG seed, for reproducible runs.
+%       seed                  - RNG seed, for reproducible runs. Every file
+%                               that seeds the RNG calls rng(cfg.seed), so
+%                               this is the repo's one seed. Set it to
+%                               'shuffle' for a fresh stream each run;
+%                               tools/golden_harness.m expects 0.
 %
 %   The optics triple is exactly what vislab.lib.otf_filter takes as its last
 %   three arguments; it is a shared lab constant, not a per-project choice.

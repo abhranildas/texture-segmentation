@@ -1,6 +1,6 @@
-function [is_free, x_out, y_out] = check_tlst(side, x, y, map, grid_size)
-% CHECK_TLST  Test whether the patch on one side of a given patch is unfilled.
-%   [is_free, x_out, y_out] = grouping.check_tlst(side, x, y, map, grid_size)
+function [is_free, x_out, y_out] = check_side(side, x, y, map, grid_size)
+% CHECK_SIDE  Test whether the patch on one side of a given patch is unfilled.
+%   [is_free, x_out, y_out] = grouping.check_side(side, x, y, map, grid_size)
 %
 %   The region-growing loop in GROUPING.MK_MASKS uses this to find somewhere to
 %   extend a texture region: it walks the four sides of a patch already in the

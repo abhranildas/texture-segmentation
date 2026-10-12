@@ -87,7 +87,7 @@ function dv = re(patch1, patch2, patch_size, log_sigma, n_kernels, threshold)
     mismatch_count = 0; sum_orient_diff = 0; n_segments = 0;
     for kk = 1:n_contours1
         [contour_pts, ~, n_contour_pts] = ...
-            mk_contour(n_pixels(kk), pixel_row(kk, :), pixel_col(kk, :));
+            lib.mk_contour(n_pixels(kk), pixel_row(kk, :), pixel_col(kk, :));
         if n_contour_pts < n_pixels(kk)
             mismatch_count = mismatch_count + 1;
         end
@@ -126,7 +126,7 @@ function dv = re(patch1, patch2, patch_size, log_sigma, n_kernels, threshold)
     mismatch_count = 0; sum_orient_diff = 0; n_segments = 0;
     for kk = 1:n_contours2
         [contour_pts, ~, n_contour_pts] = ...
-            mk_contour(n_pixels(kk), pixel_row(kk, :), pixel_col(kk, :));
+            lib.mk_contour(n_pixels(kk), pixel_row(kk, :), pixel_col(kk, :));
         if n_contour_pts < n_pixels(kk)
             mismatch_count = mismatch_count + 1;
         end

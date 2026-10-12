@@ -10,6 +10,9 @@ function session = mk_texseg_session(tex_set, n_tex)
 %   immediately followed by a "same" trial redrawn from the same bin, so the
 %   two conditions are matched for geometry pair by pair.
 %
+%   Seeds the RNG with cfg.seed from CONFIG at the start of every call, so the
+%   same inputs always give the same session.
+%
 %   Inputs
 %     tex_set - which texture database this session draws from: 'brodatz',
 %               'fabric', or 'pertex'. Stored in the output but not otherwise
@@ -41,8 +44,8 @@ function session = mk_texseg_session(tex_set, n_tex)
 %   GROUPING.MK_PAIR_GEOMETRY, GROUPING.FIND_BIN, GROUPING.FIND_XY,
 %   GROUPING.CHECK_XY.
 
-    seed = 0;
-    rng(seed);
+    cfg = config();
+    rng(cfg.seed);
     block_size = 24;      % trials per contrast block
     n_blocks = 20;        % number of contrast blocks
     n_trials = block_size*n_blocks;

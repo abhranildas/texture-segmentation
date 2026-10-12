@@ -3,7 +3,7 @@ function golden = golden_harness(mode, golden_file)
 %   golden = golden_harness('capture', golden_file)
 %   golden = golden_harness('replay', golden_file)
 %
-%   Calls entry points directly (never through texture_grouping.m or any
+%   Calls entry points directly (never through run_demo.m or any
 %   Psychtoolbox launcher) under an explicit rng(cfg.seed), and either saves
 %   their reduced outputs to GOLDEN_FILE ('capture') or reloads GOLDEN_FILE and
 %   asserts isequal against a fresh run ('replay').
@@ -11,13 +11,13 @@ function golden = golden_harness(mode, golden_file)
 %   Entry points, by tranche (docs/repo-cleanup.md sections 1 and 3.1.2):
 %     9 (config/driver)      config
 %     3 (+grouping helpers)  mk_dist, mk_mecc, mk_decc, mk_bindex, mk_masks,
-%                            find_bin, check_xy, check_tlst
+%                            find_bin, check_xy, check_side
 %     3 (+grouping)          find_tex_regions, no inputs (S2.5/S3.3)
 %     2 (+lib)               steerable_filter, steerable_grad, local_sd,
 %                            texture_patch, edge_props_stim (error identity
 %                            only -- see below)
-%     5 (root cluster C)     mk_win, mk_contour, thresh, nlsame, re, rs,
-%                            rs_new
+%     5 (root cluster C,     mk_win, mk_contour, thresh, nlsame, re, rs,
+%      now +grouping/+lib)   rs_new (moved out of root by O3.12)
 %     vislab-common          vislab.nat_stat_bayes.dv_power, on windowed
 %                            patches, in place of the deleted rp (item S2.3)
 %     8 (+general)           compute_exp_error_mat(exp_settings, subject_file),
@@ -39,8 +39,7 @@ function golden = golden_harness(mode, golden_file)
 %   B2.12/B2.13/B2.15/B3.1 -- not a data problem, just no runnable path
 %   through nat_near_far_patches_bayes/simulate_discrimination yet);
 %   edge_dv.m (B2.1: calls a function that does not exist);
-%   contour_blur_estimation.m (a figure script with no callable entry
-%   point); texture_grouping.m and setup.m (driver / path-modifying
+%   run_demo.m and setup.m (driver / path-modifying
 %   scripts). Also not covered: +grouping/mk_texs.m, find_xy.m and the
 %   +grouping stimulus functions, which need real texture sheets or do not
 %   run (B2.5/B2.6).
@@ -58,11 +57,14 @@ setup();
 cfg = config();
 
 % Field names below use the POST-RENAME function names (find_bin, check_xy,
-% check_tlst) even though tranche 0.1.1 has not run yet. Golden-struct fields
+% check_tlst -- since renamed check_side, O3.4) even though tranche 0.1.1 has not
+% run yet. Golden-struct fields
 % are dot-qualified, so check_stage1's reverse-rename regex deliberately skips
 % them -- renaming them later would make the check fail on a correct edit, and
 % would also invalidate the captured reference. Naming them final from the
-% start avoids both.
+% start avoids both. The check_tlst_* fields keep their original names for the
+% same reason: the function is now grouping.check_side (O3.4), but renaming the
+% fields would invalidate golden_ref.mat and need a recapture.
 
 % -------------------------------------------------------------------------
 % Shared synthetic inputs. Small and fully synthetic -- no disk reads.
@@ -140,7 +142,7 @@ golden.mk_masks_maps_checksum = sum(maps, 'all');
 golden.mk_masks_maps_size = size(maps);
 
 % -------------------------------------------------------------------------
-% check_xy / check_tlst -- swept over a fixed synthetic label map, so the
+% check_xy / check_side -- swept over a fixed synthetic label map, so the
 % reduction covers every branch rather than one arbitrary location.
 % -------------------------------------------------------------------------
 
@@ -166,7 +168,7 @@ tlst_out = zeros(4, grid_size, grid_size, 3);
 for dprm = 1:4
     for x = 1:grid_size
         for y = 1:grid_size
-            [chk_flag, x_out, y_out] = grouping.check_tlst(dprm, x, y, free_map, grid_size);
+            [chk_flag, x_out, y_out] = grouping.check_side(dprm, x, y, free_map, grid_size);
             tlst_out(dprm, x, y, :) = [chk_flag, x_out, y_out];
         end
     end
@@ -232,12 +234,12 @@ end
 % -------------------------------------------------------------------------
 
 rng(cfg.seed);
-win_radial = mk_win(16, 4, 1);
+win_radial = grouping.mk_win(16, 4, 1);
 golden.mk_win_radial_checksum = sum(win_radial, 'all');
 golden.mk_win_radial_size = size(win_radial);
 
 rng(cfg.seed);
-win_separable = mk_win(16, 4, 2);
+win_separable = grouping.mk_win(16, 4, 2);
 golden.mk_win_separable_checksum = sum(win_separable, 'all');
 golden.mk_win_separable_size = size(win_separable);
 
@@ -247,21 +249,21 @@ rng(cfg.seed);
 n_px = 10;
 px_x = 1:n_px;
 px_y = ones(1, n_px);
-[contour_out, lnks, n_con] = mk_contour(n_px, px_y, px_x);
+[contour_out, lnks, n_con] = lib.mk_contour(n_px, px_y, px_x);
 golden.mk_contour_checksum = sum(contour_out, 'all');
 golden.mk_contour_lnks_checksum = sum(lnks, 'all');
 golden.mk_contour_n_con = n_con;
 
 rng(cfg.seed);
 rsp = rand(grid_size, grid_size);
-r_thresh = thresh(rsp, grid_size, 0.5);
+r_thresh = grouping.thresh(rsp, grid_size, 0.5);
 golden.thresh_checksum = sum(r_thresh, 'all');
 golden.thresh_size = size(r_thresh);
 
 rng(cfg.seed);
 lnk_a = [1, 3, 5, 7, 9];
 lnk_b = [2, 3, 5, 8];
-golden.nlsame_value = nlsame(lnk_a, numel(lnk_a), lnk_b, numel(lnk_b));
+golden.nlsame_value = grouping.nlsame(lnk_a, numel(lnk_a), lnk_b, numel(lnk_b));
 
 % -------------------------------------------------------------------------
 % general.compute_exp_error_mat -- on a made-up subject (small, fully
@@ -395,15 +397,15 @@ end
 % S2.3).
 if has_brodatz
     rng(cfg.seed);
-    win_rp = mk_win(patch_size_px, patch_size_px/4, 1);
+    win_rp = grouping.mk_win(patch_size_px, patch_size_px/4, 1);
     golden.rp_diff = vislab.nat_stat_bayes.dv_power(patch_a1.*win_rp, ...
         patch_b1.*win_rp, 10, patch_size_px);
     golden.rp_same = vislab.nat_stat_bayes.dv_power(patch_a1.*win_rp, ...
         patch_a2.*win_rp, 10, patch_size_px);
 
     rng(cfg.seed);
-    golden.rs_diff = rs(patch_a1, patch_b1, patch_size_px);
-    golden.rs_same = rs(patch_a1, patch_a2, patch_size_px);
+    golden.rs_diff = lib.rs(patch_a1, patch_b1, patch_size_px);
+    golden.rs_same = lib.rs(patch_a1, patch_a2, patch_size_px);
 else
     golden.rp_diff = [];
     golden.rp_same = [];
@@ -419,8 +421,8 @@ has_ipt_edges = exist('edge', 'file') && exist('imgradient', 'file') && ...
     exist('bwconncomp', 'file') && exist('labelmatrix', 'file');
 if has_brodatz && has_ipt_edges
     rng(cfg.seed);
-    golden.re_diff = re(patch_a1, patch_b1, patch_size_px, 2, 8, 50);
-    golden.re_same = re(patch_a1, patch_a2, patch_size_px, 2, 8, 50);
+    golden.re_diff = lib.re(patch_a1, patch_b1, patch_size_px, 2, 8, 50);
+    golden.re_same = lib.re(patch_a1, patch_a2, patch_size_px, 2, 8, 50);
 else
     golden.re_diff = [];
     golden.re_same = [];
@@ -430,8 +432,8 @@ end
 % 8 sub-blocks per side of the 64-pixel patch.
 if has_brodatz && exist('xcorr2', 'file')
     rng(cfg.seed);
-    golden.rs_new_diff = rs_new(patch_a1, patch_b1, patch_size_px, 8);
-    golden.rs_new_same = rs_new(patch_a1, patch_a2, patch_size_px, 8);
+    golden.rs_new_diff = lib.rs_new(patch_a1, patch_b1, patch_size_px, 8);
+    golden.rs_new_same = lib.rs_new(patch_a1, patch_a2, patch_size_px, 8);
 else
     golden.rs_new_diff = [];
     golden.rs_new_same = [];

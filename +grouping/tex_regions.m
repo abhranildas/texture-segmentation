@@ -4,7 +4,7 @@ function tex_regions()
 %
 %   Grows n_regions contiguous texture regions over the patch grid the same
 %   way GROUPING.MK_MASKS does (one seed patch per region, then random-order
-%   neighbour claiming via GROUPING.CHECK_TLST until the grid is full), but
+%   neighbour claiming via GROUPING.CHECK_SIDE until the grid is full), but
 %   for a single image rather than a whole session, and with a fixed list of
 %   eight Brodatz textures rather than random draws.
 %
@@ -16,7 +16,7 @@ function tex_regions()
 %
 %   Note: like the script it replaces, this closes every open figure first.
 %
-%   See also GROUPING.MK_MASKS, GROUPING.CHECK_TLST, GROUPING.S_GTR_IMG.
+%   See also GROUPING.MK_MASKS, GROUPING.CHECK_SIDE, GROUPING.S_GTR_IMG.
 
     close all;
 
@@ -71,7 +71,7 @@ function tex_regions()
                 i_side = 0;
                 while i_side < 4 && is_free == 0
                     i_side = i_side+1;
-                    [is_free, x_out, y_out] = grouping.check_tlst(side_order(i_side), ...
+                    [is_free, x_out, y_out] = grouping.check_side(side_order(i_side), ...
                         x, y, map, grid_size);
                 end
                 if is_free == 1
