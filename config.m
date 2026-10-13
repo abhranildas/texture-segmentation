@@ -32,6 +32,15 @@ function cfg = config()
 %       optics.ppd            - pixels per degree of visual angle.
 %       optics.pupil_diameter - pupil diameter, in mm.
 %       optics.wavelength     - wavelength, in nm.
+%       optics.apply          - whether to apply the eye-optics OTF when
+%                               loading a natural image (vislab.nat_stat_bayes.
+%                               source_to_lms); true matches the OTF-derived
+%                               LMS->ABR rotation vislab.nat_stat_bayes.
+%                               apply_color_rotation loads by default.
+%       natural.max_val       - calibrated pixel max of the CPS natural images
+%                               (14-bit range, despite the 16-bit PNG
+%                               container); used to rescale a loaded image to
+%                               0-255 (prescale = 255/max_val).
 %       norm.target_mean      - target patch mean, in gray levels (0-255).
 %       norm.target_contrast  - target RMS contrast, dimensionless fraction.
 %       seed                  - RNG seed, for reproducible runs. Every file
@@ -70,6 +79,10 @@ function cfg = config()
     cfg.optics.ppd            = 60;
     cfg.optics.pupil_diameter = 4;
     cfg.optics.wavelength     = 550;
+    cfg.optics.apply          = true;
+
+    % --- calibrated natural images (CPS set); shared lab constant ---
+    cfg.natural.max_val = 2^14 - 1;
 
     % --- luminance/contrast normalization ---
     cfg.norm.target_mean     = 128;

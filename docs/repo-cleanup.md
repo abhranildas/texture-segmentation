@@ -207,6 +207,64 @@
 
 </details>
 
+<details style="margin:0.7em 0 0.7em 1.5em">
+<summary><h3 style="display:inline; margin:0; font-size:1.05em">⬜ 0.7 · Missing figures · Manuscript Figures 6B-D, 7, 8</h3></summary>
+
+<div style="margin-left:1.5em">
+
+**Description.** `run_demo.m` reproduces manuscript Figures 1, 5, 6A, 9, and (as of 2026-10-13) the human
+half of 6B. The rest of Figure 6 (B's model overlay, C, D) and all of Figures 7 and 8 need
+infrastructure that does not exist yet in this repo, found while scoping that addition. Unlike section
+0.4's bugs, these are not broken code to fix — they are entry points nobody has written. Id `F<n>`, same
+non-renumbering rule as 0.4/0.5.
+
+**Also found while scoping this:** `run_demo.m` (and this file, and the README) mislabeled the
+region-growing-parameter-variants figure as the manuscript's "Figure 8" throughout. Checked against
+`notes/Texture Paper_revised.docx`: that content is actually **Figure 9** ("Examples of 640 x 640 grown
+texture regions. A. regions = 5, block size = 64, ..."). The manuscript's actual Figure 8 is "Contributions
+of different cues to model performance" (F1 below) — a different figure this repo does not build at all.
+**Fixed 2026-10-13** — every "paper Figure 8" reference in `run_demo.m` and `README.md` now reads
+"Figure 9"; nothing else changed.
+
+**To-do.**
+
+- [ ] 🟠 **F1.** No code anywhere in the repo computes model accuracy or decision-variable statistics as
+  a function of **retinal eccentricity**. `+general/simulate_discrimination.m` is the only candidate and
+  only ever runs at the fovea (`ppd = 60` is a fixed constant, no eccentricity parameter at all) — and it
+  does not currently run there either, blocked by B2.15 and then B3.1 (section 0.4). Needed for: Figure
+  6B's solid (model) symbols, Figure 6D's model threshold predictions in both tasks, and all of Figure
+  8A (model accuracy vs eccentricity, by cue group, Brodatz vs Fabric). `data/model/acc_mod.mat` (two
+  unlabelled 6x4 tables, `acc_mod_train`/`acc_mod_gen`) may already hold a precomputed version of some
+  of this — nothing in the repo loads or documents it, so its two axes' meaning should be confirmed
+  against the original source (or the paper's authors) before anything reuses it; guessing the 6 and 4
+  axes risks mislabeling a real figure.
+- [ ] 🟠 **F2.** No decision boundary exists for the **joined task** (Figure 6C's black curve and
+  scatter), the task where two patches abut so the model can also read the border between them. This is
+  a smaller gap than it looks: the joined-task *stimulus* already exists —
+  `+experiment/+discriminate/+prep/generate_stimuli.m`'s `'joined'` branch (line 51) draws one
+  128x64-pixel `lib.texture_patch` and splits it into top/bottom halves — and `vislab.nat_stat_bayes.
+  dv_border` (the border decision variable itself) is already implemented in the shared library. What's
+  missing is the layer in between: drawing same/different joined-patch pairs the way `all_cues.mat`
+  does for the separated task, computing `dv_border` (and probably the existing content cues) over them,
+  and fitting a `classify_normals` boundary — i.e. a joined-task equivalent of `data/model/all_cues.mat`,
+  which does not exist. `vislab.nat_stat_bayes.dv_border` currently has **zero callers** anywhere in this
+  repo (confirmed by grep), so this would be its first real use here. Blocks Figure 6C entirely and
+  Figure 6D's joined-task thresholds; Figure 8 needs it compared against content cues specifically.
+- [ ] 🟠 **F3.** No trial-by-trial decision-variable correlation analysis exists anywhere in the repo.
+  Figure 7 ("Average trial-by-trial decision variable correlations as function of retinal eccentricity")
+  needs this built from scratch against the real subject trial data in `exp_files/` — correlating, across
+  observers, the model's trial-by-trial decision variable with the response each observer actually gave
+  at each eccentricity level. No existing function computes anything like this; `general.
+  compute_exp_error_mat` (used by the new human-only Figure 6B demo part) only aggregates to
+  proportion-correct, it does not look at trial-by-trial variable values at all.
+- [ ] 🟡 **F4.** Figure 8 panel B is marked "(to be finished)" in the manuscript source itself
+  (`notes/Texture Paper_revised.docx`) — not just unbuilt here, unfinished in the paper. Worth confirming
+  with the manuscript's authors what panel B is meant to show before any work goes into it.
+
+</div>
+
+</details>
+
 </details>
 
 ---
